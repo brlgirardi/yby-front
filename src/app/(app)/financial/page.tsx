@@ -346,7 +346,11 @@ export default function FinancialPage() {
               { title:'Domicílio bancário', dataIndex:'domicilio', key:'domicilio', render: v => <span style={{ color:'rgba(0,0,0,0.65)', fontFamily:'Roboto Mono', fontSize:11 }}>{v}</span> },
               { title:'Volume liquidado', dataIndex:'vol', key:'vol', render: v => <span style={{ fontWeight:600, color:'#52c41a' }}>{fmt(v)}</span> },
               { title:'Status', dataIndex:'status', key:'status', width:100, render: v => <span style={{ background:v==='Ativo'?'#f6ffed':'#fffbe6', color:v==='Ativo'?'#52c41a':'#faad14', border:`1px solid ${v==='Ativo'?'#b7eb8f':'#ffe58f'}`, borderRadius:2, padding:'1px 8px', fontSize:12, fontWeight:500 }}>{v}</span> },
-              { title:'Ações', key:'actions', width:70, render: () => <button style={{ border:'none', background:'none', color:'#1890FF', fontSize:12, cursor:'pointer' }}>Editar</button> },
+                            { title:'Ações', key:'actions', width:70, render: () => (
+                <button title="Editar" style={{ border:'none', background:'none', color:'rgba(0,0,0,0.35)', cursor:'pointer', padding:4, display:'flex', alignItems:'center', borderRadius:4 }} onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.color='#1890FF';(e.currentTarget as HTMLElement).style.background='#f5f5f5'}} onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.color='rgba(0,0,0,0.35)';(e.currentTarget as HTMLElement).style.background='none'}}>
+                  <Icon name="edit" size={14} color="currentColor" />
+                </button>
+              ) },
             ]
             return (
               <DataTable
@@ -370,7 +374,11 @@ export default function FinancialPage() {
               { title:'Crédito líquido', dataIndex:'cred', key:'cred', render: v => <span style={{ fontWeight:600, color:'#52c41a' }}>{fmt(v)}</span> },
               { title:'Conta creditada', dataIndex:'conta', key:'conta', render: v => <span style={{ color:'rgba(0,0,0,0.45)', fontFamily:'Roboto Mono', fontSize:11 }}>{v}</span> },
               { title:'Status', dataIndex:'status', key:'status', width:90, render: (_,r) => <LiqTag s={r.status} /> },
-              { title:'', key:'acao', width:80, render: (_,r) => <button onClick={()=>setDrawerLiq(r)} style={{ border:'none', background:'none', color:'#1890FF', fontSize:12, cursor:'pointer' }}>Detalhes</button> },
+              { title:'', key:'acao', width:56, render: (_,r) => (
+                <button onClick={()=>setDrawerLiq(r)} title="Ver detalhes" style={{ border:'none', background:'none', color:'rgba(0,0,0,0.35)', cursor:'pointer', padding:4, display:'flex', alignItems:'center', borderRadius:4 }} onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.color='#1890FF';(e.currentTarget as HTMLElement).style.background='#f5f5f5'}} onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.color='rgba(0,0,0,0.35)';(e.currentTarget as HTMLElement).style.background='none'}}>
+                  <Icon name="eye" size={14} color="currentColor" />
+                </button>
+              ) },
             ]
             return (
               <>

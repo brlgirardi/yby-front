@@ -81,7 +81,11 @@ export default function PricingPage() {
                       </td>
                       <td style={{ padding:'12px 20px', color:p.antec==='—'?'rgba(0,0,0,0.25)':'rgba(0,0,0,0.65)' }}>{p.antec}</td>
                       <td style={{ padding:'12px 20px', color:'rgba(0,0,0,0.65)' }}>{p.tarifa}</td>
-                      <td style={{ padding:'12px 20px', textAlign:'right' }}><button style={{ border:'none', background:'none', color:'#1890FF', fontSize:12, cursor:'pointer' }}>Editar</button></td>
+                      <td style={{ padding:'12px 20px', textAlign:'right' }}>
+                        <button title="Editar" style={{ border:'none', background:'none', color:'rgba(0,0,0,0.35)', cursor:'pointer', padding:4, display:'inline-flex', alignItems:'center', borderRadius:4 }} onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.color='#1890FF';(e.currentTarget as HTMLElement).style.background='#f5f5f5'}} onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.color='rgba(0,0,0,0.35)';(e.currentTarget as HTMLElement).style.background='none'}}>
+                          <Icon name="edit" size={14} color="currentColor" />
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

@@ -452,7 +452,7 @@ export default function AgendaPage() {
               },
               {
                 title: '', key: 'actions', width: 60,
-                render: () => <button style={{ border:'none', background:'none', color:'#1890FF', fontSize:13, cursor:'pointer', padding:0 }}>Ver</button>,
+                render: () => <button title="Ver detalhes" style={{ border:'none', background:'none', color:'rgba(0,0,0,0.35)', cursor:'pointer', padding:4, display:'flex', alignItems:'center', borderRadius:4 }}><Icon name="eye" size={15} color="rgba(0,0,0,0.35)" /></button>,
               },
             ]
 
@@ -468,7 +468,85 @@ export default function AgendaPage() {
             const bFilter = filterBandeira ? [filterBandeira] : bandeiras
             const sFilter = filterStatus ? [filterStatus] : ['Pago','Pendente','Antecipado','Chargeback','Liquidado']
 
-            return (
+            return agrupado ? (
+              /* ── Visão agrupada por lote ── */
+              <div style={{ background:'#fff', border:'1px solid rgba(0,0,0,0.06)', borderRadius:2, boxShadow:'0 2px 0 rgba(0,0,0,0.02)' }}>
+                <div style={{ padding:'16px 24px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                  <span style={{ fontSize:16, fontWeight:600, color:'rgba(0,0,0,0.85)', fontFamily:'Roboto, sans-serif' }}>Seus recebíveis</span>
+                  {toggleExtra}
+                </div>
+                <div style={{ overflowX:'auto', padding:'0 21px 21px' }}>
+                  <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12 }}>
+                    <thead>
+                      <tr style={{ background:'#fafafa' }}>
+                        {['Data de Liquidação','Bandeira','Qtd Transações','Valor Bruto do Lote','Comissão Sub (EC)','Antecipação Descontada','Vlr. Líquido do Lote','Status do Lote'].map(h => (
+                          <th key={h} style={{ padding:'10px 14px', textAlign:'left', fontWeight:500, color:'rgba(0,0,0,0.85)', borderBottom:'1px solid #f0f0f0', whiteSpace:'nowrap', fontSize:12 }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {groupedLotes.map(lote => {
+                        const isExp = expandedLotes[lote.key]
+                        const allPago = lote.rows.every(r=>r.status==='Pago')
+                        const loteStatus = lote.antecipDescontada > 0 ? 'Antecipado' : allPago ? 'Liquidado' : 'Pendente'
+                        return [
+                          <tr key={lote.key} style={{ borderBottom:'1px solid #f0f0f0', background:'#fafafa', cursor:'pointer' }}
+                            onClick={()=>toggleLote(lote.key)}
+                            onMouseEnter={e=>(e.currentTarget as HTMLElement).style.background='#f0f7ff'}
+                            onMouseLeave={e=>(e.currentTarget as HTMLElement).style.background='#fafafa'}>
+                            <td style={{ padding:'12px 14px', display:'flex', alignItems:'center', gap:6 }}>
+                              <span style={{ color:'#1890FF', display:'flex', alignItems:'center' }}><Icon name={isExp ? 'chevronDown' : 'chevronRight'} size={12} /></span>
+                              <span style={{ fontWeight:600, color:'#1890FF' }}>{lote.data}</span>
+                            </td>
+                            <td style={{ padding:'12px 14px' }}><BrandLogo brand={lote.bandeira} size={20} showLabel /></td>
+                            <td style={{ padding:'12px 14px', color:'rgba(0,0,0,0.65)' }}>{lote.rows.length} transações</td>
+                            <td style={{ padding:'12px 14px', fontWeight:600, color:'rgba(0,0,0,0.85)' }}>{fmt(lote.bruto)}</td>
+                            <td style={{ padding:'12px 14px', color:'rgba(0,0,0,0.65)' }}>{fmt(lote.comissao)}</td>
+                            <td style={{ padding:'12px 14px', color:lote.antecipDescontada>0?'#fa8c16':'rgba(0,0,0,0.25)' }}>{lote.antecipDescontada>0?fmt(lote.antecipDescontada):'—'}</td>
+                            <td style={{ padding:'12px 14px', fontWeight:600, color:'#52c41a' }}>{fmt(lote.liquido)}</td>
+                            <td style={{ padding:'12px 14px' }}><AgendaTag status={loteStatus} /></td>
+                          </tr>,
+                          ...(isExp ? [
+                            ...lote.rows.map((r,i) => (
+                              <tr key={`${lote.key}-${i}`} style={{ borderBottom:'1px solid #f0f0f0', background:'#fff' }}
+                                onMouseEnter={e=>(e.currentTarget as HTMLElement).style.background='#fafafa'}
+                                onMouseLeave={e=>(e.currentTarget as HTMLElement).style.background='#fff'}>
+                                <td style={{ padding:'9px 14px 9px 36px', color:'rgba(0,0,0,0.45)', fontFamily:'Roboto Mono', fontSize:11 }}>{r.nsu}</td>
+                                <td />
+                                <td style={{ padding:'9px 14px', color:'rgba(0,0,0,0.65)' }}>{r.lancamento} {r.parcela}</td>
+                                <td style={{ padding:'9px 14px', color:'rgba(0,0,0,0.85)' }}>{fmt(r.valor)}</td>
+                                <td style={{ padding:'9px 14px', color:'rgba(0,0,0,0.55)' }}>{fmt(r.comissao)}</td>
+                                <td style={{ padding:'9px 14px', color:r.antecipDescontada>0?'#fa8c16':'rgba(0,0,0,0.2)' }}>{r.antecipDescontada>0?fmt(r.antecipDescontada):'–'}</td>
+                                <td style={{ padding:'9px 14px', fontWeight:500, color:r.antecipado?'#fa8c16':'#52c41a' }}>{fmt(r.liquido)}</td>
+                                <td style={{ padding:'9px 14px' }}><AgendaTag status={r.status} /></td>
+                              </tr>
+                            )),
+                            <tr key={`${lote.key}-subtotal`} style={{ background:'#e6f7ff', borderBottom:'1px solid #91d5ff' }}>
+                              <td style={{ padding:'9px 14px', color:'#1890FF', fontWeight:600 }} colSpan={2}>Subtotal {lote.bandeira}:</td>
+                              <td />
+                              <td style={{ padding:'9px 14px', fontWeight:600, color:'#1890FF' }}>{fmt(lote.bruto)}</td>
+                              <td style={{ padding:'9px 14px', fontWeight:600, color:'#1890FF' }}>{fmt(lote.comissao)}</td>
+                              <td style={{ padding:'9px 14px', fontWeight:600, color:lote.antecipDescontada>0?'#fa8c16':'rgba(0,0,0,0.25)' }}>{lote.antecipDescontada>0?fmt(lote.antecipDescontada):'—'}</td>
+                              <td style={{ padding:'9px 14px', fontWeight:600, color:'#1890FF' }}>{fmt(lote.liquido)}</td>
+                              <td />
+                            </tr>
+                          ] : [])
+                        ]
+                      })}
+                      <tr style={{ background:'#e6f7ff', borderTop:'2px solid #91d5ff' }}>
+                        <td colSpan={2} style={{ padding:'12px 14px', fontWeight:700, color:'#1890FF', fontSize:13 }}>TOTAL GERAL</td>
+                        <td />
+                        <td style={{ padding:'12px 14px', fontWeight:700, color:'#1890FF' }}>{fmt(filtered.reduce((s,r)=>s+r.valor,0))}</td>
+                        <td style={{ padding:'12px 14px', fontWeight:700, color:'#1890FF' }}>{fmt(filtered.reduce((s,r)=>s+r.comissao,0))}</td>
+                        <td style={{ padding:'12px 14px', fontWeight:700, color:'#fa8c16' }}>{fmt(filtered.reduce((s,r)=>s+r.antecipDescontada,0))}</td>
+                        <td style={{ padding:'12px 14px', fontWeight:700, color:'#52c41a' }}>{fmt(filtered.reduce((s,r)=>s+r.liquido,0))}</td>
+                        <td />
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : (
               <DataTable<Parcela>
                 title="Seus recebíveis"
                 titleExtra={toggleExtra}
@@ -519,79 +597,6 @@ export default function AgendaPage() {
         </div>
       )}
 
-      {/* ── VISÃO AGRUPADA (hidden here, kept for grouped lote below) ── */}
-      {tab==='detalhada' && agrupado && (
-            <div style={{ background:'#fff', border:'1px solid rgba(0,0,0,0.06)', borderRadius:2, overflowX:'auto' }}>
-              <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12 }}>
-                <thead>
-                  <tr style={{ background:'#fafafa' }}>
-                    {['Data de Liquidação','Bandeira','Qtd Transações','Valor Bruto do Lote','Comissão Sub (EC)','Antecipação Descontada','Vlr. Líquido do Lote','Status do Lote'].map(h => (
-                      <th key={h} style={{ padding:'10px 14px', textAlign:'left', fontWeight:500, color:'rgba(0,0,0,0.85)', borderBottom:'1px solid #f0f0f0', whiteSpace:'nowrap', fontSize:12 }}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {groupedLotes.map(lote => {
-                    const isExp = expandedLotes[lote.key]
-                    const allPago = lote.rows.every(r=>r.status==='Pago')
-                    const loteStatus = lote.antecipDescontada > 0 ? 'Antecipado' : allPago ? 'Liquidado' : 'Pendente'
-                    return [
-                      <tr key={lote.key} style={{ borderBottom:'1px solid #f0f0f0', background:'#fafafa', cursor:'pointer' }}
-                        onClick={()=>toggleLote(lote.key)}
-                        onMouseEnter={e=>(e.currentTarget as HTMLElement).style.background='#f0f7ff'}
-                        onMouseLeave={e=>(e.currentTarget as HTMLElement).style.background='#fafafa'}>
-                        <td style={{ padding:'12px 14px', display:'flex', alignItems:'center', gap:6 }}>
-                          <span style={{ color:'#1890FF', display:'flex', alignItems:'center' }}><Icon name={isExp ? 'chevronDown' : 'chevronRight'} size={12} /></span>
-                          <span style={{ fontWeight:600, color:'#1890FF' }}>{lote.data}</span>
-                        </td>
-                        <td style={{ padding:'12px 14px' }}><BrandLogo brand={lote.bandeira} size={20} showLabel /></td>
-                        <td style={{ padding:'12px 14px', color:'rgba(0,0,0,0.65)' }}>{lote.rows.length} transações</td>
-                        <td style={{ padding:'12px 14px', fontWeight:600, color:'rgba(0,0,0,0.85)' }}>{fmt(lote.bruto)}</td>
-                        <td style={{ padding:'12px 14px', color:'rgba(0,0,0,0.65)' }}>{fmt(lote.comissao)}</td>
-                        <td style={{ padding:'12px 14px', color:lote.antecipDescontada>0?'#fa8c16':'rgba(0,0,0,0.25)' }}>{lote.antecipDescontada>0?fmt(lote.antecipDescontada):'—'}</td>
-                        <td style={{ padding:'12px 14px', fontWeight:600, color:'#52c41a' }}>{fmt(lote.liquido)}</td>
-                        <td style={{ padding:'12px 14px' }}><AgendaTag status={loteStatus} /></td>
-                      </tr>,
-                      ...(isExp ? [
-                        ...lote.rows.map((r,i) => (
-                          <tr key={`${lote.key}-${i}`} style={{ borderBottom:'1px solid #f0f0f0', background:'#fff' }}
-                            onMouseEnter={e=>(e.currentTarget as HTMLElement).style.background='#fafafa'}
-                            onMouseLeave={e=>(e.currentTarget as HTMLElement).style.background='#fff'}>
-                            <td style={{ padding:'9px 14px 9px 36px', color:'rgba(0,0,0,0.45)', fontFamily:'Roboto Mono', fontSize:11 }}>{r.nsu}</td>
-                            <td />
-                            <td style={{ padding:'9px 14px', color:'rgba(0,0,0,0.65)' }}>{r.lancamento} {r.parcela}</td>
-                            <td style={{ padding:'9px 14px', color:'rgba(0,0,0,0.85)' }}>{fmt(r.valor)}</td>
-                            <td style={{ padding:'9px 14px', color:'rgba(0,0,0,0.55)' }}>{fmt(r.comissao)}</td>
-                            <td style={{ padding:'9px 14px', color:r.antecipDescontada>0?'#fa8c16':'rgba(0,0,0,0.2)' }}>{r.antecipDescontada>0?fmt(r.antecipDescontada):'–'}</td>
-                            <td style={{ padding:'9px 14px', fontWeight:500, color:r.antecipado?'#fa8c16':'#52c41a' }}>{fmt(r.liquido)}</td>
-                            <td style={{ padding:'9px 14px' }}><AgendaTag status={r.status} /></td>
-                          </tr>
-                        )),
-                        <tr key={`${lote.key}-subtotal`} style={{ background:'#e6f7ff', borderBottom:'1px solid #91d5ff' }}>
-                          <td style={{ padding:'9px 14px', color:'#1890FF', fontWeight:600 }} colSpan={2}>Subtotal {lote.bandeira}:</td>
-                          <td />
-                          <td style={{ padding:'9px 14px', fontWeight:600, color:'#1890FF' }}>{fmt(lote.bruto)}</td>
-                          <td style={{ padding:'9px 14px', fontWeight:600, color:'#1890FF' }}>{fmt(lote.comissao)}</td>
-                          <td style={{ padding:'9px 14px', fontWeight:600, color:lote.antecipDescontada>0?'#fa8c16':'rgba(0,0,0,0.25)' }}>{lote.antecipDescontada>0?fmt(lote.antecipDescontada):'—'}</td>
-                          <td style={{ padding:'9px 14px', fontWeight:600, color:'#1890FF' }}>{fmt(lote.liquido)}</td>
-                          <td />
-                        </tr>
-                      ] : [])
-                    ]
-                  })}
-                  <tr style={{ background:'#e6f7ff', borderTop:'2px solid #91d5ff' }}>
-                    <td colSpan={2} style={{ padding:'12px 14px', fontWeight:700, color:'#1890FF', fontSize:13 }}>TOTAL GERAL</td>
-                    <td />
-                    <td style={{ padding:'12px 14px', fontWeight:700, color:'#1890FF' }}>{fmt(filtered.reduce((s,r)=>s+r.valor,0))}</td>
-                    <td style={{ padding:'12px 14px', fontWeight:700, color:'#1890FF' }}>{fmt(filtered.reduce((s,r)=>s+r.comissao,0))}</td>
-                    <td style={{ padding:'12px 14px', fontWeight:700, color:'#fa8c16' }}>{fmt(filtered.reduce((s,r)=>s+r.antecipDescontada,0))}</td>
-                    <td style={{ padding:'12px 14px', fontWeight:700, color:'#52c41a' }}>{fmt(filtered.reduce((s,r)=>s+r.liquido,0))}</td>
-                    <td />
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          )}
 
       {/* ── POR LOTE TAB ── */}
       {tab==='lote' && (

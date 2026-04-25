@@ -276,23 +276,22 @@ export default function DataTable<T extends object>({
             {onAdvancedFilter && (
               <button
                 onClick={onAdvancedFilter}
+                title="Filtro avançado"
                 style={{
                   border: '1px solid #d9d9d9',
                   background: '#fff',
                   borderRadius: 2,
-                  padding: '5px 16px',
-                  fontSize: 14,
+                  padding: 0,
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 6,
-                  color: 'rgba(0,0,0,0.85)',
+                  justifyContent: 'center',
                   height: 32,
-                  fontFamily: 'Roboto, sans-serif',
+                  width: 32,
+                  flexShrink: 0,
                 }}
               >
-                <Icon name="filter" size={14} color="rgba(0,0,0,0.45)" />
-                Filtro avançado
+                <Icon name="filter" size={14} color="rgba(0,0,0,0.55)" />
               </button>
             )}
           </div>

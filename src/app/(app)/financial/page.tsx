@@ -420,12 +420,12 @@ export default function FinancialPage() {
             const cols: ColumnType<AntecipEC>[] = [
               { title:'ID', dataIndex:'id', key:'id', width:90, render: v => <span style={{ fontFamily:'Roboto Mono', fontSize:11, color:'#1890FF' }}>{v}</span> },
               { title:'Data', dataIndex:'data', key:'data', width:100, render: v => <span style={{ color:'rgba(0,0,0,0.65)' }}>{v}</span> },
-              { title:'Merchant (EC)', dataIndex:'merchant', key:'merchant', render: v => <span style={{ fontWeight:500, color:'rgba(0,0,0,0.85)' }}>{v}</span> },
-              { title:'Valor antecipado', dataIndex:'valor', key:'valor', render: v => <span style={{ fontWeight:600, color:'#1890FF' }}>{fmt(v)}</span> },
+              { title:'Merchant (EC)', dataIndex:'merchant', key:'merchant', width:160, render: v => <span style={{ fontWeight:500, color:'rgba(0,0,0,0.85)', whiteSpace:'nowrap' }}>{v}</span> },
+              { title:'Valor antecipado', dataIndex:'valor', key:'valor', width:140, render: v => <span style={{ fontWeight:600, color:'#1890FF', whiteSpace:'nowrap' }}>{fmt(v)}</span> },
               { title:'Taxa (a.m.)', dataIndex:'taxa', key:'taxa', width:90, render: v => <span style={{ color:'rgba(0,0,0,0.65)' }}>{v}</span> },
-              { title:'Juros recebidos', dataIndex:'juros', key:'juros', render: v => <span style={{ fontWeight:600, color:'#52c41a' }}>{fmt(v)}</span> },
+              { title:'Juros recebidos', dataIndex:'juros', key:'juros', width:130, render: v => <span style={{ fontWeight:600, color:'#52c41a', whiteSpace:'nowrap' }}>{fmt(v)}</span> },
               { title:'Vencimento original', dataIndex:'venc', key:'venc', width:140, render: v => <span style={{ color:'rgba(0,0,0,0.65)' }}>{v}</span> },
-              { title:'A recuperar', dataIndex:'recuperar', key:'recuperar', render: v => <span style={{ fontWeight:600, color:v>0?'#fa8c16':'rgba(0,0,0,0.25)' }}>{v>0?fmt(v):'—'}</span> },
+              { title:'A recuperar', dataIndex:'recuperar', key:'recuperar', width:120, render: v => <span style={{ fontWeight:600, color:v>0?'#fa8c16':'rgba(0,0,0,0.25)', whiteSpace:'nowrap' }}>{v>0?fmt(v):'—'}</span> },
               { title:'Status', dataIndex:'status', key:'status', width:110, render: v => <span style={{ background:v==='Recuperado'?'#f6ffed':'#fffbe6', color:v==='Recuperado'?'#52c41a':'#faad14', border:`1px solid ${v==='Recuperado'?'#b7eb8f':'#ffe58f'}`, borderRadius:2, padding:'1px 8px', fontSize:12, fontWeight:500 }}>{v}</span> },
             ]
             return (

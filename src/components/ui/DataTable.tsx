@@ -309,6 +309,7 @@ export default function DataTable<T extends object>({
         expandable={expandable}
         onRow={onRow}
         size="large"
+        scroll={{ x: 'max-content' }}
         components={{
           header: {
             cell: (props: React.ThHTMLAttributes<HTMLTableCellElement>) => (

@@ -36,8 +36,8 @@ export default function PricingPage() {
     <div style={{ flex:1, overflow:'auto', display:'flex', flexDirection:'column' }}>
       <PageHeader title="Custos & Pricing" breadcrumb="Sub-adquirente / Custos & Pricing" onBack={() => {}} extra={
         <div style={{ display:'flex', gap:8 }}>
-          <button style={{ border:'1px solid #d9d9d9', background:'#fff', borderRadius:2, padding:'4px 12px', fontSize:13, cursor:'pointer', color:'rgba(0,0,0,0.65)' }}>Histórico</button>
-          <button style={{ border:'none', background:'#1890FF', color:'#fff', borderRadius:2, padding:'4px 14px', fontSize:13, cursor:'pointer' }}>Salvar alterações</button>
+          <button style={{ border:'1px solid #d9d9d9', background:'#fff', borderRadius:2, padding:'6px 16px', fontSize:14, cursor:'pointer', color:'rgba(0,0,0,0.65)' }}>Histórico</button>
+          <button style={{ border:'none', background:'#1890FF', color:'#fff', borderRadius:2, padding:'6px 16px', fontSize:14, cursor:'pointer' }}>Salvar alterações</button>
         </div>
       } />
       <div style={{ padding:24, display:'flex', flexDirection:'column', gap:16 }}>

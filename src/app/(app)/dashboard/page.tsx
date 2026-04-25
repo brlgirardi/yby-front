@@ -94,10 +94,10 @@ export default function DashboardPage() {
         <div style={{ display:'flex', gap:8 }}>
           {['Geral','Planificação'].map(t => (
             <button key={t} onClick={() => setTab(t.toLowerCase())}
-              style={{ border:tab===t.toLowerCase()?'1px solid #1890FF':'1px solid #d9d9d9', background:tab===t.toLowerCase()?'#e6f7ff':'#fff', color:tab===t.toLowerCase()?'#1890FF':'rgba(0,0,0,0.65)', borderRadius:2, padding:'4px 14px', fontSize:13, cursor:'pointer' }}>{t}</button>
+              style={{ border:tab===t.toLowerCase()?'1px solid #1890FF':'1px solid #d9d9d9', background:tab===t.toLowerCase()?'#e6f7ff':'#fff', color:tab===t.toLowerCase()?'#1890FF':'rgba(0,0,0,0.65)', borderRadius:2, padding:'6px 16px', fontSize:14, cursor:'pointer' }}>{t}</button>
           ))}
-          <button style={{ border:'1px solid #d9d9d9', background:'#fff', borderRadius:2, padding:'4px 12px', fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:6, color:'rgba(0,0,0,0.65)' }}>Todos os MCCs <Icon name="chevronDown" size={12} color="rgba(0,0,0,0.45)" /></button>
-          <button style={{ border:'1px solid #d9d9d9', background:'#fff', borderRadius:2, padding:'4px 12px', fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:6, color:'rgba(0,0,0,0.65)' }}><Icon name="calendar" size={14} color="rgba(0,0,0,0.45)" /> Abril 2026 <Icon name="chevronDown" size={12} color="rgba(0,0,0,0.45)" /></button>
+          <button style={{ border:'1px solid #d9d9d9', background:'#fff', borderRadius:2, padding:'6px 14px', fontSize:14, cursor:'pointer', display:'flex', alignItems:'center', gap:6, color:'rgba(0,0,0,0.65)' }}>Todos os MCCs <Icon name="chevronDown" size={12} color="rgba(0,0,0,0.45)" /></button>
+          <button style={{ border:'1px solid #d9d9d9', background:'#fff', borderRadius:2, padding:'6px 14px', fontSize:14, cursor:'pointer', display:'flex', alignItems:'center', gap:6, color:'rgba(0,0,0,0.65)' }}><Icon name="calendar" size={14} color="rgba(0,0,0,0.45)" /> Abril 2026 <Icon name="chevronDown" size={12} color="rgba(0,0,0,0.45)" /></button>
         </div>
       } onBack={() => {}} />
 

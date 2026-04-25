@@ -174,7 +174,6 @@ export default function DataTable<T extends object>({
       {showTitle && (
         <div style={{
           padding: '16px 24px',
-          borderBottom: '1px solid #f0f0f0',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',

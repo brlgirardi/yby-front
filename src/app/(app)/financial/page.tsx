@@ -314,11 +314,10 @@ export default function FinancialPage() {
             return (
               <DataTable<ExtratoRow>
                 title="Extrato de caixa — Abril 2026"
+                titleExtra={<button style={{ border:'1px solid #d9d9d9', background:'#fff', borderRadius:2, padding:'4px 14px', fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:6, color:'rgba(0,0,0,0.85)' }}><Icon name="download" size={13} color="rgba(0,0,0,0.45)" /> Exportar</button>}
                 columns={cols}
                 dataSource={EXTRATO_DATA}
                 rowKey={(_,i)=>String(i)}
-                onExport={()=>{}}
-                showPagination={false}
               />
             )
           })()}
@@ -356,7 +355,6 @@ export default function FinancialPage() {
                 columns={domCols}
                 dataSource={LIQCEN_ADQS}
                 rowKey="adq"
-                showPagination={false}
               />
             )
           })()}
@@ -378,11 +376,10 @@ export default function FinancialPage() {
               <>
                 <DataTable<LiqEvento>
                   title="Eventos de liquidação — Abril 2026"
+                  titleExtra={<button style={{ border:'1px solid #d9d9d9', background:'#fff', borderRadius:2, padding:'4px 14px', fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:6, color:'rgba(0,0,0,0.85)' }}><Icon name="download" size={13} color="rgba(0,0,0,0.45)" /> Exportar</button>}
                   columns={evCols}
                   dataSource={LIQ_EVENTOS}
                   rowKey={(_,i)=>String(i)}
-                  onExport={()=>{}}
-                  showPagination={false}
                 />
                 <div style={{ padding:'12px 16px', background:'#e6f7ff', border:'1px solid #91d5ff', borderRadius:2, display:'flex', gap:32, justifyContent:'flex-end', alignItems:'center' }}>
                   <span style={{ fontSize:13, fontWeight:600, color:'#1890FF', flex:1 }}>TOTAL — {LIQ_EVENTOS.length} eventos</span>
@@ -445,7 +442,6 @@ export default function FinancialPage() {
                   columns={cols}
                   dataSource={ANTECIP_EC_DATA}
                   rowKey="id"
-                  showPagination={false}
                 />
                 <div style={{ padding:'12px 16px', background:'#f6ffed', border:'1px solid #b7eb8f', borderRadius:2, display:'flex', gap:24, justifyContent:'flex-end', alignItems:'center' }}>
                   <span style={{ fontSize:12, fontWeight:600, color:'#52c41a', flex:1 }}>Resumo das operações</span>

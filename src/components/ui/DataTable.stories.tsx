@@ -4,11 +4,30 @@ import DataTable, { type ColumnType } from './DataTable'
 import Tag from '@/components/shared/Tag'
 
 /**
- * Padrões visuais atuais do DataTable:
- * - wrapper com padding `0 21px` em volta da tabela
- * - toolbar sem `borderBottom`
+ * Padrões visuais do DataTable (atualizado 2026-04):
+ *
+ * ## Estrutura
+ * - Wrapper branco com `border: 1px solid rgba(0,0,0,0.06)` e `borderRadius: 2`
+ * - Padding interno `0 21px` em volta da tabela Ant Design
  * - `size="large"` para rows de 56px
- * - header com `#fafafa` e `fontWeight: 400`
+ * - Header com `#fafafa` e `fontWeight: 400`
+ * - `scroll={{ x: 'max-content' }}` ativo por padrão — garante que widths de colunas sejam respeitados
+ *
+ * ## Título
+ * - Título e `titleExtra` ficam na mesma linha (título à esquerda, extra à direita)
+ * - **Sem `borderBottom`** separando título da tabela — a separação é dada apenas pelo espaçamento
+ * - Quando a tabela tem botão "Exportar" mas **não tem toolbar** (sem busca/filtros):
+ *   → Use `titleExtra` com o botão, NÃO `onExport` (que cria uma linha de toolbar extra)
+ *
+ * ## Paginação
+ * - Paginação **sempre visível** em todas as tabelas — nunca use `showPagination={false}`
+ * - Mesmo tabelas com poucos registros devem mostrar "1–N de N itens | 10 por página"
+ * - Isso mantém consistência visual e comunica o total de registros ao usuário
+ *
+ * ## Toolbar
+ * - Use `onSearch`, `filters`, `onExport`, `onAdvancedFilter` somente quando a tabela
+ *   tem interatividade real (busca, filtros múltiplos). Essas props criam a linha de toolbar.
+ * - Evitar toolbar "fantasma" só com Exportar — prefira titleExtra nesses casos.
  */
 
 const meta: Meta<typeof DataTable> = {
@@ -440,16 +459,48 @@ export const ComTituloEToggle: Story = {
   },
 }
 
+// ─── Título + Exportar no cabeçalho (padrão Extrato / Eventos / Pagamentos) ──
+
+export const ComTituloEExportar: Story = {
+  name: 'Com título + Exportar no cabeçalho — padrão Extrato',
+  render: () => (
+    <DataTable<Merchant>
+      title="Extrato de caixa — Abril 2026"
+      titleExtra={
+        <button
+          style={{
+            border: '1px solid #d9d9d9',
+            background: '#fff',
+            borderRadius: 2,
+            padding: '4px 14px',
+            fontSize: 13,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            color: 'rgba(0,0,0,0.85)',
+          }}
+        >
+          ↓ Exportar
+        </button>
+      }
+      columns={merchantColumns.slice(0, 5)}
+      dataSource={MERCHANTS}
+      rowKey="id"
+    />
+  ),
+}
+
 // ─── Sem toolbar ─────────────────────────────────────────────────────────────
 
 export const SemToolbar: Story = {
-  name: 'Sem toolbar — tabela simples',
+  name: 'Sem toolbar — tabela com paginação (padrão)',
   render: () => (
     <DataTable<Merchant>
+      title="Tabela simples — paginação sempre visível"
       columns={merchantColumns.slice(0, 5)}
-      dataSource={MERCHANTS.slice(0, 4)}
+      dataSource={MERCHANTS}
       rowKey="id"
-      showPagination={false}
     />
   ),
 }

@@ -698,7 +698,6 @@ export default function AgendaPage() {
               columns={cols}
               dataSource={ANTECIP_DATA}
               rowKey={(_,i)=>String(i)}
-              showPagination={false}
             />
           </div>
         )
@@ -789,7 +788,6 @@ export default function AgendaPage() {
                 columns={cols}
                 dataSource={FUNDING_EVENTOS}
                 rowKey={(_,i)=>String(i)}
-                showPagination={false}
               />
             )
           })()}
@@ -822,11 +820,10 @@ export default function AgendaPage() {
         <div style={{ padding:24, display:'flex', flexDirection:'column', gap:16 }}>
           <DataTable<PRow>
             title="Repasses a merchants — Abril 2026"
+            titleExtra={<button style={{ border:'1px solid #d9d9d9', background:'#fff', borderRadius:2, padding:'4px 14px', fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:6, color:'rgba(0,0,0,0.85)' }}><Icon name="download" size={13} color="rgba(0,0,0,0.45)" /> Exportar</button>}
             columns={cols}
             dataSource={PAGAMENTOS_DATA}
             rowKey={(_,i)=>String(i)}
-            onExport={()=>{}}
-            showPagination={false}
           />
         </div>
         )

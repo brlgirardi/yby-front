@@ -81,20 +81,20 @@ const Tooltip = ({ text, children }: { text: string; children: React.ReactNode }
 }
 
 const CAL_VALUES: Record<string, number[]> = {
-  bruto:      [0,48000,0,48000,48000,0,48000,0,48000,48000,0,48000,0,48000,48000,0,48000,0,48000,48000,0,0,0,0,0,0,0,0,0,0],
+  bruto:      [0,48000,0,48000,48000,0,48000,0,48000,48000,0,48000,0,48000,48000,0,48000,0,48000,48000,0,48000,52000,45000,0,0,50000,47000,53000,41000],
   // repasse = o que o sub paga aos ECs (bruto − MDR ~7%)
-  repasse:    [0,44640,0,44640,44640,0,44640,0,44640,44640,0,44640,0,44640,44640,0,44640,0,44640,44640,0,0,0,0,0,0,0,0,0,0],
-  adquirente: [0,32000,0,31000,29000,0,33000,0,28000,35000,0,30000,0,34000,27000,0,36000,0,29000,38000,0,0,0,0,0,0,0,0,0,0],
+  repasse:    [0,44640,0,44640,44640,0,44640,0,44640,44640,0,44640,0,44640,44640,0,44640,0,44640,44640,0,44640,48360,41850,0,0,46500,43710,49290,38130],
+  adquirente: [0,32000,0,31000,29000,0,33000,0,28000,35000,0,30000,0,34000,27000,0,36000,0,29000,38000,0,31000,35000,29000,0,0,33000,30000,36000,28000],
   // liquido = o que fica na conta do sub após deduções e antecipações
-  liquido:    [0,3360,0,3360,3360,0,3360,0,3360,3360,0,3360,0,3360,3360,0,3360,0,3360,3360,0,0,0,0,0,0,0,0,0,0],
+  liquido:    [0,3360,0,3360,3360,0,3360,0,3360,3360,0,3360,0,3360,3360,0,3360,0,3360,3360,0,3360,3640,3150,0,0,3500,3290,3710,2870],
 }
-const CAL_ADQUIRENTES = ['—','Adiq','—','Rede','Cielo','—','Adiq','—','Rede','Adiq','—','Cielo','—','Rede','Getnet','—','Adiq','—','Cielo','Rede','—','—','—','—','—','—','—','—','—','—']
+const CAL_ADQUIRENTES = ['—','Adiq','—','Rede','Cielo','—','Adiq','—','Rede','Adiq','—','Cielo','—','Rede','Getnet','—','Adiq','—','Cielo','Rede','—','Adiq','Rede','Cielo','—','—','Getnet','Adiq','Rede','Cielo']
 const CALENDAR_DAYS = Array.from({length:30},(_,i)=>{
   const day = i+1
   const past = day < 22
   const base = [48000,0,48000,0,48000,48000,0][day%7]
   // 3 estados: creditado (liquidação confirmada na conta) | confirmado (agendado, ainda não creditado) | antecipado | previsto
-  const status = day%5===0 && past ? 'antecipado' : day < 19 ? 'creditado' : day < 22 ? 'confirmado' : 'previsto'
+  const status = day%5===0 && past ? 'antecipado' : day < 19 ? 'creditado' : day <= 22 ? 'confirmado' : 'previsto'
   return { day, past, value: base, status }
 })
 
@@ -351,7 +351,7 @@ export default function AgendaPage() {
                     const dayNumColor = isToday ? '#1890FF' : isPast ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.65)'
                     const valColor = dayVal === 0
                       ? (isPast ? 'rgba(0,0,0,0.18)' : 'rgba(0,0,0,0.2)')
-                      : isPast ? 'rgba(0,0,0,0.35)' : '#1890FF'
+                      : isPast ? 'rgba(0,0,0,0.35)' : isToday ? '#1890FF' : '#91CAFF'
                     const cellOpacity = isPast && !isSelected ? 0.6 : 1
                     const bgDay = isSelected ? '#e6f7ff' : isToday ? '#f0f7ff' : '#fff'
                     return (
@@ -386,9 +386,9 @@ export default function AgendaPage() {
                   <span style={{ width:20, height:8, borderRadius:2, borderTop:'2px solid #1890FF', background:'#f0f7ff', display:'inline-block' }} />
                   Hoje
                 </span>
-                <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:11, color:'rgba(0,0,0,0.45)' }}>
-                  <span style={{ width:20, height:8, borderRadius:2, background:'#fff', border:'1px solid #f0f0f0', display:'inline-block' }} />
-                  Futuro
+                <span style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:11, color:'#91CAFF' }}>
+                  <span style={{ width:20, height:8, borderRadius:2, background:'#f0f7ff', border:'1px solid #91CAFF', display:'inline-block' }} />
+                  Previsto
                 </span>
                 <span style={{ fontSize:11, color:'rgba(0,0,0,0.25)', marginLeft:'auto' }}>Clique no dia para detalhes →</span>
               </div>
@@ -406,9 +406,9 @@ export default function AgendaPage() {
                     const dayObj = CALENDAR_DAYS.find(d => d.day === selectedDay)
                     const BADGE: Record<string,{bg:string;color:string;border:string;label:string}> = {
                       creditado:  { bg:'#f6ffed', color:'#389e0d', border:'#b7eb8f', label:'Creditado' },
-                      confirmado: { bg:'#fffbe6', color:'#874d00', border:'#ffe58f', label:'Confirmado' },
+                      confirmado: { bg:'#f6ffed', color:'#389e0d', border:'#b7eb8f', label:'Confirmado' },
                       antecipado: { bg:'#fff7e6', color:'#d46b08', border:'#ffd591', label:'Antecipado' },
-                      previsto:   { bg:'#e6f7ff', color:'#096dd9', border:'#91d5ff', label:'Previsto' },
+                      previsto:   { bg:'#e6f7ff', color:'#4ea3db', border:'#91CAFF', label:'Previsto' },
                     }
                     const b = BADGE[dayObj?.status || 'previsto']
                     return <span style={{ fontSize:10, background:b.bg, color:b.color, border:`1px solid ${b.border}`, borderRadius:2, padding:'1px 6px', fontWeight:600, lineHeight:'18px' }}>{b.label}</span>
@@ -653,12 +653,6 @@ export default function AgendaPage() {
                 onSearch={setSearch}
                 filters={[
                   {
-                    label: 'Data de pagamento',
-                    options: [...new Set(PARCELAS_DATA.map(r => r.data))].map(d => ({ label: d, value: d })),
-                    value: [],
-                    onChange: () => {},
-                  },
-                  {
                     label: 'Arranjo',
                     options: bandeiras.map(b => ({ label: b, value: b })),
                     value: bFilter,
@@ -798,12 +792,12 @@ export default function AgendaPage() {
             )}
             <DataTable<ARow>
               title="Antecipações a merchants (ECs)"
-              titleExtra={<button style={{ border:'none', background:'#1890FF', color:'#fff', borderRadius:2, padding:'4px 14px', fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:6 }}><Icon name="plus" size={14} color="#fff" /> Nova antecipação</button>}
+              titleExtra={<button style={{ border:'none', background:'#1890FF', color:'#fff', borderRadius:2, height:32, padding:'5px 16px', fontSize:14, cursor:'pointer', display:'flex', alignItems:'center', gap:6 }}><Icon name="plus" size={14} color="#fff" /> Nova antecipação</button>}
               columns={cols}
               dataSource={ANTECIP_DATA}
               rowKey={(_,i)=>String(i)}
               periodOptions={PERIOD_OPTIONS}
-              defaultPeriod="mes"
+              defaultPeriod="hoje"
             />
           </div>
         )
@@ -922,7 +916,7 @@ export default function AgendaPage() {
                 dataSource={FUNDING_EVENTOS}
                 rowKey={(_,i)=>String(i)}
                 periodOptions={PERIOD_OPTIONS}
-                defaultPeriod="mes"
+                defaultPeriod="hoje"
               />
             )
           })()}
@@ -986,7 +980,7 @@ export default function AgendaPage() {
             rowKey={(_,i)=>String(i)}
             onExport={()=>{}}
             periodOptions={PERIOD_OPTIONS}
-            defaultPeriod="mes"
+            defaultPeriod="hoje"
           />
         </div>
         )

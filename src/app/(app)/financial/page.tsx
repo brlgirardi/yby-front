@@ -349,7 +349,7 @@ export default function FinancialPage() {
             return (
               <DataTable
                 title="Domicílio bancário por adquirente"
-                titleExtra={<button style={{ border:'none', background:'#1890FF', color:'#fff', borderRadius:2, padding:'4px 14px', fontSize:12, cursor:'pointer', display:'flex', alignItems:'center', gap:5 }}><Icon name="plus" size={13} color="#fff" /> Adicionar</button>}
+                titleExtra={<button style={{ border:'none', background:'#1890FF', color:'#fff', borderRadius:2, height:32, padding:'5px 16px', fontSize:14, cursor:'pointer', display:'flex', alignItems:'center', gap:5 }}><Icon name="plus" size={14} color="#fff" /> Adicionar</button>}
                 columns={domCols}
                 dataSource={LIQCEN_ADQS}
                 rowKey="adq"
@@ -439,11 +439,11 @@ export default function FinancialPage() {
                   title="Antecipações concedidas a merchants"
                   titleExtra={
                     <div style={{ display:'flex', gap:8 }}>
-                      <button onClick={()=>setDrawerSim(true)} style={{ border:'1px solid #1890FF', background:'#e6f4ff', color:'#1890FF', borderRadius:2, padding:'4px 14px', fontSize:12, cursor:'pointer', display:'flex', alignItems:'center', gap:5 }}>
-                        <Icon name="barChart" size={13} color="#1890FF" /> Simular antecipação
+                      <button onClick={()=>setDrawerSim(true)} style={{ border:'1px solid #1890FF', background:'#e6f4ff', color:'#1890FF', borderRadius:2, height:32, padding:'5px 16px', fontSize:14, cursor:'pointer', display:'flex', alignItems:'center', gap:5 }}>
+                        <Icon name="barChart" size={14} color="#1890FF" /> Simular antecipação
                       </button>
-                      <button style={{ border:'none', background:'#1890FF', color:'#fff', borderRadius:2, padding:'4px 14px', fontSize:12, cursor:'pointer', display:'flex', alignItems:'center', gap:5 }}>
-                        <Icon name="plus" size={13} color="#fff" /> Nova antecipação
+                      <button style={{ border:'none', background:'#1890FF', color:'#fff', borderRadius:2, height:32, padding:'5px 16px', fontSize:14, cursor:'pointer', display:'flex', alignItems:'center', gap:5 }}>
+                        <Icon name="plus" size={14} color="#fff" /> Nova antecipação
                       </button>
                     </div>
                   }

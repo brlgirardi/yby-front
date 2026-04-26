@@ -253,7 +253,9 @@ export default function DataTable<T extends object>({
   const handlePeriodChange = (v: string) => { setPeriodInternal(v); onPeriodChange?.(v) }
 
   const showTitle = title || titleExtra
-  const showToolbar = onSearch || (filters && filters.length > 0) || onExport || onAdvancedFilter || toolbarExtra || periodOptions
+  const periodInTitle = !!(periodOptions && showTitle)
+  const exportInTitle = !!(onExport && showTitle)
+  const showToolbar = !!(onSearch || (filters && filters.length > 0) || onAdvancedFilter || toolbarExtra)
 
   return (
     <div style={{
@@ -269,13 +271,41 @@ export default function DataTable<T extends object>({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
+          gap: 12,
         }}>
           {title && (
             <span style={{ fontSize: 16, fontWeight: 600, color: 'rgba(0,0,0,0.85)', fontFamily: 'Roboto, sans-serif' }}>
               {title}
             </span>
           )}
-          {titleExtra}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto' }}>
+            {titleExtra}
+            {periodInTitle && periodOptions && (
+              <PeriodPill options={periodOptions} value={periodValue} onChange={handlePeriodChange} />
+            )}
+            {exportInTitle && (
+              <button
+                onClick={onExport}
+                style={{
+                  border: '1px solid #d9d9d9',
+                  background: '#fff',
+                  borderRadius: 2,
+                  padding: '5px 16px',
+                  fontSize: 14,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  color: 'rgba(0,0,0,0.85)',
+                  height: 32,
+                  fontFamily: 'Roboto, sans-serif',
+                }}
+              >
+                <Icon name="download" size={14} color="rgba(0,0,0,0.45)" />
+                Exportar
+              </button>
+            )}
+          </div>
         </div>
       )}
 
@@ -341,40 +371,8 @@ export default function DataTable<T extends object>({
 
           {toolbarExtra}
 
-          {/* Period filter — separador visual antes dos filtros */}
-          {periodOptions && (
-            <>
-              {(onSearch || (filters && filters.length > 0) || toolbarExtra) && (
-                <div style={{ width: 1, height: 20, background: '#f0f0f0', margin: '0 4px' }} />
-              )}
-              <PeriodPill options={periodOptions} value={periodValue} onChange={handlePeriodChange} />
-            </>
-          )}
-
           {/* Right-aligned actions */}
           <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
-            {onExport && (
-              <button
-                onClick={onExport}
-                style={{
-                  border: '1px solid #d9d9d9',
-                  background: '#fff',
-                  borderRadius: 2,
-                  padding: '5px 16px',
-                  fontSize: 14,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  color: 'rgba(0,0,0,0.85)',
-                  height: 32,
-                  fontFamily: 'Roboto, sans-serif',
-                }}
-              >
-                <Icon name="download" size={14} color="rgba(0,0,0,0.45)" />
-                Exportar
-              </button>
-            )}
             {onAdvancedFilter && (
               <button
                 onClick={onAdvancedFilter}

@@ -127,6 +127,229 @@ const DrawerLiquidacaoDetalhes = ({ open, onClose, liq }: { open: boolean; onClo
   )
 }
 
+/* Mock CSV data for import preview */
+const MOCK_CSV_IMPORT = [
+  { data:'15/04/2026', adq:'Adiq',  tipo:'Crédito normal', bruto:125000, mdr:3750, antecip:0,     liquido:121250, conta:'CC 12345-6', hasError:false },
+  { data:'15/04/2026', adq:'Rede',  tipo:'Crédito normal', bruto:87500,  mdr:2625, antecip:15000, liquido:69875,  conta:'CC 12345-6', hasError:false },
+  { data:'16/04/2026', adq:'Xpto',  tipo:'Crédito normal', bruto:45000,  mdr:1350, antecip:0,     liquido:43650,  conta:'CC 99999-X', hasError:true, errorMsg:'Adquirente não cadastrado' },
+  { data:'17/04/2026', adq:'Cielo', tipo:'Desc. antecipação', bruto:62000, mdr:1860, antecip:20000, liquido:40140, conta:'CC 12345-6', hasError:false },
+]
+
+const DrawerImportarLiquidacao = ({ open, onClose }: { open: boolean; onClose: () => void }) => {
+  const [step, setStep] = useState(0)
+  const [isDragOver, setIsDragOver] = useState(false)
+  const [fileUploaded, setFileUploaded] = useState(false)
+
+  const STEPS = ['Upload', 'Validar', 'Confirmar']
+
+  const validRows = MOCK_CSV_IMPORT.filter(r => !r.hasError)
+  const errorRows = MOCK_CSV_IMPORT.filter(r => r.hasError)
+  const totalBruto = validRows.reduce((s,r) => s + r.bruto, 0)
+  const totalMdr = validRows.reduce((s,r) => s + r.mdr, 0)
+  const totalLiquido = validRows.reduce((s,r) => s + r.liquido, 0)
+
+  const handleClose = () => {
+    setStep(0)
+    setFileUploaded(false)
+    onClose()
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragOver(false)
+    setFileUploaded(true)
+  }
+
+  return (
+    <Drawer open={open} onClose={handleClose} title="Importar liquidação manual" width={640}
+      footer={
+        <div style={{ display:'flex', gap:12, width:'100%' }}>
+          {step > 0 && (
+            <button onClick={() => setStep(s => s - 1)} style={{ flex:1, border:'1px solid #d9d9d9', background:'#fff', borderRadius:2, padding:'8px 0', fontSize:13, cursor:'pointer', color:'rgba(0,0,0,0.65)' }}>
+              Anterior
+            </button>
+          )}
+          {step === 0 && (
+            <button onClick={handleClose} style={{ flex:1, border:'1px solid #d9d9d9', background:'#fff', borderRadius:2, padding:'8px 0', fontSize:13, cursor:'pointer', color:'rgba(0,0,0,0.65)' }}>
+              Cancelar
+            </button>
+          )}
+          {step < 2 && (
+            <button
+              onClick={() => { if(step === 0) setFileUploaded(true); setStep(s => s + 1) }}
+              disabled={step === 0 && !fileUploaded}
+              style={{ flex:2, border:'none', background: (step === 0 && !fileUploaded) ? '#d9d9d9' : '#1890FF', color:'#fff', borderRadius:2, padding:'8px 0', fontSize:13, cursor: (step === 0 && !fileUploaded) ? 'not-allowed' : 'pointer', fontWeight:500 }}
+            >
+              Próximo
+            </button>
+          )}
+          {step === 2 && (
+            <button onClick={handleClose} style={{ flex:2, border:'none', background:'#52c41a', color:'#fff', borderRadius:2, padding:'8px 0', fontSize:13, cursor:'pointer', fontWeight:500 }}>
+              Executar liquidação
+            </button>
+          )}
+        </div>
+      }>
+      {/* Stepper */}
+      <div style={{ display:'flex', marginBottom:24, gap:8 }}>
+        {STEPS.map((s, i) => (
+          <div key={s} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:6 }}>
+            <div style={{
+              width:28, height:28, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:600,
+              background: i < step ? '#52c41a' : i === step ? '#1890FF' : '#f5f5f5',
+              color: i <= step ? '#fff' : 'rgba(0,0,0,0.45)',
+              border: i === step ? '2px solid #1890FF' : i < step ? '2px solid #52c41a' : '1px solid #d9d9d9'
+            }}>
+              {i < step ? '✓' : i + 1}
+            </div>
+            <span style={{ fontSize:12, color: i === step ? '#1890FF' : i < step ? '#52c41a' : 'rgba(0,0,0,0.45)', fontWeight: i === step ? 600 : 400 }}>{s}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Step 1: Upload */}
+      {step === 0 && (
+        <div>
+          <div
+            onDragOver={e => { e.preventDefault(); setIsDragOver(true) }}
+            onDragLeave={() => setIsDragOver(false)}
+            onDrop={handleDrop}
+            onClick={() => setFileUploaded(true)}
+            style={{
+              border: `2px dashed ${isDragOver ? '#1890FF' : fileUploaded ? '#52c41a' : '#d9d9d9'}`,
+              borderRadius:4, padding:'40px 24px', textAlign:'center', cursor:'pointer',
+              background: isDragOver ? '#e6f7ff' : fileUploaded ? '#f6ffed' : '#fafafa',
+              transition:'all 0.2s'
+            }}
+          >
+            <div style={{ marginBottom:12 }}>
+              <Icon name={fileUploaded ? 'checkCircle' : 'upload'} size={40} color={fileUploaded ? '#52c41a' : '#1890FF'} />
+            </div>
+            {fileUploaded ? (
+              <>
+                <div style={{ fontSize:14, fontWeight:600, color:'#52c41a', marginBottom:4 }}>liquidacao_abril.csv</div>
+                <div style={{ fontSize:12, color:'rgba(0,0,0,0.45)' }}>4 linhas · Clique para trocar</div>
+              </>
+            ) : (
+              <>
+                <div style={{ fontSize:14, fontWeight:500, color:'rgba(0,0,0,0.85)', marginBottom:4 }}>Arraste o arquivo CSV aqui ou clique para selecionar</div>
+                <div style={{ fontSize:12, color:'rgba(0,0,0,0.45)' }}>Formatos aceitos: .csv</div>
+              </>
+            )}
+          </div>
+
+          <div style={{ marginTop:20, padding:'12px 16px', background:'#fafafa', borderRadius:2 }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
+              <span style={{ fontSize:13, fontWeight:600, color:'rgba(0,0,0,0.85)' }}>Formato esperado</span>
+              <button style={{ border:'none', background:'none', color:'#1890FF', fontSize:12, cursor:'pointer', textDecoration:'underline' }}>
+                Baixar template
+              </button>
+            </div>
+            <div style={{ fontSize:12, color:'rgba(0,0,0,0.65)', lineHeight:'20px' }}>
+              O arquivo deve conter as seguintes colunas:
+            </div>
+            <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginTop:8 }}>
+              {['Data', 'Adquirente', 'Tipo', 'Bruto', 'MDR', 'Antecipação descontada', 'Crédito líquido', 'Conta'].map(col => (
+                <span key={col} style={{ background:'#fff', border:'1px solid #d9d9d9', borderRadius:2, padding:'2px 8px', fontSize:11, fontFamily:'Roboto Mono' }}>{col}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Step 2: Validar */}
+      {step === 1 && (
+        <div>
+          <div style={{ marginBottom:16, display:'flex', gap:12 }}>
+            <div style={{ background:'#f6ffed', border:'1px solid #b7eb8f', borderRadius:2, padding:'8px 14px', flex:1 }}>
+              <span style={{ fontSize:18, fontWeight:700, color:'#52c41a' }}>{validRows.length}</span>
+              <span style={{ fontSize:12, color:'rgba(0,0,0,0.65)', marginLeft:6 }}>linhas OK</span>
+            </div>
+            <div style={{ background: errorRows.length > 0 ? '#fff1f0' : '#f5f5f5', border:`1px solid ${errorRows.length > 0 ? '#ffa39e' : '#d9d9d9'}`, borderRadius:2, padding:'8px 14px', flex:1 }}>
+              <span style={{ fontSize:18, fontWeight:700, color: errorRows.length > 0 ? '#ff4d4f' : 'rgba(0,0,0,0.25)' }}>{errorRows.length}</span>
+              <span style={{ fontSize:12, color:'rgba(0,0,0,0.65)', marginLeft:6 }}>erros</span>
+            </div>
+          </div>
+
+          <div style={{ border:'1px solid #f0f0f0', borderRadius:2, overflow:'hidden' }}>
+            <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12 }}>
+              <thead>
+                <tr style={{ background:'#fafafa' }}>
+                  {['Data', 'Adq', 'Tipo', 'Bruto', 'MDR', 'Líquido', 'Status'].map(h => (
+                    <th key={h} style={{ padding:'8px 10px', textAlign:'left', fontWeight:600, color:'rgba(0,0,0,0.85)', borderBottom:'1px solid #f0f0f0' }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {MOCK_CSV_IMPORT.map((row, i) => (
+                  <tr key={i} style={{ background: row.hasError ? '#fff1f0' : '#fff' }}>
+                    <td style={{ padding:'8px 10px', borderBottom:'1px solid #f0f0f0', color:'rgba(0,0,0,0.65)' }}>{row.data}</td>
+                    <td style={{ padding:'8px 10px', borderBottom:'1px solid #f0f0f0', color: row.hasError ? '#ff4d4f' : 'rgba(0,0,0,0.85)', fontWeight:500 }}>{row.adq}</td>
+                    <td style={{ padding:'8px 10px', borderBottom:'1px solid #f0f0f0', color:'rgba(0,0,0,0.65)', fontSize:11 }}>{row.tipo}</td>
+                    <td style={{ padding:'8px 10px', borderBottom:'1px solid #f0f0f0', color:'rgba(0,0,0,0.85)' }}>{fmt(row.bruto)}</td>
+                    <td style={{ padding:'8px 10px', borderBottom:'1px solid #f0f0f0', color:'#ff4d4f' }}>{fmt(row.mdr)}</td>
+                    <td style={{ padding:'8px 10px', borderBottom:'1px solid #f0f0f0', color:'#52c41a', fontWeight:600 }}>{fmt(row.liquido)}</td>
+                    <td style={{ padding:'8px 10px', borderBottom:'1px solid #f0f0f0' }}>
+                      {row.hasError ? (
+                        <span style={{ fontSize:10, color:'#ff4d4f', background:'#fff1f0', border:'1px solid #ffa39e', borderRadius:2, padding:'1px 6px' }}>{row.errorMsg}</span>
+                      ) : (
+                        <span style={{ fontSize:10, color:'#52c41a', background:'#f6ffed', border:'1px solid #b7eb8f', borderRadius:2, padding:'1px 6px' }}>OK</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {errorRows.length > 0 && (
+            <div style={{ marginTop:12, background:'#fffbe6', border:'1px solid #ffe58f', borderRadius:2, padding:'10px 14px', fontSize:12, color:'rgba(0,0,0,0.65)' }}>
+              <span style={{ marginRight:8, verticalAlign:'middle', display:'inline-flex' }}><Icon name="alertTriangle" size={14} color="#faad14" /></span>
+              Linhas com erro serão ignoradas na importação. Corrija o CSV e reimporte para incluí-las.
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Step 3: Confirmar */}
+      {step === 2 && (
+        <div>
+          <div style={{ fontSize:14, fontWeight:600, color:'rgba(0,0,0,0.85)', marginBottom:16 }}>Resumo da importação</div>
+
+          <div style={{ display:'flex', gap:8, marginBottom:20 }}>
+            {[
+              { l:'Bruto total', v:fmt(totalBruto), c:'#1890FF', bg:'#e6f7ff', border:'#91d5ff' },
+              { l:'MDR / Tarifas', v:fmt(totalMdr), c:'#ff4d4f', bg:'#fff1f0', border:'#ffa39e' },
+              { l:'Crédito líquido', v:fmt(totalLiquido), c:'#52c41a', bg:'#f6ffed', border:'#b7eb8f' },
+            ].map((s,i) => (
+              <div key={i} style={{ flex:1, background:s.bg, border:`1px solid ${s.border}`, borderRadius:2, padding:'12px 10px', textAlign:'center' }}>
+                <div style={{ fontSize:11, color:'rgba(0,0,0,0.45)', marginBottom:4 }}>{s.l}</div>
+                <div style={{ fontSize:15, fontWeight:700, color:s.c }}>{s.v}</div>
+              </div>
+            ))}
+          </div>
+
+          {[
+            { label:'Eventos a importar', value:`${validRows.length} linhas` },
+            { label:'Linhas ignoradas (erros)', value:`${errorRows.length} linhas` },
+            { label:'Arquivo', value:'liquidacao_abril.csv' },
+          ].map((r,i) => (
+            <div key={i} style={{ display:'flex', justifyContent:'space-between', padding:'10px 0', borderBottom:'1px solid #f0f0f0', fontSize:13 }}>
+              <span style={{ color:'rgba(0,0,0,0.45)' }}>{r.label}</span>
+              <span style={{ color:'rgba(0,0,0,0.85)', fontWeight:500 }}>{r.value}</span>
+            </div>
+          ))}
+
+          <div style={{ marginTop:20, background:'#e6f7ff', border:'1px solid #91d5ff', borderRadius:2, padding:'12px 14px', fontSize:12, color:'rgba(0,0,0,0.65)', display:'flex', gap:10, alignItems:'flex-start' }}>
+            <span style={{ flexShrink:0, marginTop:1, display:'flex' }}><Icon name="info" size={14} color="#1890FF" /></span>
+            <span>Ao confirmar, os eventos de liquidação serão adicionados à tabela principal e estarão disponíveis para consulta e exportação.</span>
+          </div>
+        </div>
+      )}
+    </Drawer>
+  )
+}
+
 const DrawerSimulacaoAntecipacao = ({ open, onClose }: { open: boolean; onClose: () => void }) => {
   const [valor, setValor] = useState('')
   const [metodo, setMetodo] = useState('')
@@ -238,6 +461,7 @@ export default function FinancialPage() {
 
   const [drawerLiq, setDrawerLiq] = useState<LiqEvento | null>(null)
   const [drawerSim, setDrawerSim] = useState(false)
+  const [drawerImport, setDrawerImport] = useState(false)
   const [dismissed, setDismissed] = useState<Set<string>>(new Set())
   const dismiss = (id: string) => setDismissed(p => { const s = new Set(p); s.add(id); return s })
 
@@ -379,6 +603,11 @@ export default function FinancialPage() {
               <>
                 <DataTable<LiqEvento>
                   title="Eventos de liquidação — Abril 2026"
+                  titleExtra={
+                    <button onClick={()=>setDrawerImport(true)} style={{ border:'1px solid #1890FF', background:'#e6f4ff', color:'#1890FF', borderRadius:2, height:32, padding:'5px 16px', fontSize:14, cursor:'pointer', display:'flex', alignItems:'center', gap:5 }}>
+                      <Icon name="upload" size={14} color="#1890FF" /> Importar CSV
+                    </button>
+                  }
                   columns={evCols}
                   dataSource={LIQ_EVENTOS}
                   rowKey={(_,i)=>String(i)}
@@ -475,6 +704,7 @@ export default function FinancialPage() {
 
       <DrawerLiquidacaoDetalhes open={!!drawerLiq} onClose={()=>setDrawerLiq(null)} liq={drawerLiq} />
       <DrawerSimulacaoAntecipacao open={drawerSim} onClose={()=>setDrawerSim(false)} />
+      <DrawerImportarLiquidacao open={drawerImport} onClose={()=>setDrawerImport(false)} />
     </div>
   )
 }

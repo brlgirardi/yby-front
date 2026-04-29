@@ -1,5 +1,33 @@
 [
   {
+    "version": "1.1",
+    "title": "Em desenvolvimento",
+    "date": "2026-04-29",
+    "commit": "HEAD",
+    "previewUrl": "",
+    "tag": "Feature",
+    "items": [
+      "Versão em desenvolvimento — itens serão adicionados aqui"
+    ]
+  },
+  {
+    "version": "1.0",
+    "title": "Reestruturação de navegação — sidebar como única nav",
+    "date": "2026-04-29",
+    "commit": "38c5389",
+    "previewUrl": "https://yby-front-38c5389-brlgirardis-projects.vercel.app",
+    "tag": "UX",
+    "items": [
+      "Tabs horizontais removidas de Agenda e Financeiro — sidebar é a única navegação",
+      "Highlight ativo corrigido no sub-item da sidebar (azul + borda direita)",
+      "Título e breadcrumb dinâmicos refletem o sub-item ativo",
+      "Financeiro reestruturado: Liquidações (sub + ECs) / Antecipações / DRE Operacional",
+      "Extrato removido (redundante com Liquidações e DRE)",
+      "Liquidações unificada com subtabs: Liquidação do sub + Repasses para ECs",
+      "Seletor de período no DRE Operacional (navegação mês a mês)"
+    ]
+  },
+  {
     "version": "0.9",
     "title": "DRE lateral + Antecipações concedidas",
     "date": "2026-04-29",

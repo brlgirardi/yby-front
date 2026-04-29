@@ -18,7 +18,6 @@ const NAV = [
     ] },
   { key: 'financial', icon: 'landmark', label: 'Financeiro', screen: 'financial',
     sub: [
-      { label: 'Extrato',         screen: 'financial', tab: 'extrato'      },
       { label: 'Liquidações',     screen: 'financial', tab: 'liquidacoes'  },
       { label: 'Antecipações',    screen: 'financial', tab: 'antecipacoes' },
       { label: 'DRE Operacional', screen: 'financial', tab: 'dre'          },

@@ -13,7 +13,7 @@ export type Screen =
   | 'settings'
 
 export type AgendaTab = 'calendario' | 'detalhada' | 'lote'
-export type FinancialTab = 'extrato' | 'liquidacoes' | 'antecipacoes' | 'dre'
+export type FinancialTab = 'liquidacoes' | 'antecipacoes' | 'dre'
 
 interface NavState {
   screen: Screen

@@ -10,7 +10,6 @@ import Tag from '@/components/shared/Tag'
 const fmt = (v: number) => 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
 const FINANCIAL_TABS = [
-  { key:'extrato',      label:'Extrato' },
   { key:'liquidacoes',  label:'Liquidações' },
   { key:'antecipacoes', label:'Antecipações' },
   { key:'dre',          label:'DRE Operacional' },
@@ -473,12 +472,6 @@ export default function FinancialPage() {
   const dismiss = (id: string) => setDismissed(p => { const s = new Set(p); s.add(id); return s })
 
   const KPI_FIN: Record<string, Array<{label:string;value:string;bg:string;border:string;color:string;sub:string}>> = {
-    extrato: [
-      { label:'Saldo disponível', value:'R$ 78.328,00', bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'Conta domicílio principal' },
-      { label:'Entradas no mês', value:'R$ 1.240.500,00', bg:'#e6f7ff', border:'#91d5ff', color:'#1890FF', sub:'Créditos de adquirentes' },
-      { label:'Saídas no mês', value:'R$ 1.162.172,00', bg:'#fff1f0', border:'#ffa39e', color:'#ff4d4f', sub:'Repasses + custos + antecip.' },
-      { label:'Próximo crédito', value:'25/04/2026', bg:'#f5f5f5', border:'#d9d9d9', color:'rgba(0,0,0,0.85)', sub:'Adiq · R$ 82k previsto' },
-    ],
     liquidacoes: [
       { label:'Total liquidado (mês)', value:'R$ 1.240.500,00', bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'Créditos confirmados adquirentes' },
       { label:'A liquidar (pendente)', value:'R$ 239.900,00', bg:'#fffbe6', border:'#ffe58f', color:'#faad14', sub:'Aguardando crédito nos domicílios' },
@@ -527,35 +520,6 @@ export default function FinancialPage() {
       </div>
 
       {/* ── EXTRATO TAB ── */}
-      {tab==='extrato' && (
-        <div style={{ padding:24, display:'flex', flexDirection:'column', gap:16 }}>
-          {(()=>{
-            const cols: ColumnType<ExtratoRow>[] = [
-              { title:'Data', dataIndex:'data', key:'data', width:70, render: v => <span style={{ color:'rgba(0,0,0,0.65)' }}>{v}/2026</span> },
-              { title:'Descrição', dataIndex:'desc', key:'desc', render: v => <span style={{ fontWeight:500, color:'rgba(0,0,0,0.85)' }}>{v}</span> },
-              { title:'Tipo', dataIndex:'tipo', key:'tipo', render: v => (
-                <span style={{ fontSize:11, background:v.includes('Crédito')?'#e6f7ff':v.includes('Custo')?'#fff1f0':'#f5f5f5', color:v.includes('Crédito')?'#1890FF':v.includes('Custo')?'#ff4d4f':'rgba(0,0,0,0.45)', border:`1px solid ${v.includes('Crédito')?'#91d5ff':v.includes('Custo')?'#ffa39e':'#d9d9d9'}`, borderRadius:2, padding:'1px 6px' }}>{v}</span>
-              )},
-              { title:'Adquirente', dataIndex:'adq', key:'adq', width:90, render: v => <span style={{ color:'rgba(0,0,0,0.65)' }}>{v}</span> },
-              { title:'Entrada', dataIndex:'entrada', key:'entrada', width:130, render: v => <span style={{ color:'#52c41a', fontWeight:v>0?600:400 }}>{v>0?fmt(v):'—'}</span> },
-              { title:'Saída', dataIndex:'saida', key:'saida', width:130, render: v => <span style={{ color:'#ff4d4f', fontWeight:v>0?600:400 }}>{v>0?fmt(v):'—'}</span> },
-              { title:'Saldo parcial', dataIndex:'saldo', key:'saldo', width:140, render: v => <span style={{ fontWeight:600, color:'rgba(0,0,0,0.85)', fontFamily:'Roboto Mono', fontSize:11 }}>{fmt(v)}</span> },
-            ]
-            return (
-              <DataTable<ExtratoRow>
-                title="Extrato de caixa — Abril 2026"
-                columns={cols}
-                dataSource={EXTRATO_DATA}
-                rowKey={(_,i)=>String(i)}
-                onExport={()=>{}}
-                periodOptions={PERIOD_OPTIONS}
-                defaultPeriod="mes"
-              />
-            )
-          })()}
-        </div>
-      )}
-
       {/* ── LIQUIDAÇÕES TAB ── */}
       {tab==='liquidacoes' && (
         <div style={{ padding:24, display:'flex', flexDirection:'column', gap:16 }}>

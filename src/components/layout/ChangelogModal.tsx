@@ -102,12 +102,28 @@ export default function ChangelogModal({ open, onClose }: Props) {
                   ))}
                 </ul>
 
-                {/* Commit hash */}
-                {entry.commit && entry.commit !== 'HEAD' && (
-                  <div style={{ marginTop: 8, fontSize: 11, color: 'rgba(0,0,0,0.25)', fontFamily: 'Roboto Mono, monospace' }}>
-                    {entry.commit}
-                  </div>
-                )}
+                {/* Footer: commit + link */}
+                <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  {entry.commit && (
+                    <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.25)', fontFamily: 'Roboto Mono, monospace' }}>
+                      {entry.commit}
+                    </span>
+                  )}
+                  {(entry as any).previewUrl && (
+                    <a
+                      href={(entry as any).previewUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        fontSize: 12, color: '#1890FF', textDecoration: 'none',
+                        display: 'flex', alignItems: 'center', gap: 4,
+                        marginLeft: 'auto',
+                      }}
+                    >
+                      Ver versão →
+                    </a>
+                  )}
+                </div>
               </div>
             )
           })}

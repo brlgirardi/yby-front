@@ -46,12 +46,29 @@ function fakeDayData(day: number, viewMode: ViewMode): DayData {
   }
 }
 
-const dreItems = [
+type DreItem = {
+  label: string
+  value: string
+  color: string
+  tooltip: string | null
+  sub?: { label: string; value: string }[]
+}
+
+const dreItems: DreItem[] = [
   { label: 'Parcelas a creditar', value: 'R$ 48.200', color: '#1890FF', tooltip: 'Soma das parcelas de cartão a vencer na data selecionada, antes de qualquer dedução.' },
-  { label: 'Antecipado (funding)', value: '− R$ 6.300', color: '#FA8C16', tooltip: 'Valor que foi antecipado ao merchant nesta data e que será descontado do fluxo de caixa.' },
-  { label: 'Taxas e MDR', value: '− R$ 1.446', color: '#FF4D4F', tooltip: 'MDR cobrado pelo adquirente sobre o volume bruto da data.' },
+  {
+    label: 'Antecipações concedidas',
+    value: '− R$ 8.400',
+    color: '#722ED1',
+    tooltip: 'Parcelas desta data que o sub-adquirente já adiantou a merchants. O valor chega do adquirente mas é retido para recuperar o crédito concedido.',
+    sub: [
+      { label: 'Restaurante Bom Sabor', value: 'R$ 5.100' },
+      { label: 'Mercado Boa Vista',     value: 'R$ 3.300' },
+    ],
+  },
+  { label: 'Taxas e MDR',        value: '− R$ 1.446', color: '#FF4D4F', tooltip: 'MDR cobrado pelo adquirente sobre o volume bruto da data.' },
   { label: 'Gravame / garantia', value: '− R$ 3.200', color: '#FAAD14', tooltip: 'Oneração de recebíveis como garantia registrada em registradora (CIP/CERC/TAG).' },
-  { label: 'Líquido estimado', value: 'R$ 37.254', color: '#52C41A', tooltip: null },
+  { label: 'Líquido estimado',   value: 'R$ 35.154', color: '#52C41A', tooltip: null },
 ]
 
 export default function AgendaCalendar() {
@@ -80,7 +97,8 @@ export default function AgendaCalendar() {
 
   const kpis = [
     { label: 'A receber (mês)', value: 'R$ 487.320', variant: 'info' as const },
-    { label: 'Antecipado', value: 'R$ 93.400', variant: 'orange' as const },
+    { label: 'Antecipações concedidas', value: 'R$ 62.590', variant: 'warning' as const, tooltip: 'Total que o sub-adquirente adiantou a merchants e ainda não recuperou dos adquirentes. Clique para ver detalhes na aba Antecipações.' },
+    { label: 'Antecipado (funding)', value: 'R$ 93.400', variant: 'orange' as const },
     { label: 'MDR / Taxas', value: 'R$ 14.620', variant: 'error' as const },
     { label: 'Líquido previsto', value: 'R$ 379.300', variant: 'success' as const },
   ]
@@ -263,16 +281,28 @@ export default function AgendaCalendar() {
           </div>
           <div className="p-4 space-y-3">
             {dreItems.map((item) => (
-              <div key={item.label} className="flex items-center justify-between">
-                <div className="flex items-center gap-1">
-                  <span className="text-xs" style={{ color: 'rgba(0,0,0,0.65)' }}>{item.label}</span>
-                  {item.tooltip && (
-                    <Tooltip title={item.tooltip} overlayStyle={{ maxWidth: 220 }} color="#1f1f1f">
-                      <Info size={13} className="cursor-help" style={{ color: 'rgba(0,0,0,0.45)' }} />
-                    </Tooltip>
-                  )}
+              <div key={item.label}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1">
+                    <span className="text-xs" style={{ color: 'rgba(0,0,0,0.65)' }}>{item.label}</span>
+                    {item.tooltip && (
+                      <Tooltip title={item.tooltip} overlayStyle={{ maxWidth: 220 }} color="#1f1f1f">
+                        <Info size={13} className="cursor-help" style={{ color: 'rgba(0,0,0,0.45)' }} />
+                      </Tooltip>
+                    )}
+                  </div>
+                  <span className="text-xs font-semibold" style={{ color: item.color }}>{item.value}</span>
                 </div>
-                <span className="text-xs font-semibold" style={{ color: item.color }}>{item.value}</span>
+                {item.sub && (
+                  <div className="mt-1 ml-2 space-y-0.5" style={{ borderLeft: '2px solid #f0f0f0', paddingLeft: 8 }}>
+                    {item.sub.map(s => (
+                      <div key={s.label} className="flex items-center justify-between">
+                        <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.45)' }}>↳ {s.label}</span>
+                        <span style={{ fontSize: 11, color: '#722ED1' }}>{s.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
             <div className="border-t border-[#f0f0f0] pt-3 mt-3">

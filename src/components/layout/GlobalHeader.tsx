@@ -3,11 +3,13 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import Icon from '@/components/shared/Icon'
 import { useNavStore } from '@/store/nav.store'
+import ChangelogModal from './ChangelogModal'
 
 export default function GlobalHeader() {
   const toggleSidebar = useNavStore((s) => s.toggleSidebar)
   const [searchOpen, setSearchOpen] = useState(false)
   const [query, setQuery] = useState('')
+  const [changelogOpen, setChangelogOpen] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const expand = () => {
@@ -127,12 +129,17 @@ export default function GlobalHeader() {
         </button>
 
         {/* User */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+        <div
+          onClick={() => setChangelogOpen(true)}
+          style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}
+        >
           <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#722ED1', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 11, fontWeight: 600 }}>SA</div>
           <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.65)' }}>Sub Adquirente</span>
           <Icon name="chevronDown" size={12} color="rgba(0,0,0,0.45)" />
         </div>
       </div>
+
+      <ChangelogModal open={changelogOpen} onClose={() => setChangelogOpen(false)} />
     </div>
   )
 }

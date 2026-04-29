@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Table, Tag, Button, Drawer, Select, Form, InputNumber } from 'antd'
-import { PlusCircle, X, RefreshCw } from 'lucide-react'
+import { Table, Tag, Button, Drawer, Select, Form, InputNumber, Tooltip } from 'antd'
+import { PlusCircle, X, RefreshCw, ChevronDown, ChevronUp, Info } from 'lucide-react'
 import KpiCard from '@/components/ui/KpiCard'
 
 const { Option } = Select
@@ -58,9 +58,27 @@ const kpis = [
   { label: 'Recuperado', value: 'R$ 56.200', variant: 'neutral' as const },
 ]
 
+const recoveryFlow = [
+  { key: '1', data: '22/04/2026', merchant: 'Restaurante Bom Sabor', adquirente: 'Adiq',  parcela: 'R$ 5.100',  operacao: 'ANT-0041', saldoApos: 'R$ 19.572' },
+  { key: '2', data: '22/04/2026', merchant: 'Mercado Boa Vista',     adquirente: 'Rede',  parcela: 'R$ 3.300',  operacao: 'ANT-0033', saldoApos: 'R$ 15.600' },
+  { key: '3', data: '28/04/2026', merchant: 'Mercado Boa Vista',     adquirente: 'Rede',  parcela: 'R$ 8.200',  operacao: 'ANT-0033', saldoApos: 'R$ 7.400'  },
+  { key: '4', data: '10/05/2026', merchant: 'Farmácia Saúde Total',  adquirente: 'Cielo', parcela: 'R$ 9.500',  operacao: 'ANT-0039', saldoApos: 'R$ 9.518'  },
+  { key: '5', data: '15/05/2026', merchant: 'Restaurante Bom Sabor', adquirente: 'Adiq',  parcela: 'R$ 12.000', operacao: 'ANT-0041', saldoApos: 'R$ 7.572'  },
+]
+
+const recoveryColumns = [
+  { title: 'Data prevista',           dataIndex: 'data',       key: 'data',       width: 110 },
+  { title: 'Merchant (EC)',           dataIndex: 'merchant',   key: 'merchant' },
+  { title: 'Adquirente',             dataIndex: 'adquirente', key: 'adquirente', width: 100 },
+  { title: 'Parcela a recuperar',    dataIndex: 'parcela',    key: 'parcela',    align: 'right' as const, render: (v: string) => <span className="font-semibold" style={{ color: '#722ED1' }}>{v}</span> },
+  { title: 'Operação',               dataIndex: 'operacao',   key: 'operacao',   render: (v: string) => <span className="font-mono text-xs text-[#1890FF]">{v}</span> },
+  { title: 'Saldo após recuperação', dataIndex: 'saldoApos',  key: 'saldoApos',  align: 'right' as const, render: (v: string) => <span className="text-[#FAAD14]">{v}</span> },
+]
+
 export default function AdvancesTab() {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [simResult, setSimResult] = useState<SimResult | null>(null)
+  const [showFlow, setShowFlow] = useState(true)
   const [form] = Form.useForm()
 
   const handleSimulate = () => {
@@ -105,6 +123,42 @@ export default function AdvancesTab() {
           <div className="text-right"><div className="text-xs text-[rgba(0,0,0,0.65)]">Juros a receber</div><div className="text-sm font-bold text-[#52C41A]">R$ 4.209</div></div>
           <div className="text-right"><div className="text-xs text-[rgba(0,0,0,0.65)]">A recuperar</div><div className="text-sm font-bold text-[#FAAD14]">R$ 62.590</div></div>
         </div>
+      </div>
+
+      {/* Fluxo de recuperação */}
+      <div className="bg-white rounded-sm border border-[#f0f0f0]" style={{ boxShadow: '0 1px 2px rgba(0,0,0,0.03)' }}>
+        <button
+          className="w-full flex items-center justify-between px-4 py-3 border-b border-[#f0f0f0] hover:bg-[#fafafa] transition-colors"
+          onClick={() => setShowFlow(v => !v)}
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium" style={{ color: 'rgba(0,0,0,0.85)' }}>
+              Fluxo de recuperação — parcelas a receber dos adquirentes
+            </span>
+            <Tooltip title="Parcelas futuras oneradas que serão retidas pelo sub ao receber do adquirente, abatendo o saldo de cada antecipação concedida." color="#1f1f1f">
+              <Info size={14} style={{ color: 'rgba(0,0,0,0.45)' }} />
+            </Tooltip>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs px-2 py-0.5 rounded" style={{ background: '#F9F0FF', color: '#722ED1', border: '1px solid #D3ADF7' }}>
+              R$ 38.100 nos próx. 30 dias
+            </span>
+            {showFlow ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          </div>
+        </button>
+        {showFlow && (
+          <Table
+            columns={recoveryColumns}
+            dataSource={recoveryFlow}
+            size="small"
+            pagination={false}
+            footer={() => (
+              <span className="text-xs" style={{ color: 'rgba(0,0,0,0.45)' }}>
+                As parcelas listadas estão oneradas e serão retidas pelo sub-adquirente na liquidação do adquirente.
+              </span>
+            )}
+          />
+        )}
       </div>
 
       {/* Drawer simulação */}

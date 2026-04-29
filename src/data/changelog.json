@@ -1,0 +1,114 @@
+[
+  {
+    "version": "0.9",
+    "title": "DRE lateral + Antecipações concedidas",
+    "date": "2026-04-29",
+    "commit": "HEAD",
+    "tag": "UX",
+    "items": [
+      "Painel lateral do calendário reestruturado em 3 seções: Entradas / Saídas / Capital comprometido",
+      "Antecipações concedidas adicionadas corretamente nas entradas (juros) e capital comprometido (valor emprestado)",
+      "Tooltips revisados com linguagem correta — fluxo do adquirente não muda",
+      "Removido card 'Antecipações a Recuperar' dos big numbers (redundante)",
+      "Conciliação, Usuários e Configurações implementados (saíram de 'Em desenvolvimento')",
+      "Borda laranja de foco removida globalmente via globals.css"
+    ]
+  },
+  {
+    "version": "0.8",
+    "title": "Fluxo de recuperação de antecipações",
+    "date": "2026-04-28",
+    "commit": "d7b3b9d",
+    "tag": "Feature",
+    "items": [
+      "Bloco 'Fluxo de recuperação' adicionado em Agenda → Antecipações e Financeiro → Antecipações",
+      "Tabela mostra parcelas futuras oneradas, adquirente, operação e saldo após recuperação",
+      "Card 'Antecipações concedidas' adicionado nos KPIs do calendário mensal",
+      "DataTable stories completas com 7 variantes no Storybook"
+    ]
+  },
+  {
+    "version": "0.7",
+    "title": "Importação manual de liquidações CSV",
+    "date": "2026-04-27",
+    "commit": "6c515a0",
+    "tag": "Feature",
+    "items": [
+      "Fluxo completo de importação manual de CSV em Financeiro → Liquidações",
+      "Preview do arquivo antes de confirmar importação",
+      "Validação de colunas obrigatórias com feedback de erro por linha"
+    ]
+  },
+  {
+    "version": "0.6",
+    "title": "DataTable title-row + calendário mock",
+    "date": "2026-04-25",
+    "commit": "603b657",
+    "tag": "UX",
+    "items": [
+      "DataTable com controles na linha do título (busca, filtros, exportar)",
+      "Dados mock do calendário de agenda enriquecidos com variação por dia",
+      "Polish geral de espaçamentos e tipografia"
+    ]
+  },
+  {
+    "version": "0.5",
+    "title": "Refactor calendário + tabela de lotes",
+    "date": "2026-04-23",
+    "commit": "af7cbe8",
+    "tag": "Refactor",
+    "items": [
+      "UX do calendário limpo — legenda, filtro de período, navegação de mês",
+      "Tabela de lotes refatorada com totais por adquirente",
+      "Filtro de adquirentes com multi-select dropdown"
+    ]
+  },
+  {
+    "version": "0.4",
+    "title": "Parcelas enriquecidas + ícones nas tags",
+    "date": "2026-04-21",
+    "commit": "9d20d2d",
+    "tag": "Feature",
+    "items": [
+      "Dados de parcelas enriquecidos com NSU, bandeira, parcelamento, antecipação",
+      "Suporte a ícones no componente Tag",
+      "Botões de ação nas tabelas substituídos por ícones"
+    ]
+  },
+  {
+    "version": "0.3",
+    "title": "Busca animada no header + ajustes UI",
+    "date": "2026-04-18",
+    "commit": "11390c7",
+    "tag": "UX",
+    "items": [
+      "Search animado no header global (ícone expande para input)",
+      "KPIs removidos da listagem de merchants",
+      "Botões nos headers das páginas padronizados para tamanho medium"
+    ]
+  },
+  {
+    "version": "0.2",
+    "title": "Ajustes DataTable e tabela de antecipações",
+    "date": "2026-04-16",
+    "commit": "7438b58",
+    "tag": "Fix",
+    "items": [
+      "Exportar movido para o header da DataTable",
+      "Paginação global padronizada",
+      "Quebra de texto corrigida na tabela de Antecipações (Financial)"
+    ]
+  },
+  {
+    "version": "0.1",
+    "title": "Commit inicial — Yby Front backoffice",
+    "date": "2026-04-14",
+    "commit": "eb9d835",
+    "tag": "Init",
+    "items": [
+      "Setup Next.js 14 + Ant Design 6 + Zustand 5 + TypeScript",
+      "Layout base: sidebar, header global, sistema de navegação",
+      "Primeiras telas: Dashboard, Merchants, Agenda (Calendário), Financeiro (Extrato)"
+    ]
+  }
+]

@@ -428,27 +428,44 @@ export default function AgendaPage() {
                     <div style={{ fontSize:14, fontWeight:700, color:'#fa8c16' }}>R$ 60,0 mil</div>
                   </div>
                 </div>
-                <div style={{ fontSize:12, fontWeight:600, color:'rgba(0,0,0,0.65)', marginBottom:8 }}>Entradas previstas</div>
+                {/* ── ENTRADAS ── */}
+                <div style={{ fontSize:11, fontWeight:700, color:'#52c41a', letterSpacing:'0.5px', textTransform:'uppercase', marginBottom:6 }}>Entradas</div>
                 {[
-                  {l:<Tooltip text="Soma de todas as parcelas que vencem neste dia, provenientes dos adquirentes.">Parcelas a creditar</Tooltip>,v:'+R$ 191.400,00',c:'#52c41a'},
-                  {l:<Tooltip text="Parcelas livres de antecipação — o valor que efetivamente entra na conta do sub-adquirente hoje.">Recebíveis livres do dia</Tooltip>,v:'+R$ 91.400,00',c:'#52c41a'},
-                ].map((r,i) => (
-                  <div key={i} style={{ display:'flex', justifyContent:'space-between', padding:'6px 0', borderBottom:'1px solid #f0f0f0', fontSize:12 }}>
+                  { l: <Tooltip text="Soma de todas as parcelas que vencem neste dia, provenientes dos adquirentes.">Parcelas a creditar</Tooltip>, v:'+R$ 191.400,00', c:'#52c41a' },
+                  { l: <Tooltip text="Parcelas livres de qualquer comprometimento — valor que entra diretamente na conta do sub-adquirente hoje.">Recebíveis livres do dia</Tooltip>, v:'+R$ 91.400,00', c:'#52c41a' },
+                  { l: <Tooltip text="Juros cobrados dos merchants pelas antecipações concedidas. É a receita do sub-adquirente nesta operação de crédito.">Juros de antecipações</Tooltip>, v:'+R$ 240,00', c:'#52c41a' },
+                ].map((r,i,arr) => (
+                  <div key={i} style={{ display:'flex', justifyContent:'space-between', padding:'6px 0', borderBottom: i < arr.length-1 ? '1px solid #f0f0f0' : 'none', fontSize:12 }}>
                     <span style={{ color:'rgba(0,0,0,0.65)' }}>{r.l}</span>
                     <span style={{ color:r.c, fontWeight:600 }}>{r.v}</span>
                   </div>
                 ))}
-                <div style={{ fontSize:12, fontWeight:600, color:'rgba(0,0,0,0.65)', margin:'12px 0 8px' }}>Compromissos e retenções</div>
-                {/* Taxas: custo operacional */}
-                <div style={{ display:'flex', justifyContent:'space-between', padding:'6px 0', borderBottom:'1px solid #f0f0f0', fontSize:12 }}>
-                  <span style={{ color:'rgba(0,0,0,0.65)' }}><Tooltip text="MDR (Merchant Discount Rate): taxa percentual cobrada pelo adquirente por cada transação processada.">Taxas e MDR</Tooltip></span>
+
+                {/* ── SAÍDAS / CUSTOS ── */}
+                <div style={{ fontSize:11, fontWeight:700, color:'#ff4d4f', letterSpacing:'0.5px', textTransform:'uppercase', margin:'14px 0 6px' }}>Saídas / Custos</div>
+                <div style={{ display:'flex', justifyContent:'space-between', padding:'6px 0', fontSize:12 }}>
+                  <span style={{ color:'rgba(0,0,0,0.65)' }}>
+                    <Tooltip text="MDR (Merchant Discount Rate): taxa percentual cobrada pelo adquirente por cada transação processada.">Taxas e MDR</Tooltip>
+                  </span>
                   <span style={{ color:'#ff4d4f', fontWeight:600 }}>-R$ 25.000,00</span>
                 </div>
-                {/* Recebíveis comprometidos: antecipação + gravame agrupados (ambos bloqueiam o crédito do dia) */}
-                <div style={{ padding:'6px 0', borderBottom:'1px solid #f0f0f0', fontSize:12 }}>
+
+                {/* ── CAPITAL COMPROMETIDO ── */}
+                <div style={{ fontSize:11, fontWeight:700, color:'#722ED1', letterSpacing:'0.5px', textTransform:'uppercase', margin:'14px 0 6px' }}>Capital comprometido</div>
+                {/* Antecipações concedidas */}
+                <div style={{ display:'flex', justifyContent:'space-between', padding:'6px 0', borderBottom:'1px solid #f0f0f0', fontSize:12 }}>
+                  <span style={{ color:'rgba(0,0,0,0.65)' }}>
+                    <Tooltip text="Capital que o sub-adquirente adiantou a merchants (ECs) e ainda está em recuperação. O fluxo do adquirente não muda — as parcelas chegam normalmente e vão quitando esse saldo ao longo do tempo.">
+                      Antecipações concedidas
+                    </Tooltip>
+                  </span>
+                  <span style={{ color:'#722ED1', fontWeight:600 }}>-R$ 8.400,00</span>
+                </div>
+                {/* Recebíveis comprometidos */}
+                <div style={{ padding:'6px 0', fontSize:12 }}>
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                     <span style={{ color:'rgba(0,0,0,0.65)' }}>
-                      <Tooltip text="Recebíveis comprometidos = antecipação tomada (dívida com adquirente, descontada automaticamente) + gravame/oneração (retenção de garantia para operação de crédito). São conceitos distintos mas ambos reduzem o crédito disponível do dia.">
+                      <Tooltip text="Parcelas comprometidas com dívida ao adquirente (antecipação tomada) ou bloqueadas por garantia (gravame/oneração). Chegam do adquirente mas não ficam livres no caixa.">
                         Recebíveis comprometidos
                       </Tooltip>
                     </span>
@@ -463,11 +480,8 @@ export default function AgendaPage() {
                     </div>
                   </div>
                 </div>
-                <div style={{ marginTop:12, padding:'10px 12px', background:'#f5f5f5', borderRadius:2 }}>
-                  <div style={{ fontSize:11, fontWeight:600, color:'rgba(0,0,0,0.65)', marginBottom:4 }}>Leitura operacional</div>
-                  <div style={{ fontSize:11, color:'rgba(0,0,0,0.45)', lineHeight:'16px' }}>Parte do bruto deste dia não cai em conta porque já foi usada como antecipação e outra parte segue retida por custo e garantia.</div>
-                </div>
-                <div style={{ marginTop:12, padding:'10px 12px', background:'#f6ffed', border:'1px solid #b7eb8f', borderRadius:2 }}>
+
+                <div style={{ marginTop:14, padding:'10px 12px', background:'#f6ffed', border:'1px solid #b7eb8f', borderRadius:2 }}>
                   <div style={{ fontSize:11, fontWeight:600, color:'#389e0d', marginBottom:4 }}>Próximo evento</div>
                   <div style={{ fontSize:11, color:'rgba(0,0,0,0.55)', lineHeight:'16px' }}>Em {selectedDay+1}/Abr, mais R$ 48 mil ficam elegíveis para crédito, sem nova retenção de gravame.</div>
                 </div>

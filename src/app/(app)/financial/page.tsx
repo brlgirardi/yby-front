@@ -500,12 +500,9 @@ export default function FinancialPage() {
   return (
     <div style={{ flex:1, overflow:'auto', display:'flex', flexDirection:'column' }}>
       <PageHeader
-        title="Financeiro"
-        breadcrumb="Sub-adquirente / Financeiro"
+        title={FINANCIAL_TABS.find(t => t.key === tab)?.label ?? 'Financeiro'}
+        breadcrumb={`Sub-adquirente / Financeiro / ${FINANCIAL_TABS.find(t => t.key === tab)?.label ?? ''}`}
         onBack={() => {}}
-        tabs={FINANCIAL_TABS}
-        activeTab={tab}
-        onTabChange={(k) => setFinancialTab(k as typeof financialTab)}
       />
 
       {/* KPI cards */}

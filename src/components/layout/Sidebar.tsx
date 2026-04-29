@@ -29,8 +29,8 @@ const NAV = [
 ]
 
 export default function Sidebar() {
-  const { sidebarOpen, activeNav, setScreen, setActiveNav, setAgendaTab, setFinancialTab } = useNavStore()
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({})
+  const { sidebarOpen, activeNav, activeSubTab, setScreen, setActiveNav, setActiveSubTab, setAgendaTab, setFinancialTab } = useNavStore()
+  const [expanded, setExpanded] = useState<Record<string, boolean>>(() => ({ [activeNav]: true }))
   const [hoveredKey, setHoveredKey] = useState<string | null>(null)
   const [hoveredSubKey, setHoveredSubKey] = useState<string | null>(null)
   const [hoveredLogout, setHoveredLogout] = useState(false)
@@ -41,6 +41,7 @@ export default function Sidebar() {
   const onNavigate = (screen: string, navKey: string, tab?: string) => {
     setScreen(screen as Screen)
     setActiveNav(navKey)
+    setActiveSubTab(tab ?? '')
     if (tab) {
       if (screen === 'agenda') setAgendaTab(tab as AgendaTab)
       if (screen === 'financial') setFinancialTab(tab as FinancialTab)
@@ -75,11 +76,19 @@ export default function Sidebar() {
               </div>
               {sidebarOpen && item.sub && isExp && item.sub.map((s, i) => {
                 const subKey = `${item.key}-${i}`
+                const tab = (s as { tab?: string }).tab
+                const isSubActive = activeNav === item.key && activeSubTab === (tab ?? '')
                 const isSubHovered = hoveredSubKey === subKey
                 return (
                   <div key={i}
-                    onClick={() => onNavigate(s.screen, item.key, (s as { tab?: string }).tab)}
-                    style={{ paddingLeft:42, height:36, display:'flex', alignItems:'center', fontSize:13, color:isSubHovered?'#1890FF':'rgba(0,0,0,0.65)', cursor:'pointer', background:isSubHovered?'rgba(24,144,255,0.08)':'transparent' }}
+                    onClick={() => onNavigate(s.screen, item.key, tab)}
+                    style={{
+                      paddingLeft:42, height:36, display:'flex', alignItems:'center', fontSize:13, cursor:'pointer',
+                      color: isSubActive ? '#1890FF' : isSubHovered ? '#1890FF' : 'rgba(0,0,0,0.65)',
+                      background: isSubActive ? 'rgba(24,144,255,0.08)' : isSubHovered ? 'rgba(24,144,255,0.04)' : 'transparent',
+                      borderRight: isSubActive ? '3px solid #1890FF' : '3px solid transparent',
+                      fontWeight: isSubActive ? 500 : 400,
+                    }}
                     onMouseEnter={() => setHoveredSubKey(subKey)}
                     onMouseLeave={() => setHoveredSubKey(null)}>
                     {s.label}

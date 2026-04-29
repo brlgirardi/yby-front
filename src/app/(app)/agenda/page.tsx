@@ -99,7 +99,7 @@ const CALENDAR_DAYS = Array.from({length:30},(_,i)=>{
 })
 
 const AGENDA_TABS = [
-  { key:'calendario', label:'Calendário' },
+  { key:'calendario', label:'Recebíveis' },
   { key:'detalhada',  label:'Por parcela' },
   { key:'lote',       label:'Por lote' },
 ]
@@ -211,12 +211,9 @@ export default function AgendaPage() {
   return (
     <div style={{ flex:1, overflow:'auto', display:'flex', flexDirection:'column' }}>
       <PageHeader
-        title="Agenda de Recebíveis"
-        breadcrumb="Sub-adquirente / Agenda"
+        title={AGENDA_TABS.find(t => t.key === tab)?.label ?? 'Agenda de Recebíveis'}
+        breadcrumb={`Sub-adquirente / Agenda / ${AGENDA_TABS.find(t => t.key === tab)?.label ?? ''}`}
         onBack={() => {}}
-        tabs={AGENDA_TABS}
-        activeTab={tab}
-        onTabChange={(k) => setAgendaTab(k as typeof agendaTab)}
       />
 
       {/* KPI cards */}

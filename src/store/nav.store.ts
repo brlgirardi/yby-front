@@ -18,11 +18,13 @@ export type FinancialTab = 'liquidacoes' | 'antecipacoes' | 'dre'
 interface NavState {
   screen: Screen
   activeNav: string
+  activeSubTab: string
   agendaTab: AgendaTab
   financialTab: FinancialTab
   sidebarOpen: boolean
   setScreen: (screen: Screen) => void
   setActiveNav: (nav: string) => void
+  setActiveSubTab: (tab: string) => void
   setAgendaTab: (tab: AgendaTab) => void
   setFinancialTab: (tab: FinancialTab) => void
   toggleSidebar: () => void
@@ -33,11 +35,13 @@ export const useNavStore = create<NavState>()(
     (set) => ({
       screen: 'dashboard',
       activeNav: 'dashboard',
+      activeSubTab: '',
       agendaTab: 'calendario',
       financialTab: 'liquidacoes',
       sidebarOpen: true,
       setScreen: (screen) => set({ screen }),
       setActiveNav: (activeNav) => set({ activeNav }),
+      setActiveSubTab: (activeSubTab) => set({ activeSubTab }),
       setAgendaTab: (agendaTab) => set({ agendaTab }),
       setFinancialTab: (financialTab) => set({ financialTab }),
       toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
@@ -47,6 +51,7 @@ export const useNavStore = create<NavState>()(
       partialize: (s) => ({
         screen: s.screen,
         activeNav: s.activeNav,
+        activeSubTab: s.activeSubTab,
         agendaTab: s.agendaTab,
         financialTab: s.financialTab,
         sidebarOpen: s.sidebarOpen,

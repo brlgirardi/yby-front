@@ -99,12 +99,9 @@ const CALENDAR_DAYS = Array.from({length:30},(_,i)=>{
 })
 
 const AGENDA_TABS = [
-  { key:'calendario',   label:'Calendário' },
-  { key:'detalhada',    label:'Por parcela' },
-  { key:'lote',         label:'Por lote' },
-  { key:'antecipacoes', label:'Antecipações' },
-  { key:'funding',      label:'Funding / Liquidação' },
-  { key:'pagamentos',   label:'Pagamentos' },
+  { key:'calendario', label:'Calendário' },
+  { key:'detalhada',  label:'Por parcela' },
+  { key:'lote',       label:'Por lote' },
 ]
 
 export default function AgendaPage() {
@@ -131,6 +128,16 @@ export default function AgendaPage() {
 
   const calMonth = 3
   const calYear = 2026
+  const [fundingMonth, setFundingMonth] = useState(3)
+  const [fundingYear,  setFundingYear]  = useState(2026)
+  const prevFundingMonth = () => {
+    if (fundingMonth === 0) { setFundingMonth(11); setFundingYear(y => y - 1) }
+    else setFundingMonth(m => m - 1)
+  }
+  const nextFundingMonth = () => {
+    if (fundingMonth === 11) { setFundingMonth(0); setFundingYear(y => y + 1) }
+    else setFundingMonth(m => m + 1)
+  }
   const firstDow = new Date(calYear, calMonth, 1).getDay()
 
   const filtered = PARCELAS_DATA.filter(r =>
@@ -172,25 +179,6 @@ export default function AgendaPage() {
       { label:'Total antecipado', value:fmt(140000), bg:'#fff7e6', border:'#ffd591', color:'#fa8c16', sub:'Descontado em créditos futuros' },
       { label:'Total comissão', value:fmt(25062), bg:'#fff1f0', border:'#ffa39e', color:'#ff4d4f', sub:'MDR retido pelo sub' },
       { label:'Líquido total dos lotes', value:fmt(670338), bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'Crédito líquido previsto' },
-    ],
-    antecipacoes: [
-      { label:'Total antecipado a merchants', value:fmt(140000), bg:'#fff7e6', border:'#ffd591', color:'#fa8c16', sub:'Saldo em aberto com seus ECs' },
-      { label:'Antecipações realizadas (mês)', value:fmt(85000), bg:'#e6f7ff', border:'#91d5ff', color:'#1890FF', sub:'3 operações em abril/26' },
-      { label:'Taxa média cobrada', value:'1,99% a.m.', bg:'#f5f5f5', border:'#d9d9d9', color:'rgba(0,0,0,0.85)', sub:'Média ponderada cobrada dos ECs' },
-      { label:'Receita com juros (mês)', value:fmt(1691), bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'Juros recebidos dos merchants' },
-    ],
-    funding: [
-      { label:'Total liquidado (mês)', value:fmt(1240500), bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'Créditos confirmados · abr/26' },
-      { label:'A liquidar', value:fmt(239900), bg:'#fffbe6', border:'#ffe58f', color:'#faad14', sub:'Pendente de confirmação' },
-      { label:'Float do sub-adquirente', value:fmt(78328), bg:'#e6f7ff', border:'#91d5ff', color:'#1890FF', sub:'Saldo em trânsito' },
-      { label:'Próximo funding', value:'25/04/2026', bg:'#f5f5f5', border:'#d9d9d9', color:'rgba(0,0,0,0.85)', sub:'Adiq + Rede · R$ 82k previsto' },
-      { label:'Custo de processamento', value:fmt(29772), bg:'#fff1f0', border:'#ffa39e', color:'#ff4d4f', sub:'MDR + tarifas do mês' },
-    ],
-    pagamentos: [
-      { label:'Total pago a merchants', value:fmt(980000), bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'Abril 2026 · 7 merchants' },
-      { label:'Pagamentos pendentes', value:fmt(43200), bg:'#fffbe6', border:'#ffe58f', color:'#faad14', sub:'2 merchants aguardando repasse' },
-      { label:'Média por merchant', value:fmt(140000), bg:'#f5f5f5', border:'#d9d9d9', color:'rgba(0,0,0,0.85)', sub:'Ticket médio de repasse' },
-      { label:'Próximo repasse agendado', value:'25/04/2026', bg:'#e6f7ff', border:'#91d5ff', color:'#1890FF', sub:'2 merchants · R$ 1.054.390 a repassar' },
     ],
   }
   const currentKpis = KPI_BY_TAB[tab] || KPI_BY_TAB.calendario
@@ -768,237 +756,6 @@ export default function AgendaPage() {
         )
       })()}
 
-      {/* ── ANTECIPAÇÕES TAB ── */}
-      {/* Antecipações = o que o sub-adquirente emprestou/antecipou AOS merchants (ECs). */}
-      {/* O sub adianta o dinheiro ao EC e desconta gradualmente nos próximos repasses. */}
-      {tab==='antecipacoes' && (()=>{
-        const ANTECIP_DATA = [
-          { data:'02/04/2026', ec:'Mercado Livre',   valor:60000, taxa:'1,99%', receita:1194, prazo:'30d', saldo:60000, status:'Em aberto' },
-          { data:'05/04/2026', ec:'Amazon Brasil',   valor:30000, taxa:'2,10%', receita:630,  prazo:'30d', saldo:30000, status:'Em aberto' },
-          { data:'08/04/2026', ec:'Americanas S.A.', valor:50000, taxa:'1,95%', receita:975,  prazo:'30d', saldo:50000, status:'Em aberto' },
-          { data:'15/03/2026', ec:'Magazine Luiza',  valor:40000, taxa:'1,99%', receita:796,  prazo:'30d', saldo:0,     status:'Quitado' },
-          { data:'10/03/2026', ec:'iFood Ltda',      valor:25000, taxa:'2,05%', receita:512,  prazo:'30d', saldo:0,     status:'Quitado' },
-        ]
-        type ARow = typeof ANTECIP_DATA[0]
-        const cols: ColumnType<ARow>[] = [
-          { title:'Data', dataIndex:'data', key:'data', width:110, render: v => <span style={{ color:'rgba(0,0,0,0.65)' }}>{v}</span> },
-          { title:'Merchant (EC)', dataIndex:'ec', key:'ec', render: v => <span style={{ fontWeight:500, color:'rgba(0,0,0,0.85)' }}>{v}</span> },
-          { title:'Valor antecipado ao EC', dataIndex:'valor', key:'valor', render: v => <span style={{ fontWeight:600, color:'#fa8c16' }}>{fmt(v)}</span> },
-          { title:'Taxa cobrada (a.m.)', dataIndex:'taxa', key:'taxa', width:130, render: v => <span style={{ color:'rgba(0,0,0,0.65)' }}>{v}</span> },
-          { title:'Receita (juros)', dataIndex:'receita', key:'receita', render: v => <span style={{ color:'#52c41a', fontWeight:500 }}>{fmt(v)}</span> },
-          { title:'Prazo', dataIndex:'prazo', key:'prazo', width:70, render: v => <span style={{ color:'rgba(0,0,0,0.65)' }}>{v}</span> },
-          { title:'Saldo devedor do EC', dataIndex:'saldo', key:'saldo', render: v => <span style={{ fontWeight:600, color:v>0?'#fa8c16':'rgba(0,0,0,0.25)' }}>{v>0?fmt(v):'Quitado'}</span> },
-          { title:'Status', dataIndex:'status', key:'status', width:100, render: v => <Tag status={v} /> },
-        ]
-        return (
-          <div style={{ padding:24, display:'flex', flexDirection:'column', gap:16 }}>
-            {!dismissed.has('banner-antecip') && (
-              <div style={{ background:'#fff7e6', border:'1px solid #ffd591', borderRadius:2, padding:'10px 16px', display:'flex', gap:10, alignItems:'flex-start', position:'relative' }}>
-                <Icon name="info" size={15} color="#fa8c16" />
-                <div style={{ flex:1, paddingRight:20 }}>
-                  <span style={{ fontSize:13, fontWeight:500, color:'rgba(0,0,0,0.85)' }}>Antecipações a merchants: </span>
-                  <span style={{ fontSize:13, color:'rgba(0,0,0,0.65)' }}>O sub-adquirente adianta o valor ao EC e desconta gradualmente nos próximos repasses. Saldo em aberto: <strong>R$ 140.000,00</strong></span>
-                </div>
-                <button onClick={() => dismiss('banner-antecip')} title="Fechar" style={{ position:'absolute', top:8, right:10, border:'none', background:'none', cursor:'pointer', color:'rgba(0,0,0,0.25)', display:'flex', alignItems:'center', padding:4, borderRadius:2 }}>
-                  <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                </button>
-              </div>
-            )}
-            <DataTable<ARow>
-              title="Antecipações a merchants (ECs)"
-              titleExtra={<button style={{ border:'none', background:'#1890FF', color:'#fff', borderRadius:2, height:32, padding:'5px 16px', fontSize:14, cursor:'pointer', display:'flex', alignItems:'center', gap:6 }}><Icon name="plus" size={14} color="#fff" /> Nova antecipação</button>}
-              columns={cols}
-              dataSource={ANTECIP_DATA}
-              rowKey={(_,i)=>String(i)}
-              periodOptions={PERIOD_OPTIONS}
-              defaultPeriod="hoje"
-            />
-          </div>
-        )
-      })()}
-
-      {/* ── FUNDING / LIQUIDAÇÃO TAB ── */}
-      {/* Funding = créditos recebidos dos adquirentes (Adiq, Rede, Cielo, Getnet). */}
-      {/* Inclui créditos normais e descontos de antecipações tomadas pelo sub junto ao adquirente. */}
-      {tab==='funding' && (
-        <div style={{ padding:24, display:'flex', flexDirection:'column', gap:16 }}>
-          {!dismissed.has('banner-funding') && (
-            <div style={{ background:'#e6f7ff', border:'1px solid #91d5ff', borderRadius:2, padding:'10px 16px', display:'flex', gap:10, alignItems:'flex-start', position:'relative' }}>
-              <Icon name="info" size={15} color="#1890FF" />
-              <div style={{ flex:1, paddingRight:20 }}>
-                <span style={{ fontSize:13, fontWeight:500, color:'rgba(0,0,0,0.85)' }}>Funding de adquirentes: </span>
-                <span style={{ fontSize:13, color:'rgba(0,0,0,0.65)' }}>Créditos recebidos dos adquirentes (Adiq, Rede, Cielo, Getnet). Antecipações tomadas são abatidas automaticamente nos próximos créditos.</span>
-              </div>
-              <button onClick={() => dismiss('banner-funding')} title="Fechar" style={{ position:'absolute', top:8, right:10, border:'none', background:'none', cursor:'pointer', color:'rgba(0,0,0,0.25)', display:'flex', alignItems:'center', padding:4, borderRadius:2 }}>
-                <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-              </button>
-            </div>
-          )}
-          <div style={{ display:'flex', gap:16 }}>
-            <div style={{ flex:2, background:'#fff', border:'1px solid rgba(0,0,0,0.06)', borderRadius:2, overflow:'hidden' }}>
-              <div style={{ padding:'16px 24px', borderBottom:'1px solid #f0f0f0' }}>
-                <div style={{ fontSize:14, fontWeight:600, color:'rgba(0,0,0,0.85)' }}>Fluxo de Caixa com Adquirentes — Abril 2026</div>
-                <div style={{ fontSize:12, color:'rgba(0,0,0,0.45)', marginTop:2 }}>Entradas dos adquirentes, descontos de antecipações tomadas e custo de processamento</div>
-              </div>
-              <div style={{ padding:'16px 24px' }}>
-              {[
-                { label:'(+) Total bruto das vendas',                   v:fmt(1240500), indent:0, weight:500, color:'rgba(0,0,0,0.85)' },
-                { label:'(−) Antecipações tomadas (saldo devedor)',      v:`(${fmt(140000)})`, indent:1, color:'#fa8c16' },
-                { label:'(−) MDR e tarifas (custo de processamento)',    v:`(${fmt(29772)})`, indent:1, color:'#ff4d4f' },
-                { label:'(−) Chargebacks e cancelamentos',               v:`(${fmt(12400)})`, indent:1, color:'#ff4d4f' },
-                { label:'(=) Líquido disponível para crédito',           v:fmt(1058328), indent:0, weight:700, color:'#52c41a', border:true },
-                { label:'(−) Pagamentos a merchants realizados',         v:`(${fmt(980000)})`, indent:1, color:'rgba(0,0,0,0.65)' },
-                { label:'(=) Saldo do sub-adquirente (float)',           v:fmt(78328), indent:0, weight:700, color:'#1890FF', border:true },
-              ].map((r,i)=>(
-                <div key={i} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:`${r.border?'10px':'7px'} 0 ${r.border?'10px':'7px'} ${(r.indent||0)*16}px`, borderTop:r.border?'1px solid #f0f0f0':'none', borderBottom:r.border?'2px solid #f0f0f0':'none' }}>
-                  <span style={{ fontSize:13, color:r.color||'rgba(0,0,0,0.65)', fontWeight:r.weight||400 }}>{r.label}</span>
-                  <span style={{ fontSize:13, fontWeight:r.weight||500, color:r.color||'rgba(0,0,0,0.85)', whiteSpace:'nowrap' }}>{r.v}</span>
-                </div>
-              ))}
-              </div>
-            </div>
-            <div style={{ flex:1, display:'flex', flexDirection:'column', gap:16 }}>
-              <div style={{ background:'#fff', border:'1px solid rgba(0,0,0,0.06)', borderRadius:2, overflow:'hidden' }}>
-                <div style={{ padding:'12px 20px', borderBottom:'1px solid #f0f0f0' }}>
-                  <div style={{ fontSize:13, fontWeight:600, color:'rgba(0,0,0,0.85)' }}>Liquidações por adquirente</div>
-                </div>
-                <div style={{ padding:'16px 20px' }}>
-                {[
-                  { adq:'Adiq',   pct:42, v:fmt(521010), c:'#1890FF' },
-                  { adq:'Rede',   pct:28, v:fmt(347340), c:'#52c41a' },
-                  { adq:'Cielo',  pct:20, v:fmt(248100), c:'#fa8c16' },
-                  { adq:'Getnet', pct:10, v:fmt(124050), c:'#722ED1' },
-                ].map(a=>(
-                  <div key={a.adq} style={{ marginBottom:10 }}>
-                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:3 }}>
-                      <BrandLogo brand={a.adq} />
-                      <span style={{ fontSize:12, fontWeight:500, color:'rgba(0,0,0,0.85)' }}>{a.v}</span>
-                    </div>
-                    <div style={{ height:6, background:'#f0f0f0', borderRadius:3 }}>
-                      <div style={{ height:'100%', width:`${a.pct}%`, background:a.c, borderRadius:3 }} />
-                    </div>
-                  </div>
-                ))}
-                </div>
-              </div>
-              <div style={{ background:'#fff', border:'1px solid rgba(0,0,0,0.06)', borderRadius:2, overflow:'hidden' }}>
-                <div style={{ padding:'12px 20px', borderBottom:'1px solid #f0f0f0' }}>
-                  <div style={{ fontSize:13, fontWeight:600, color:'rgba(0,0,0,0.85)' }}>Funding previsto (próx. 7 dias)</div>
-                </div>
-                <div style={{ padding:'16px 20px' }}>
-                {['24/04','25/04','26/04','27/04','28/04'].map((d,i)=>{
-                  const val = [82000,54000,128000,43000,95000][i]
-                  return (
-                    <div key={d} style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
-                      <span style={{ fontSize:12, color:'rgba(0,0,0,0.45)', width:40 }}>{d}</span>
-                      <div style={{ flex:1, height:14, background:'#f0f0f0', borderRadius:2 }}>
-                        <div style={{ height:'100%', width:`${(val/128000)*100}%`, background:'#1890FF', borderRadius:2, opacity:0.7 }} />
-                      </div>
-                      <span style={{ fontSize:12, fontWeight:500, color:'rgba(0,0,0,0.85)', width:80, textAlign:'right' }}>R$ {(val/1000).toFixed(0)}k</span>
-                    </div>
-                  )
-                })}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {(()=>{
-            const FUNDING_EVENTOS = [
-              { data:'10/04', adq:'Adiq',   tipo:'Crédito normal',    bruto:198400, desc:5952,  cred:192448, conta:'Conta 0001-7', status:'Liquidado' },
-              { data:'10/04', adq:'Adiq',   tipo:'Desconto antecip.', bruto:134200, desc:64026, cred:70174,  conta:'Conta 0001-7', status:'Liquidado' },
-              { data:'11/04', adq:'Rede',   tipo:'Crédito normal',    bruto:87500,  desc:2625,  cred:84875,  conta:'Conta 0001-7', status:'Liquidado' },
-              { data:'11/04', adq:'Rede',   tipo:'Desconto antecip.', bruto:72000,  desc:32160, cred:39840,  conta:'Conta 0001-7', status:'Liquidado' },
-              { data:'12/04', adq:'Cielo',  tipo:'Crédito normal',    bruto:156700, desc:4701,  cred:151999, conta:'Conta 0001-7', status:'Pendente' },
-              { data:'13/04', adq:'Getnet', tipo:'Crédito normal',    bruto:83200,  desc:2496,  cred:80704,  conta:'Conta 0001-7', status:'Pendente' },
-            ]
-            type FRow = typeof FUNDING_EVENTOS[0]
-            const cols: ColumnType<FRow>[] = [
-              { title:'Data', dataIndex:'data', key:'data', width:70, render: v => <span style={{ color:'rgba(0,0,0,0.65)' }}>{v}/2026</span> },
-              { title:'Adquirente', dataIndex:'adq', key:'adq', render: v => <BrandLogo brand={v} /> },
-              { title:'Tipo de crédito', dataIndex:'tipo', key:'tipo', render: v => <span style={{ fontSize:11, background:v.includes('Desconto')?'#fff7e6':'#e6f7ff', color:v.includes('Desconto')?'#fa8c16':'#1890FF', border:`1px solid ${v.includes('Desconto')?'#ffd591':'#91d5ff'}`, borderRadius:2, padding:'1px 6px' }}>{v.includes('Desconto')?'Desconto de antecipação tomada':'Crédito normal'}</span> },
-              { title:'Bruto do lote', dataIndex:'bruto', key:'bruto', render: v => <span style={{ color:'rgba(0,0,0,0.85)' }}>{fmt(v)}</span> },
-              { title:'Descontos (MDR + antecip.)', dataIndex:'desc', key:'desc', render: v => <span style={{ color:'#ff4d4f' }}>{fmt(v)}</span> },
-              { title:'Crédito líquido', dataIndex:'cred', key:'cred', render: v => <span style={{ fontWeight:600, color:'#52c41a' }}>{fmt(v)}</span> },
-              { title:'Conta destino', dataIndex:'conta', key:'conta', render: v => <span style={{ color:'rgba(0,0,0,0.45)', fontFamily:'Roboto Mono', fontSize:11 }}>{v}</span> },
-              { title:'Status', dataIndex:'status', key:'status', width:90, render: v => <Tag status={v} /> },
-            ]
-            return (
-              <DataTable<FRow>
-                title="Créditos recebidos dos adquirentes — Abril 2026"
-                columns={cols}
-                dataSource={FUNDING_EVENTOS}
-                rowKey={(_,i)=>String(i)}
-                periodOptions={PERIOD_OPTIONS}
-                defaultPeriod="hoje"
-              />
-            )
-          })()}
-        </div>
-      )}
-
-      {/* ── PAGAMENTOS TAB ── */}
-      {tab==='pagamentos' && (()=>{
-        const PAGAMENTOS_DATA = [
-          { name:'Mercado Livre',   cnpj:'03.007.331/0001-41', data:'10/04/2026', bruto:3450200, taxa:103506, rep:3346694, conta:'AG 0001 / CC 12345-6', status:'Pago' },
-          { name:'Amazon Brasil',   cnpj:'15.436.940/0001-03', data:'10/04/2026', bruto:2180700, taxa:65421,  rep:2115279, conta:'AG 0001 / CC 23456-7', status:'Pago' },
-          { name:'Americanas S.A.', cnpj:'00.776.574/0001-56', data:'11/04/2026', bruto:1240500, taxa:37215,  rep:1203285, conta:'AG 0001 / CC 34567-8', status:'Pago' },
-          { name:'Magazine Luiza',  cnpj:'47.960.950/0001-21', data:'12/04/2026', bruto:987200,  taxa:29616,  rep:957584,  conta:'AG 0001 / CC 45678-9', status:'Pago' },
-          { name:'iFood Ltda',      cnpj:'14.380.200/0001-21', data:'25/04/2026', bruto:654900,  taxa:19647,  rep:635253,  conta:'AG 0002 / CC 56789-0', status:'Pendente' },
-          { name:'Shopee Brasil',   cnpj:'35.060.991/0001-56', data:'25/04/2026', bruto:432100,  taxa:12963,  rep:419137,  conta:'AG 0002 / CC 67890-1', status:'Pendente' },
-          { name:'Rappi Brasil',    cnpj:'28.665.021/0001-89', data:'13/04/2026', bruto:765400,  taxa:22962,  rep:742438,  conta:'AG 0001 / CC 78901-2', status:'Pago' },
-        ]
-        type PRow = typeof PAGAMENTOS_DATA[0]
-        const cols: ColumnType<PRow>[] = [
-          { title:'Merchant', dataIndex:'name', key:'name', render: v => <span style={{ fontWeight:500, color:'rgba(0,0,0,0.85)' }}>{v}</span> },
-          { title:'CNPJ', dataIndex:'cnpj', key:'cnpj', render: v => <span style={{ fontFamily:'Roboto Mono', fontSize:11, color:'rgba(0,0,0,0.45)' }}>{v}</span> },
-          { title:'Data repasse', dataIndex:'data', key:'data', width:110, render: v => <span style={{ color:'rgba(0,0,0,0.65)' }}>{v}</span> },
-          { title:'Bruto vendas', dataIndex:'bruto', key:'bruto', render: v => <span style={{ color:'rgba(0,0,0,0.85)' }}>{fmt(v)}</span> },
-          { title:'Taxas retidas', dataIndex:'taxa', key:'taxa', render: v => <span style={{ color:'#ff4d4f' }}>{fmt(v)}</span> },
-          { title:'Valor repassado', dataIndex:'rep', key:'rep', render: v => <span style={{ fontWeight:600, color:'#52c41a' }}>{fmt(v)}</span> },
-          { title:'Conta destino', dataIndex:'conta', key:'conta', render: v => <span style={{ fontFamily:'Roboto Mono', fontSize:11, color:'rgba(0,0,0,0.45)' }}>{v}</span> },
-          { title:'Status', dataIndex:'status', key:'status', width:90, render: v => <Tag status={v} /> },
-        ]
-        return (
-        <div style={{ padding:24, display:'flex', flexDirection:'column', gap:16 }}>
-          {/* Política de repasse e reserva */}
-          <div style={{ display:'flex', gap:16 }}>
-            {!dismissed.has('banner-pagamentos') && (
-              <div style={{ flex:1, background:'#f6ffed', border:'1px solid #b7eb8f', borderRadius:2, padding:'10px 16px', display:'flex', gap:10, alignItems:'flex-start', position:'relative' }}>
-                <Icon name="info" size={15} color="#52c41a" />
-                <div style={{ flex:1, paddingRight:20 }}>
-                  <span style={{ fontSize:13, fontWeight:500, color:'rgba(0,0,0,0.85)' }}>Política de repasse: </span>
-                  <span style={{ fontSize:13, color:'rgba(0,0,0,0.65)' }}>D+1 útil para débito e PIX · D+14 para crédito à vista · D+30/parcela para parcelado.</span>
-                </div>
-                <button onClick={() => dismiss('banner-pagamentos')} title="Fechar" style={{ position:'absolute', top:8, right:10, border:'none', background:'none', cursor:'pointer', color:'rgba(0,0,0,0.25)', display:'flex', alignItems:'center', padding:4, borderRadius:2 }}>
-                  <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                </button>
-              </div>
-            )}
-            <div style={{ background:'#fff', border:'1px solid rgba(0,0,0,0.06)', borderRadius:2, padding:'10px 20px', display:'flex', gap:20, alignItems:'center', flexShrink:0 }}>
-              <div>
-                <div style={{ fontSize:11, color:'rgba(0,0,0,0.45)' }}>Reserva operacional (rolling reserve)</div>
-                <div style={{ fontSize:16, fontWeight:700, color:'#722ED1' }}>R$ 43.200,00</div>
-              </div>
-              <div style={{ width:1, height:32, background:'#f0f0f0' }} />
-              <div>
-                <div style={{ fontSize:11, color:'rgba(0,0,0,0.45)' }}>Retenção aplicada</div>
-                <div style={{ fontSize:14, fontWeight:600, color:'rgba(0,0,0,0.65)' }}>3% · libera em 90d</div>
-              </div>
-            </div>
-          </div>
-          <DataTable<PRow>
-            title="Repasses a merchants — Abril 2026"
-            columns={cols}
-            dataSource={PAGAMENTOS_DATA}
-            rowKey={(_,i)=>String(i)}
-            onExport={()=>{}}
-            periodOptions={PERIOD_OPTIONS}
-            defaultPeriod="hoje"
-          />
-        </div>
-        )
-      })()}
     </div>
   )
 }

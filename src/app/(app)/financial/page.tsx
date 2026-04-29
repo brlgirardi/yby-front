@@ -13,6 +13,7 @@ const FINANCIAL_TABS = [
   { key:'extrato',      label:'Extrato' },
   { key:'liquidacoes',  label:'Liquidações' },
   { key:'antecipacoes', label:'Antecipações' },
+  { key:'dre',          label:'DRE Operacional' },
 ]
 
 const LIQCEN_ADQS = [
@@ -463,6 +464,12 @@ export default function FinancialPage() {
   const [drawerSim, setDrawerSim] = useState(false)
   const [drawerImport, setDrawerImport] = useState(false)
   const [dismissed, setDismissed] = useState<Set<string>>(new Set())
+  const [liqSubTab, setLiqSubTab] = useState<'sub' | 'ecs'>('sub')
+  const [dreMonth, setDreMonth] = useState(3)
+  const [dreYear,  setDreYear]  = useState(2026)
+  const prevDreMonth = () => { if (dreMonth === 0) { setDreMonth(11); setDreYear(y => y-1) } else setDreMonth(m => m-1) }
+  const nextDreMonth = () => { if (dreMonth === 11) { setDreMonth(0); setDreYear(y => y+1) } else setDreMonth(m => m+1) }
+  const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro']
   const dismiss = (id: string) => setDismissed(p => { const s = new Set(p); s.add(id); return s })
 
   const KPI_FIN: Record<string, Array<{label:string;value:string;bg:string;border:string;color:string;sub:string}>> = {
@@ -485,6 +492,13 @@ export default function FinancialPage() {
       { label:'Taxa média tomada', value:'1,99% a.m.', bg:'#f5f5f5', border:'#d9d9d9', color:'rgba(0,0,0,0.85)', sub:'Média ponderada das ops' },
       { label:'Custo total em juros', value:'R$ 1.691,00', bg:'#fff1f0', border:'#ffa39e', color:'#ff4d4f', sub:'Juros pagos em antecipações' },
       { label:'Elegível para antecipar', value:'R$ 670.338,00', bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'Recebíveis livres de gravame' },
+    ],
+    dre: [
+      { label:'Receita bruta (MDR + juros)', value:'R$ 44.164,00', bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'MDR cobrado + juros de antecipações' },
+      { label:'Custo com adquirentes', value:'R$ 29.772,00', bg:'#fff1f0', border:'#ffa39e', color:'#ff4d4f', sub:'MDR pago + tarifas operacionais' },
+      { label:'Margem líquida', value:'R$ 14.392,00', bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'32,6% de margem sobre receita' },
+      { label:'Float do sub', value:'R$ 78.328,00', bg:'#e6f7ff', border:'#91d5ff', color:'#1890FF', sub:'Saldo em trânsito na conta' },
+      { label:'Capital comprometido', value:'R$ 140.000,00', bg:'#fff7e6', border:'#ffd591', color:'#fa8c16', sub:'Antecipações concedidas em aberto' },
     ],
   }
 
@@ -545,17 +559,83 @@ export default function FinancialPage() {
       {/* ── LIQUIDAÇÕES TAB ── */}
       {tab==='liquidacoes' && (
         <div style={{ padding:24, display:'flex', flexDirection:'column', gap:16 }}>
-          <div style={{ background:'#e6f7ff', border:'1px solid #91d5ff', borderRadius:2, padding:'12px 16px', display:'flex', gap:12, alignItems:'flex-start' }}>
-            <Icon name="info" size={16} color="#1890FF" />
-            <div style={{ flex:1 }}>
-              <div style={{ fontSize:13, fontWeight:600, color:'rgba(0,0,0,0.85)', marginBottom:4 }}>Liquidação Centralizada ativa</div>
-              <div style={{ fontSize:12, color:'rgba(0,0,0,0.65)', lineHeight:'18px' }}>
-                Os adquirentes creditam diretamente no <strong>domicílio bancário</strong> do sub-adquirente via registradora (CIP/CERC/TAG).
-                Oneração (gravame) de <strong>R$ 140.000,00</strong> registrada como garantia de antecipações em aberto.
-              </div>
-            </div>
-            <button style={{ border:'1px solid #91d5ff', background:'#fff', borderRadius:2, padding:'4px 12px', fontSize:12, cursor:'pointer', color:'#1890FF', whiteSpace:'nowrap' }}>Ver configuração</button>
+
+          {/* Subtabs: liquidação do sub vs repasses para ECs */}
+          <div style={{ display:'flex', gap:0, borderBottom:'2px solid #f0f0f0' }}>
+            {([{ key:'sub', label:'Liquidação do sub' }, { key:'ecs', label:'Repasses para ECs' }] as const).map(s => (
+              <button
+                key={s.key}
+                onClick={() => setLiqSubTab(s.key)}
+                style={{
+                  background:'none', border:'none', cursor:'pointer', padding:'8px 20px',
+                  fontSize:13, fontWeight: liqSubTab===s.key ? 600 : 400,
+                  color: liqSubTab===s.key ? '#1890FF' : 'rgba(0,0,0,0.55)',
+                  borderBottom: liqSubTab===s.key ? '2px solid #1890FF' : '2px solid transparent',
+                  marginBottom:-2, transition:'color 0.15s',
+                }}
+              >{s.label}</button>
+            ))}
           </div>
+
+          {liqSubTab==='ecs' && (()=>{
+            const PAGAMENTOS_DATA = [
+              { name:'Mercado Livre',   cnpj:'03.007.331/0001-41', data:'10/04/2026', bruto:3450200, taxa:103506, rep:3346694, conta:'AG 0001 / CC 12345-6', status:'Pago' },
+              { name:'Amazon Brasil',   cnpj:'15.436.940/0001-03', data:'10/04/2026', bruto:2180700, taxa:65421,  rep:2115279, conta:'AG 0001 / CC 23456-7', status:'Pago' },
+              { name:'Americanas S.A.', cnpj:'00.776.574/0001-56', data:'11/04/2026', bruto:1240500, taxa:37215,  rep:1203285, conta:'AG 0001 / CC 34567-8', status:'Pago' },
+              { name:'Magazine Luiza',  cnpj:'47.960.950/0001-21', data:'12/04/2026', bruto:987200,  taxa:29616,  rep:957584,  conta:'AG 0001 / CC 45678-9', status:'Pago' },
+              { name:'iFood Ltda',      cnpj:'14.380.200/0001-21', data:'25/04/2026', bruto:654900,  taxa:19647,  rep:635253,  conta:'AG 0002 / CC 56789-0', status:'Pendente' },
+              { name:'Shopee Brasil',   cnpj:'35.060.991/0001-56', data:'25/04/2026', bruto:432100,  taxa:12963,  rep:419137,  conta:'AG 0002 / CC 67890-1', status:'Pendente' },
+              { name:'Rappi Brasil',    cnpj:'28.665.021/0001-89', data:'13/04/2026', bruto:765400,  taxa:22962,  rep:742438,  conta:'AG 0001 / CC 78901-2', status:'Pago' },
+            ]
+            type PRow = typeof PAGAMENTOS_DATA[0]
+            const cols: ColumnType<PRow>[] = [
+              { title:'Merchant', dataIndex:'name', key:'name', render: v => <span style={{ fontWeight:500, color:'rgba(0,0,0,0.85)' }}>{v}</span> },
+              { title:'CNPJ', dataIndex:'cnpj', key:'cnpj', render: v => <span style={{ fontFamily:'Roboto Mono', fontSize:11, color:'rgba(0,0,0,0.45)' }}>{v}</span> },
+              { title:'Data repasse', dataIndex:'data', key:'data', width:110 },
+              { title:'Bruto vendas', dataIndex:'bruto', key:'bruto', align:'right' as const, render: v => fmt(v) },
+              { title:'Taxas retidas', dataIndex:'taxa', key:'taxa', align:'right' as const, render: v => <span style={{ color:'#ff4d4f' }}>{fmt(v)}</span> },
+              { title:'Valor repassado', dataIndex:'rep', key:'rep', align:'right' as const, render: v => <span style={{ fontWeight:600, color:'#52c41a' }}>{fmt(v)}</span> },
+              { title:'Conta destino', dataIndex:'conta', key:'conta', render: v => <span style={{ fontFamily:'Roboto Mono', fontSize:11, color:'rgba(0,0,0,0.45)' }}>{v}</span> },
+              { title:'Status', dataIndex:'status', key:'status', width:90, render: v => <Tag status={v} /> },
+            ]
+            return (
+              <>
+                <div style={{ background:'#fff', border:'1px solid rgba(0,0,0,0.06)', borderRadius:2, padding:'10px 20px', display:'flex', gap:20, alignItems:'center', alignSelf:'flex-start' }}>
+                  <div>
+                    <div style={{ fontSize:11, color:'rgba(0,0,0,0.45)' }}>Reserva operacional (rolling reserve)</div>
+                    <div style={{ fontSize:16, fontWeight:700, color:'#722ED1' }}>R$ 43.200,00</div>
+                  </div>
+                  <div style={{ width:1, height:32, background:'#f0f0f0' }} />
+                  <div>
+                    <div style={{ fontSize:11, color:'rgba(0,0,0,0.45)' }}>Retenção aplicada</div>
+                    <div style={{ fontSize:14, fontWeight:600, color:'rgba(0,0,0,0.65)' }}>3% · libera em 90d</div>
+                  </div>
+                </div>
+                <DataTable<PRow>
+                  title="Repasses a merchants — Abril 2026"
+                  columns={cols}
+                  dataSource={PAGAMENTOS_DATA}
+                  rowKey={(_,i)=>String(i)}
+                  onExport={()=>{}}
+                  periodOptions={PERIOD_OPTIONS}
+                  defaultPeriod="hoje"
+                />
+              </>
+            )
+          })()}
+
+          {liqSubTab==='sub' && <>
+            <div style={{ background:'#e6f7ff', border:'1px solid #91d5ff', borderRadius:2, padding:'12px 16px', display:'flex', gap:12, alignItems:'flex-start' }}>
+              <Icon name="info" size={16} color="#1890FF" />
+              <div style={{ flex:1 }}>
+                <div style={{ fontSize:13, fontWeight:600, color:'rgba(0,0,0,0.85)', marginBottom:4 }}>Liquidação Centralizada ativa</div>
+                <div style={{ fontSize:12, color:'rgba(0,0,0,0.65)', lineHeight:'18px' }}>
+                  Os adquirentes creditam diretamente no <strong>domicílio bancário</strong> do sub-adquirente via registradora (CIP/CERC/TAG).
+                  Oneração (gravame) de <strong>R$ 140.000,00</strong> registrada como garantia de antecipações em aberto.
+                </div>
+              </div>
+              <button style={{ border:'1px solid #91d5ff', background:'#fff', borderRadius:2, padding:'4px 12px', fontSize:12, cursor:'pointer', color:'#1890FF', whiteSpace:'nowrap' }}>Ver configuração</button>
+            </div>
 
           {(()=>{
             const domCols: ColumnType<typeof LIQCEN_ADQS[0]>[] = [
@@ -632,6 +712,7 @@ export default function FinancialPage() {
               </>
             )
           })()}
+          </>}
         </div>
       )}
 
@@ -699,6 +780,104 @@ export default function FinancialPage() {
               </>
             )
           })()}
+        </div>
+      )}
+
+      {/* ── DRE OPERACIONAL TAB ── */}
+      {tab==='dre' && (
+        <div style={{ padding:24, display:'flex', flexDirection:'column', gap:16 }}>
+          <div style={{ display:'flex', gap:16 }}>
+            {/* DRE principal */}
+            <div style={{ flex:2, background:'#fff', border:'1px solid rgba(0,0,0,0.06)', borderRadius:2, overflow:'hidden' }}>
+              <div style={{ padding:'16px 24px', borderBottom:'1px solid #f0f0f0', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                <div>
+                  <div style={{ fontSize:14, fontWeight:600, color:'rgba(0,0,0,0.85)' }}>DRE Operacional — {MONTHS[dreMonth]} {dreYear}</div>
+                  <div style={{ fontSize:12, color:'rgba(0,0,0,0.45)', marginTop:2 }}>Resultado econômico do sub-adquirente no período</div>
+                </div>
+                <div style={{ display:'flex', alignItems:'center', gap:4 }}>
+                  <button onClick={prevDreMonth} style={{ background:'none', border:'1px solid #d9d9d9', borderRadius:2, cursor:'pointer', width:28, height:28, display:'flex', alignItems:'center', justifyContent:'center', color:'rgba(0,0,0,0.45)' }}>
+                    <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                  </button>
+                  <span style={{ fontSize:13, fontWeight:500, color:'rgba(0,0,0,0.85)', minWidth:100, textAlign:'center' }}>{MONTHS[dreMonth]} {dreYear}</span>
+                  <button onClick={nextDreMonth} style={{ background:'none', border:'1px solid #d9d9d9', borderRadius:2, cursor:'pointer', width:28, height:28, display:'flex', alignItems:'center', justifyContent:'center', color:'rgba(0,0,0,0.45)' }}>
+                    <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                  </button>
+                </div>
+              </div>
+              <div style={{ padding:'16px 24px' }}>
+                {[
+                  { label:'RECEITAS',                                         v:'',               section:true },
+                  { label:'(+) MDR cobrado dos merchants',                    v:fmt(42473),       indent:1, color:'#52c41a' },
+                  { label:'(+) Juros de antecipações concedidas',             v:fmt(1691),        indent:1, color:'#52c41a' },
+                  { label:'(=) Receita bruta',                                v:fmt(44164),       indent:0, weight:600, color:'#52c41a', border:true },
+                  { label:'CUSTOS',                                           v:'',               section:true },
+                  { label:'(−) MDR pago aos adquirentes',                    v:`(${fmt(29772)})`, indent:1, color:'#ff4d4f' },
+                  { label:'(−) Tarifas operacionais',                        v:`(${fmt(0)})`,     indent:1, color:'rgba(0,0,0,0.35)' },
+                  { label:'(=) Margem operacional líquida',                  v:fmt(14392),       indent:0, weight:700, color:'#52c41a', border:true },
+                  { label:'CAPITAL',                                          v:'',               section:true },
+                  { label:'(−) Antecipações concedidas a ECs (em aberto)',   v:`(${fmt(140000)})`, indent:1, color:'#fa8c16' },
+                  { label:'(+) Float (saldo em trânsito na conta)',           v:fmt(78328),       indent:1, color:'#1890FF' },
+                  { label:'(=) Posição líquida de caixa',                    v:`(${fmt(61672)})`, indent:0, weight:700, color:'#fa8c16', border:true },
+                ].map((r, i) => r.section
+                  ? <div key={i} style={{ fontSize:10, fontWeight:700, color:'rgba(0,0,0,0.35)', letterSpacing:'0.8px', textTransform:'uppercase', padding:'12px 0 4px' }}>{r.label}</div>
+                  : (
+                    <div key={i} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:`${r.border?'10px':'6px'} 0 ${r.border?'10px':'6px'} ${(r.indent||0)*16}px`, borderTop:r.border?'1px solid #f0f0f0':'none', borderBottom:r.border?'2px solid #f0f0f0':'none' }}>
+                      <span style={{ fontSize:13, color:r.color||'rgba(0,0,0,0.65)', fontWeight:r.weight||400 }}>{r.label}</span>
+                      <span style={{ fontSize:13, fontWeight:r.weight||500, color:r.color||'rgba(0,0,0,0.85)', whiteSpace:'nowrap' }}>{r.v}</span>
+                    </div>
+                  )
+                )}
+              </div>
+            </div>
+
+            {/* Painel lateral */}
+            <div style={{ flex:1, display:'flex', flexDirection:'column', gap:16 }}>
+              <div style={{ background:'#fff', border:'1px solid rgba(0,0,0,0.06)', borderRadius:2, overflow:'hidden' }}>
+                <div style={{ padding:'12px 20px', borderBottom:'1px solid #f0f0f0' }}>
+                  <div style={{ fontSize:13, fontWeight:600, color:'rgba(0,0,0,0.85)' }}>Liquidações por adquirente</div>
+                </div>
+                <div style={{ padding:'16px 20px' }}>
+                  {[
+                    { adq:'Adiq',   pct:42, v:fmt(521010), c:'#1890FF' },
+                    { adq:'Rede',   pct:28, v:fmt(347340), c:'#52c41a' },
+                    { adq:'Cielo',  pct:20, v:fmt(248100), c:'#fa8c16' },
+                    { adq:'Getnet', pct:10, v:fmt(124050), c:'#722ED1' },
+                  ].map(a => (
+                    <div key={a.adq} style={{ marginBottom:10 }}>
+                      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:3 }}>
+                        <span style={{ fontSize:12, fontWeight:500, color:'rgba(0,0,0,0.85)' }}>{a.adq}</span>
+                        <span style={{ fontSize:12, fontWeight:500, color:'rgba(0,0,0,0.85)' }}>{a.v}</span>
+                      </div>
+                      <div style={{ height:6, background:'#f0f0f0', borderRadius:3 }}>
+                        <div style={{ height:'100%', width:`${a.pct}%`, background:a.c, borderRadius:3 }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div style={{ background:'#fff', border:'1px solid rgba(0,0,0,0.06)', borderRadius:2, overflow:'hidden' }}>
+                <div style={{ padding:'12px 20px', borderBottom:'1px solid #f0f0f0' }}>
+                  <div style={{ fontSize:13, fontWeight:600, color:'rgba(0,0,0,0.85)' }}>Receita por origem</div>
+                </div>
+                <div style={{ padding:'16px 20px', display:'flex', flexDirection:'column', gap:10 }}>
+                  {[
+                    { label:'MDR cobrado dos ECs', value:fmt(42473), pct:96, color:'#52c41a' },
+                    { label:'Juros antecipações',  value:fmt(1691),  pct:4,  color:'#1890FF' },
+                  ].map((r, i) => (
+                    <div key={i}>
+                      <div style={{ display:'flex', justifyContent:'space-between', marginBottom:4 }}>
+                        <span style={{ fontSize:12, color:'rgba(0,0,0,0.55)' }}>{r.label}</span>
+                        <span style={{ fontSize:12, fontWeight:500, color:r.color }}>{r.value}</span>
+                      </div>
+                      <div style={{ height:5, background:'#f0f0f0', borderRadius:3 }}>
+                        <div style={{ height:'100%', width:`${r.pct}%`, background:r.color, borderRadius:3 }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

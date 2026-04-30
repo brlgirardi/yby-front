@@ -10,10 +10,7 @@ const NAV = [
   { key: 'merchants', icon: 'users', label: 'Merchants', screen: 'merchants',
     sub: [{ label: 'Lista de merchants', screen: 'merchants' }, { label: 'Novo merchant', screen: 'merchants' }] },
   { key: 'charges', icon: 'receipt', label: 'Cobranças', screen: 'charges' },
-  { key: 'agenda', icon: 'calendar', label: 'Agenda', screen: 'agenda',
-    sub: [
-      { label: 'Recebíveis', screen: 'agenda', tab: 'calendario' },
-    ] },
+  { key: 'agenda', icon: 'calendar', label: 'Agenda', screen: 'agenda' },
   { key: 'financial', icon: 'landmark', label: 'Financeiro', screen: 'financial',
     sub: [
       { label: 'Liquidações',       screen: 'financial', tab: 'liquidacoes'  },

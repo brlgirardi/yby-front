@@ -113,6 +113,8 @@ export default function AgendaPage() {
   const [filterStatus, setFilterStatus] = useState('')
   const [selectedDay, setSelectedDay] = useState(22)
   const [expandedLotes, setExpandedLotes] = useState<Record<string,boolean>>({'10/04/2026-Visa': true})
+  const [expandedPainel, setExpandedPainel] = useState<Record<string,boolean>>({})
+  const togglePainel = (k: string) => setExpandedPainel(p => ({ ...p, [k]: !p[k] }))
   const [selectedAdqs, setSelectedAdqs] = useState<string[]>([])
   const isPerAdquirente = selectedAdqs.length > 0
   // Banners/legendas dispensáveis (session-only)
@@ -331,8 +333,8 @@ export default function AgendaPage() {
           </div>
 
           {/* ── Painel direito: detalhe do dia — white card com divider após título ── */}
-          <div style={{ width:280, flexShrink:0 }}>
-            <div style={{ background:'#fff', border:'1px solid rgba(0,0,0,0.06)', borderRadius:2, display:'flex', flexDirection:'column' }}>
+          <div style={{ width:280, flexShrink:0, display:'flex', flexDirection:'column' }}>
+            <div style={{ background:'#fff', border:'1px solid rgba(0,0,0,0.06)', borderRadius:2, display:'flex', flexDirection:'column', flex:1 }}>
               {/* Header: data + estado do dia */}
               <div style={{ padding:'16px 18px', borderBottom:'1px solid #f0f0f0' }}>
                 <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:4 }}>
@@ -352,74 +354,103 @@ export default function AgendaPage() {
                 <div style={{ fontSize:11, color:'rgba(0,0,0,0.45)' }}>{selectedAdqs.length>0?`Filtrado: ${selectedAdqs.join(', ')}`:'Resumo consolidado do dia'}</div>
               </div>
               {/* Body */}
-              <div style={{ padding:'16px 18px' }}>
-                <div style={{ display:'flex', gap:8, marginBottom:16 }}>
-                  <div style={{ flex:1, background:'#f6ffed', border:'1px solid #b7eb8f', borderRadius:2, padding:'10px 12px' }}>
-                    <div style={{ fontSize:10, color:'rgba(0,0,0,0.45)' }}>Crédito líquido do dia</div>
-                    <div style={{ fontSize:14, fontWeight:700, color:'#52c41a' }}>+R$ 91,4 mil</div>
-                  </div>
-                  <div style={{ flex:1, background:'#fffbe6', border:'1px solid #ffe58f', borderRadius:2, padding:'10px 12px' }}>
-                    <div style={{ fontSize:10, color:'rgba(0,0,0,0.45)' }}>Compromisso futuro</div>
-                    <div style={{ fontSize:14, fontWeight:700, color:'#fa8c16' }}>R$ 60,0 mil</div>
-                  </div>
-                </div>
-                {/* ── ENTRADAS ── */}
-                <div style={{ fontSize:11, fontWeight:700, color:'#52c41a', letterSpacing:'0.5px', textTransform:'uppercase', marginBottom:6 }}>Entradas</div>
-                {[
-                  { l: <Tooltip text="Soma de todas as parcelas que vencem neste dia, provenientes dos adquirentes.">Recebíveis do dia (bruto)</Tooltip>, v:'+R$ 191.400,00', c:'#52c41a' },
-                  { l: <Tooltip text="Parcelas livres de qualquer comprometimento — valor que entra diretamente na conta do sub-adquirente hoje.">Recebíveis livres do dia</Tooltip>, v:'+R$ 91.400,00', c:'#52c41a' },
-                  { l: <Tooltip text="Juros cobrados dos merchants pelas antecipações concedidas. É a receita do sub-adquirente nesta operação de crédito.">Juros de antecipações</Tooltip>, v:'+R$ 240,00', c:'#52c41a' },
-                ].map((r,i,arr) => (
-                  <div key={i} style={{ display:'flex', justifyContent:'space-between', padding:'6px 0', borderBottom: i < arr.length-1 ? '1px solid #f0f0f0' : 'none', fontSize:12 }}>
-                    <span style={{ color:'rgba(0,0,0,0.65)' }}>{r.l}</span>
-                    <span style={{ color:r.c, fontWeight:600 }}>{r.v}</span>
-                  </div>
-                ))}
-
-                {/* ── SAÍDAS / CUSTOS ── */}
-                <div style={{ fontSize:11, fontWeight:700, color:'#ff4d4f', letterSpacing:'0.5px', textTransform:'uppercase', margin:'14px 0 6px' }}>Saídas / Custos</div>
-                <div style={{ display:'flex', justifyContent:'space-between', padding:'6px 0', fontSize:12 }}>
-                  <span style={{ color:'rgba(0,0,0,0.65)' }}>
-                    <Tooltip text="MDR (Merchant Discount Rate): taxa percentual cobrada pelo adquirente por cada transação processada.">Taxas e MDR</Tooltip>
-                  </span>
-                  <span style={{ color:'#ff4d4f', fontWeight:600 }}>-R$ 25.000,00</span>
-                </div>
-
-                {/* ── CAPITAL COMPROMETIDO ── */}
-                <div style={{ fontSize:11, fontWeight:700, color:'#722ED1', letterSpacing:'0.5px', textTransform:'uppercase', margin:'14px 0 6px' }}>Capital comprometido</div>
-                {/* Antecipações concedidas */}
-                <div style={{ display:'flex', justifyContent:'space-between', padding:'6px 0', borderBottom:'1px solid #f0f0f0', fontSize:12 }}>
-                  <span style={{ color:'rgba(0,0,0,0.65)' }}>
-                    <Tooltip text="Capital que o sub-adquirente adiantou a merchants (ECs) e ainda está em recuperação. O fluxo do adquirente não muda — as parcelas chegam normalmente e vão quitando esse saldo ao longo do tempo.">
-                      Antecipações concedidas
-                    </Tooltip>
-                  </span>
-                  <span style={{ color:'#722ED1', fontWeight:600 }}>-R$ 8.400,00</span>
-                </div>
-                {/* Recebíveis comprometidos */}
-                <div style={{ padding:'6px 0', fontSize:12 }}>
-                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                    <span style={{ color:'rgba(0,0,0,0.65)' }}>
-                      <Tooltip text="Parcelas comprometidas com dívida ao adquirente (antecipação tomada) ou bloqueadas por garantia (gravame/oneração). Chegam do adquirente mas não ficam livres no caixa.">
-                        Recebíveis comprometidos
-                      </Tooltip>
-                    </span>
-                    <span style={{ color:'#722ED1', fontWeight:600 }}>-R$ 75.000,00</span>
-                  </div>
-                  <div style={{ display:'flex', flexDirection:'column', gap:2, marginTop:4, paddingLeft:12, borderLeft:'2px solid #f0f0f0' }}>
-                    <div style={{ display:'flex', justifyContent:'space-between', fontSize:11, color:'rgba(0,0,0,0.45)' }}>
-                      <span>↳ Antecipação tomada</span><span>R$ 60.000</span>
+              <div style={{ padding:'8px 0' }}>
+                {([
+                  {
+                    key: 'adquirente',
+                    icon: 'trendingUp' as const,
+                    color: '#52c41a',
+                    label: 'Líquido do adquirente',
+                    summary: 'Líquido do adquirente',
+                    summaryValue: '+R$ 91.400,00',
+                    summaryColor: '#52c41a',
+                    rows: [
+                      { l: <Tooltip text="Soma de todas as parcelas que vencem hoje, antes de qualquer dedução.">Crédito bruto</Tooltip>, v:'+R$ 191.400,00', c:'#52c41a' },
+                      { l: <Tooltip text="MDR (Merchant Discount Rate): taxa cobrada pelo adquirente sobre cada transação processada.">− MDR pago</Tooltip>, v:'−R$ 25.000,00', c:'#ff4d4f' },
+                      { l: <Tooltip text="Parcelas comprometidas com operações de antecipação tomada junto ao adquirente, debitadas na liquidação.">− Antecipação debitada</Tooltip>, v:'−R$ 75.000,00', c:'#fa8c16' },
+                    ],
+                  },
+                  {
+                    key: 'ecs',
+                    icon: 'users' as const,
+                    color: '#1890ff',
+                    label: 'Repasse aos ECs',
+                    summary: 'Repasse líquido',
+                    summaryValue: '−R$ 149.840,00',
+                    summaryColor: '#1890ff',
+                    rows: [
+                      { l: <Tooltip text="Total repassado aos merchants pelo valor bruto das vendas.">Repasse bruto</Tooltip>, v:'−R$ 158.000,00', c:'rgba(0,0,0,0.65)' },
+                      { l: <Tooltip text="MDR cobrado dos merchants (spread sobre o MDR pago ao adquirente). Receita de intermediação do sub.">+ MDR cobrado do EC</Tooltip>, v:'+R$ 8.160,00', c:'#52c41a' },
+                    ],
+                  },
+                  {
+                    key: 'resultado',
+                    icon: 'barChart' as const,
+                    color: '#722ED1',
+                    label: 'Margem do dia',
+                    summary: 'Margem do dia',
+                    summaryValue: '−R$ 16.600,00',
+                    summaryColor: '#722ED1',
+                    rows: [
+                      { l: <Tooltip text="Juros cobrados dos merchants pelas antecipações concedidas. Receita financeira do sub.">Juros de antecipações</Tooltip>, v:'+R$ 240,00', c:'#52c41a' },
+                      { l: <Tooltip text="Diferença entre o MDR cobrado dos ECs e o MDR pago aos adquirentes.">Spread de MDR</Tooltip>, v:'+R$ 8.160,00', c:'#52c41a' },
+                      { l: <Tooltip text="MDR pago ao adquirente — custo de liquidação.">− MDR pago</Tooltip>, v:'−R$ 25.000,00', c:'#ff4d4f' },
+                    ],
+                  },
+                  {
+                    key: 'capital',
+                    icon: 'creditCard' as const,
+                    color: '#fa8c16',
+                    label: 'Capital comprometido',
+                    summary: 'Total comprometido',
+                    summaryValue: 'R$ 23.400,00',
+                    summaryColor: '#fa8c16',
+                    rows: [
+                      { l: <Tooltip text="Capital adiantado a merchants ainda em recuperação. As parcelas do adquirente vão abatendo gradualmente.">Antecipações concedidas</Tooltip>, v:'R$ 8.400,00', c:'#fa8c16' },
+                      { l: <Tooltip text="Recebíveis bloqueados por garantia (gravame) ou comprometidos com antecipação tomada junto ao adquirente.">Gravame / oneração</Tooltip>, v:'R$ 15.000,00', c:'#fa8c16' },
+                    ],
+                  },
+                ] as const).map((section, si, arr) => {
+                  const isOpen = !!expandedPainel[section.key]
+                  return (
+                    <div key={section.key} style={{ borderBottom: si < arr.length - 1 ? '1px solid #f0f0f0' : 'none' }}>
+                      {/* Header — sempre visível, clicável */}
+                      <div
+                        onClick={() => togglePainel(section.key)}
+                        style={{ display:'flex', alignItems:'center', padding:'10px 18px', cursor:'pointer', userSelect:'none' }}
+                      >
+                        <div style={{ display:'flex', alignItems:'center', gap:6, flex:1, minWidth:0 }}>
+                          <Icon name={section.icon} size={12} color={section.color} />
+                          <span style={{ fontSize:11, fontWeight:700, color:section.color, letterSpacing:'0.4px', textTransform:'uppercase', whiteSpace:'nowrap' }}>{section.label}</span>
+                        </div>
+                        {!isOpen && (
+                          <div style={{ display:'flex', alignItems:'center', gap:8, flexShrink:0 }}>
+                            <span style={{ fontSize:12, fontWeight:700, color:section.summaryColor }}>{section.summaryValue}</span>
+                            <Icon name="chevronDown" size={12} color="rgba(0,0,0,0.35)" />
+                          </div>
+                        )}
+                        {isOpen && (
+                          <Icon name="chevronUp" size={12} color="rgba(0,0,0,0.35)" />
+                        )}
+                      </div>
+                      {/* Detalhe expandido */}
+                      {isOpen && (
+                        <div style={{ padding:'0 18px 12px' }}>
+                          {section.rows.map((r, i) => (
+                            <div key={i} style={{ display:'flex', justifyContent:'space-between', padding:'5px 0', borderBottom:'1px solid #f5f5f5', fontSize:12 }}>
+                              <span style={{ color:'rgba(0,0,0,0.65)' }}>{r.l}</span>
+                              <span style={{ color:r.c, fontWeight:600 }}>{r.v}</span>
+                            </div>
+                          ))}
+                          <div style={{ display:'flex', justifyContent:'space-between', padding:'7px 0 2px', fontSize:12 }}>
+                            <span style={{ color:'rgba(0,0,0,0.85)', fontWeight:600 }}>{section.summary}</span>
+                            <span style={{ color:section.summaryColor, fontWeight:700 }}>{section.summaryValue}</span>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <div style={{ display:'flex', justifyContent:'space-between', fontSize:11, color:'rgba(0,0,0,0.45)' }}>
-                      <span>↳ Gravame / oneração</span><span>R$ 15.000</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ marginTop:14, padding:'10px 12px', background:'#f6ffed', border:'1px solid #b7eb8f', borderRadius:2 }}>
-                  <div style={{ fontSize:11, fontWeight:600, color:'#389e0d', marginBottom:4 }}>Próximo evento</div>
-                  <div style={{ fontSize:11, color:'rgba(0,0,0,0.55)', lineHeight:'16px' }}>Em {selectedDay+1}/Abr, mais R$ 48 mil ficam elegíveis para crédito, sem nova retenção de gravame.</div>
-                </div>
+                  )
+                })}
               </div>
             </div>
           </div>

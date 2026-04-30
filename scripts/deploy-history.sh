@@ -9,55 +9,76 @@ set -e
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 CHANGELOG="$ROOT/src/data/changelog.json"
 CURRENT_BRANCH=$(git -C "$ROOT" rev-parse --abbrev-ref HEAD)
+VERCEL_DIR="$ROOT/.vercel"
 
 echo "🚀 Yby Front — Deploy histórico de versões"
 echo "Branch atual: $CURRENT_BRANCH"
 echo ""
 
-# Versões com commit hash definido (exclui HEAD e placeholder)
+# Versões com commit hash definido (exclui HEAD e commit atual do main)
+CURRENT_COMMIT=$(git -C "$ROOT" rev-parse --short HEAD)
 VERSIONS=$(node -e "
 const fs = require('fs');
 const data = JSON.parse(fs.readFileSync('$CHANGELOG'));
 data
-  .filter(v => v.commit && v.commit !== 'HEAD' && !v.previewUrl)
+  .filter(v => v.commit && v.commit !== 'HEAD' && v.commit !== '$CURRENT_COMMIT')
   .forEach(v => console.log(v.version + ' ' + v.commit));
 ")
 
 if [ -z "$VERSIONS" ]; then
-  echo "✅ Todas as versões já têm preview URL. Nada a fazer."
+  echo "✅ Nenhuma versão histórica para deployar."
   exit 0
 fi
 
-echo "Versões sem preview URL:"
+echo "Versões para deploy:"
 echo "$VERSIONS"
 echo ""
 
-# Salva stash se houver mudanças não commitadas
-STASHED=0
-if ! git -C "$ROOT" diff --quiet || ! git -C "$ROOT" diff --cached --quiet; then
-  echo "📦 Salvando mudanças locais em stash..."
-  git -C "$ROOT" stash push -m "deploy-history-temp"
-  STASHED=1
-fi
+TMPBASE=$(mktemp -d)
+trap "rm -rf '$TMPBASE'" EXIT
 
-# Para cada versão, faz checkout + deploy
+# Para cada versão, extrai via git archive (sem checkout) + deploy
 while IFS=' ' read -r version commit; do
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
   echo "📌 v$version → commit $commit"
 
-  # Checkout do commit
-  git -C "$ROOT" checkout "$commit" --quiet
+  TMPDIR="$TMPBASE/$version"
+  mkdir -p "$TMPDIR"
 
-  # Deploy no Vercel (sem prompts, sem prod)
+  # Extrai snapshot do commit sem alterar working tree
+  git -C "$ROOT" archive "$commit" | tar -x -C "$TMPDIR"
+
+  # Copia .vercel/project.json para o tmp (necessário para vincular ao projeto Vercel)
+  if [ -d "$VERCEL_DIR" ]; then
+    cp -r "$VERCEL_DIR" "$TMPDIR/.vercel"
+  fi
+
+  # Deploy no Vercel a partir do diretório temporário
   echo "   Enviando para Vercel..."
-  DEPLOY_URL=$(cd "$ROOT" && vercel deploy --yes --no-wait 2>/dev/null | tail -1)
+  DEPLOY_OUTPUT=$(cd "$TMPDIR" && vercel deploy --yes 2>&1)
+
+  # Extrai URL: tenta JSON primeiro, depois linha "Preview: https://..."
+  DEPLOY_URL=$(echo "$DEPLOY_OUTPUT" | node -e "
+let data = '';
+process.stdin.on('data', d => data += d);
+process.stdin.on('end', () => {
+  const jsonMatch = data.match(/\"url\":\s*\"(https:\/\/[^\"]+)\"/);
+  if (jsonMatch) { console.log(jsonMatch[1]); return; }
+  const lines = data.split('\n');
+  for (const l of lines) {
+    const m = l.match(/Preview:\s*(https:\/\/\S+)/);
+    if (m) { console.log(m[1]); return; }
+  }
+});
+" 2>/dev/null)
 
   if [ -z "$DEPLOY_URL" ]; then
     echo "   ⚠️  Deploy falhou ou URL não capturada para v$version. Pulando."
+    echo "   Últimas linhas: $(echo "$DEPLOY_OUTPUT" | tail -3)"
   else
     echo "   ✅ URL: $DEPLOY_URL"
 
-    # Atualiza changelog.json com a URL
+    # Atualiza changelog.json com a URL (main não foi tocado)
     node -e "
 const fs = require('fs');
 const data = JSON.parse(fs.readFileSync('$CHANGELOG'));
@@ -70,20 +91,10 @@ console.log('   📝 changelog.json atualizado');
 
 done <<< "$VERSIONS"
 
-# Volta para branch original
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "🔙 Voltando para branch $CURRENT_BRANCH..."
-git -C "$ROOT" checkout "$CURRENT_BRANCH" --quiet
-
-# Restaura stash se havia mudanças
-if [ $STASHED -eq 1 ]; then
-  echo "📦 Restaurando mudanças locais..."
-  git -C "$ROOT" stash pop
-fi
 
 # Commit das URLs atualizadas
-echo ""
 echo "💾 Commitando URLs no changelog.json..."
 git -C "$ROOT" add "$CHANGELOG"
 git -C "$ROOT" commit -m "chore(changelog): preview URLs das versões históricas via Vercel" --no-verify 2>/dev/null || echo "   (nada novo para commitar)"

@@ -1,13 +1,30 @@
 [
   {
-    "version": "1.1",
+    "version": "1.2",
     "title": "Em desenvolvimento",
-    "date": "2026-04-29",
+    "date": "2026-04-30",
     "commit": "HEAD",
     "previewUrl": "",
     "tag": "Feature",
     "items": [
       "Versão em desenvolvimento — itens serão adicionados aqui"
+    ]
+  },
+  {
+    "version": "1.1",
+    "title": "Agenda: painel do dia em cascata + accordion",
+    "date": "2026-04-30",
+    "commit": "HEAD",
+    "previewUrl": "",
+    "tag": "UX",
+    "items": [
+      "Painel lateral do dia reestruturado em cascata financeira: Do Adquirente → Repasse aos ECs → Margem do dia → Capital comprometido",
+      "Seções colapsáveis (accordion) — collapsed mostra só o resultado, expandido mostra o detalhamento",
+      "Calendário: toggle Bruto/Repasses/Líquido removido — filtro por adquirente sempre visível no header como pills",
+      "Aba 'Por parcela' e 'Por lote' fundidas em 'Detalhado' com toggle 'Agrupar por arranjo'",
+      "Agrupamento por adquirente+bandeira substituiu agrupamento por data+bandeira",
+      "KPI 'Custo total em juros' corrigido para 'Juros recebidos (receita)' — verde, não vermelho",
+      "Financeiro: 'Liquidação do sub' renomeado para 'Recebimentos do adquirente'"
     ]
   },
   {

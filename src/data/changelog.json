@@ -15,7 +15,7 @@
     "title": "Agenda: painel do dia em cascata + accordion",
     "date": "2026-04-30",
     "commit": "18f8348",
-    "previewUrl": "",
+    "previewUrl": "https://yby-front-jptwvygmw-brlgirardis-projects.vercel.app",
     "tag": "UX",
     "items": [
       "Painel lateral do dia reestruturado em cascata financeira: Do Adquirente → Repasse aos ECs → Margem do dia → Capital comprometido",
@@ -32,7 +32,7 @@
     "title": "Reestruturação de navegação — sidebar como única nav",
     "date": "2026-04-29",
     "commit": "38c5389",
-    "previewUrl": "https://yby-front-jhsv3xq88-brlgirardis-projects.vercel.app",
+    "previewUrl": "https://yby-front-cvrkgxifs-brlgirardis-projects.vercel.app",
     "tag": "UX",
     "items": [
       "Tabs horizontais removidas de Agenda e Financeiro — sidebar é a única navegação",
@@ -49,7 +49,7 @@
     "title": "DRE lateral + Antecipações concedidas",
     "date": "2026-04-29",
     "commit": "783d803",
-    "previewUrl": "https://yby-front-ao8cccyx0-brlgirardis-projects.vercel.app",
+    "previewUrl": "https://yby-front-cu3fubjq0-brlgirardis-projects.vercel.app",
     "tag": "UX",
     "items": [
       "Painel lateral do calendário reestruturado em 3 seções: Entradas / Saídas / Capital comprometido",
@@ -65,7 +65,7 @@
     "title": "Fluxo de recuperação de antecipações",
     "date": "2026-04-28",
     "commit": "d7b3b9d",
-    "previewUrl": "https://yby-front-21w5jmslp-brlgirardis-projects.vercel.app",
+    "previewUrl": "https://yby-front-l14ax4vns-brlgirardis-projects.vercel.app",
     "tag": "Feature",
     "items": [
       "Bloco 'Fluxo de recuperação' adicionado em Agenda → Antecipações e Financeiro → Antecipações",
@@ -79,7 +79,7 @@
     "title": "Importação manual de liquidações CSV",
     "date": "2026-04-27",
     "commit": "6c515a0",
-    "previewUrl": "https://yby-front-2zl2nvj2a-brlgirardis-projects.vercel.app",
+    "previewUrl": "https://yby-front-fmizdyone-brlgirardis-projects.vercel.app",
     "tag": "Feature",
     "items": [
       "Fluxo completo de importação manual de CSV em Financeiro → Liquidações",
@@ -92,7 +92,7 @@
     "title": "DataTable title-row + calendário mock",
     "date": "2026-04-25",
     "commit": "603b657",
-    "previewUrl": "https://yby-front-kqinn26b0-brlgirardis-projects.vercel.app",
+    "previewUrl": "https://yby-front-jbqmnma7y-brlgirardis-projects.vercel.app",
     "tag": "UX",
     "items": [
       "DataTable com controles na linha do título (busca, filtros, exportar)",
@@ -105,7 +105,7 @@
     "title": "Refactor calendário + tabela de lotes",
     "date": "2026-04-23",
     "commit": "af7cbe8",
-    "previewUrl": "https://yby-front-fjklwixyd-brlgirardis-projects.vercel.app",
+    "previewUrl": "https://yby-front-76wch32w0-brlgirardis-projects.vercel.app",
     "tag": "Refactor",
     "items": [
       "UX do calendário limpo — legenda, filtro de período, navegação de mês",
@@ -118,7 +118,7 @@
     "title": "Parcelas enriquecidas + ícones nas tags",
     "date": "2026-04-21",
     "commit": "9d20d2d",
-    "previewUrl": "https://yby-front-n8o4rywt2-brlgirardis-projects.vercel.app",
+    "previewUrl": "https://yby-front-6agurp3to-brlgirardis-projects.vercel.app",
     "tag": "Feature",
     "items": [
       "Dados de parcelas enriquecidos com NSU, bandeira, parcelamento, antecipação",
@@ -131,7 +131,7 @@
     "title": "Busca animada no header + ajustes UI",
     "date": "2026-04-18",
     "commit": "11390c7",
-    "previewUrl": "https://yby-front-o95r3hbn6-brlgirardis-projects.vercel.app",
+    "previewUrl": "https://yby-front-5mxhb3euv-brlgirardis-projects.vercel.app",
     "tag": "UX",
     "items": [
       "Search animado no header global (ícone expande para input)",
@@ -144,7 +144,7 @@
     "title": "Ajustes DataTable e tabela de antecipações",
     "date": "2026-04-16",
     "commit": "7438b58",
-    "previewUrl": "https://yby-front-4vn4232ny-brlgirardis-projects.vercel.app",
+    "previewUrl": "https://yby-front-nrhmehheu-brlgirardis-projects.vercel.app",
     "tag": "Fix",
     "items": [
       "Exportar movido para o header da DataTable",
@@ -157,7 +157,7 @@
     "title": "Commit inicial — Yby Front backoffice",
     "date": "2026-04-14",
     "commit": "eb9d835",
-    "previewUrl": "https://yby-front-5644uyj9h-brlgirardis-projects.vercel.app",
+    "previewUrl": "https://yby-front-9rhnervx5-brlgirardis-projects.vercel.app",
     "tag": "Init",
     "items": [
       "Setup Next.js 14 + Ant Design 6 + Zustand 5 + TypeScript",

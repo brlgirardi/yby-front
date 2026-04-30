@@ -483,7 +483,7 @@ export default function FinancialPage() {
       { label:'Saldo devedor total', value:'R$ 140.000,00', bg:'#fff7e6', border:'#ffd591', color:'#fa8c16', sub:'Em aberto com adquirentes' },
       { label:'Antecipado no mês', value:'R$ 85.000,00', bg:'#e6f7ff', border:'#91d5ff', color:'#1890FF', sub:'3 operações em abril/26' },
       { label:'Taxa média tomada', value:'1,99% a.m.', bg:'#f5f5f5', border:'#d9d9d9', color:'rgba(0,0,0,0.85)', sub:'Média ponderada das ops' },
-      { label:'Custo total em juros', value:'R$ 1.691,00', bg:'#fff1f0', border:'#ffa39e', color:'#ff4d4f', sub:'Juros pagos em antecipações' },
+      { label:'Juros recebidos (receita)', value:'R$ 1.691,00', bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'Juros cobrados dos merchants pelas antecipações' },
       { label:'Elegível para antecipar', value:'R$ 670.338,00', bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'Recebíveis livres de gravame' },
     ],
     dre: [
@@ -523,7 +523,7 @@ export default function FinancialPage() {
 
           {/* Subtabs: liquidação do sub vs repasses para ECs */}
           <div style={{ display:'flex', gap:0, borderBottom:'2px solid #f0f0f0' }}>
-            {([{ key:'sub', label:'Liquidação do sub' }, { key:'ecs', label:'Repasses para ECs' }] as const).map(s => (
+            {([{ key:'sub', label:'Recebimentos do adquirente' }, { key:'ecs', label:'Repasses para ECs' }] as const).map(s => (
               <button
                 key={s.key}
                 onClick={() => setLiqSubTab(s.key)}
@@ -628,7 +628,7 @@ export default function FinancialPage() {
               { title:'Data', dataIndex:'data', key:'data', width:110, render: v => <span style={{ color:'rgba(0,0,0,0.65)', whiteSpace:'nowrap' }}>{v}</span> },
               { title:'Adquirente', dataIndex:'adq', key:'adq', width:90, render: v => <span style={{ fontWeight:600 }}>{v}</span> },
               { title:'Tipo de crédito', dataIndex:'tipo', key:'tipo', render: v => <span style={{ fontSize:11, background:v.includes('Desc.')?'#fff7e6':'#e6f7ff', color:v.includes('Desc.')?'#fa8c16':'#1890FF', border:`1px solid ${v.includes('Desc.')?'#ffd591':'#91d5ff'}`, borderRadius:2, padding:'1px 6px' }}>{v}</span> },
-              { title:'Bruto do lote', dataIndex:'bruto', key:'bruto', render: v => <span style={{ color:'rgba(0,0,0,0.85)' }}>{fmt(v)}</span> },
+              { title:'Crédito bruto (adquirente)', dataIndex:'bruto', key:'bruto', render: v => <span style={{ color:'rgba(0,0,0,0.85)' }}>{fmt(v)}</span> },
               { title:'MDR / Tarifas', dataIndex:'desc', key:'desc', render: v => <span style={{ color:'#ff4d4f' }}>{fmt(v)}</span> },
               { title:'Antecipação descontada', dataIndex:'antecip', key:'antecip', render: v => <span style={{ color:v>0?'#fa8c16':'rgba(0,0,0,0.25)' }}>{v>0?fmt(v):'—'}</span> },
               { title:'Crédito líquido', dataIndex:'cred', key:'cred', render: v => <span style={{ fontWeight:600, color:'#52c41a' }}>{fmt(v)}</span> },

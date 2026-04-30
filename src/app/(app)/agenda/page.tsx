@@ -100,8 +100,7 @@ const CALENDAR_DAYS = Array.from({length:30},(_,i)=>{
 
 const AGENDA_TABS = [
   { key:'calendario', label:'Recebíveis' },
-  { key:'detalhada',  label:'Por parcela' },
-  { key:'lote',       label:'Por lote' },
+  { key:'detalhada',  label:'Detalhado' },
 ]
 
 export default function AgendaPage() {
@@ -160,11 +159,11 @@ export default function AgendaPage() {
 
   const KPI_BY_TAB: Record<string, Array<{label:string;value:string;bg:string;border:string;color:string;sub:string;badge?:string|null}>> = {
     calendario: [
-      { label:'Total Bruto das Vendas', value:fmt(totalBruto), bg:'#e6f7ff', border:'#91d5ff', color:'#1890FF', sub:`${kpiData.length} transações · abr/2026` },
+      { label:'Total a receber dos adquirentes', value:fmt(totalBruto), bg:'#e6f7ff', border:'#91d5ff', color:'#1890FF', sub:`${kpiData.length} parcelas · abr/2026` },
       { label:'Antecipação Tomada', value:fmt(totalAntecip), bg:'#fff7e6', border:'#ffd591', color:'#fa8c16', sub:'Saldo devedor ao adquirente' },
       { label:'Deduções & Custos', value:fmt(totalComissao), bg:'#fff1f0', border:'#ffa39e', color:'#ff4d4f', sub:'MDR + chargebacks + outros' },
       { label:'Líquido a Receber', value:fmt(totalLiquido), bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'Estimativa de crédito em conta' },
-      { label:'Pipeline Futuro', value:fmt(pipelineFuturo), bg:'#fffbe6', border:'#ffe58f', color:'#faad14', sub:'Próximos 90 dias (todos)' },
+      { label:'Recebíveis futuros (90 dias)', value:fmt(pipelineFuturo), bg:'#fffbe6', border:'#ffe58f', color:'#faad14', sub:'Parcelas previstas — todos os adquirentes' },
     ],
     detalhada: [
       { label:'Total de parcelas', value:String(PARCELAS_DATA.length), bg:'#e6f7ff', border:'#91d5ff', color:'#1890FF', sub:'No período filtrado' },
@@ -172,13 +171,6 @@ export default function AgendaPage() {
       { label:'Parcelas antecipadas', value:String(PARCELAS_DATA.filter(r=>r.antecipado).length), bg:'#fff7e6', border:'#ffd591', color:'#fa8c16', sub:`${[...new Set(PARCELAS_DATA.filter(r=>r.antecipado).map(r=>r.nsu))].length} operações · ${fmt(totalAntecip)}` },
       { label:'Deduções (MDR)', value:fmt(totalComissao), bg:'#fff1f0', border:'#ffa39e', color:'#ff4d4f', sub:'Comissão sub sobre EC' },
       { label:'Valor líquido total', value:fmt(totalLiquido), bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'Após deduções e antecipações' },
-    ],
-    lote: [
-      { label:'Total de lotes', value:'7', bg:'#e6f7ff', border:'#91d5ff', color:'#1890FF', sub:'4 adquirentes · abr/2026' },
-      { label:'Bruto total dos lotes', value:fmt(835400), bg:'#f5f5f5', border:'#d9d9d9', color:'rgba(0,0,0,0.85)', sub:'1.786 transações' },
-      { label:'Total antecipado', value:fmt(140000), bg:'#fff7e6', border:'#ffd591', color:'#fa8c16', sub:'Descontado em créditos futuros' },
-      { label:'Total comissão', value:fmt(25062), bg:'#fff1f0', border:'#ffa39e', color:'#ff4d4f', sub:'MDR retido pelo sub' },
-      { label:'Líquido total dos lotes', value:fmt(670338), bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'Crédito líquido previsto' },
     ],
   }
   const currentKpis = KPI_BY_TAB[tab] || KPI_BY_TAB.calendario
@@ -191,12 +183,14 @@ export default function AgendaPage() {
   const clearFilters = () => { setFilterBandeira(''); setFilterStatus(''); setSearch('') }
 
   type Parcela = typeof PARCELAS_DATA[0]
-  type LoteGroup = { key: string; data: string; bandeira: string; rows: Parcela[]; bruto: number; comissao: number; antecipDescontada: number; liquido: number }
 
-  const groupedLotes: LoteGroup[] = Object.values(
-    filtered.reduce((acc: Record<string, LoteGroup>, r) => {
-      const key = `${r.data}-${r.bandeira}`
-      if (!acc[key]) acc[key] = { key, data:r.data, bandeira:r.bandeira, rows:[], bruto:0, comissao:0, antecipDescontada:0, liquido:0 }
+  // Agrupamento por adquirente + bandeira (ex: "Adiq — Visa")
+  type ArranjoGroup = { key: string; adq: string; bandeira: string; rows: Parcela[]; bruto: number; comissao: number; antecipDescontada: number; liquido: number }
+
+  const groupedArranjo: ArranjoGroup[] = Object.values(
+    filtered.reduce((acc: Record<string, ArranjoGroup>, r) => {
+      const key = `${r.adq}-${r.bandeira}`
+      if (!acc[key]) acc[key] = { key, adq:r.adq, bandeira:r.bandeira, rows:[], bruto:0, comissao:0, antecipDescontada:0, liquido:0 }
       acc[key].rows.push(r)
       acc[key].bruto += r.valor
       acc[key].comissao += r.comissao
@@ -204,7 +198,7 @@ export default function AgendaPage() {
       acc[key].liquido += r.liquido
       return acc
     }, {})
-  )
+  ).sort((a, b) => b.bruto - a.bruto)
 
   const toggleLote = (key: string) => setExpandedLotes(p => ({...p,[key]:!p[key]}))
 
@@ -416,7 +410,7 @@ export default function AgendaPage() {
                 {/* ── ENTRADAS ── */}
                 <div style={{ fontSize:11, fontWeight:700, color:'#52c41a', letterSpacing:'0.5px', textTransform:'uppercase', marginBottom:6 }}>Entradas</div>
                 {[
-                  { l: <Tooltip text="Soma de todas as parcelas que vencem neste dia, provenientes dos adquirentes.">Parcelas a creditar</Tooltip>, v:'+R$ 191.400,00', c:'#52c41a' },
+                  { l: <Tooltip text="Soma de todas as parcelas que vencem neste dia, provenientes dos adquirentes.">Recebíveis do dia (bruto)</Tooltip>, v:'+R$ 191.400,00', c:'#52c41a' },
                   { l: <Tooltip text="Parcelas livres de qualquer comprometimento — valor que entra diretamente na conta do sub-adquirente hoje.">Recebíveis livres do dia</Tooltip>, v:'+R$ 91.400,00', c:'#52c41a' },
                   { l: <Tooltip text="Juros cobrados dos merchants pelas antecipações concedidas. É a receita do sub-adquirente nesta operação de crédito.">Juros de antecipações</Tooltip>, v:'+R$ 240,00', c:'#52c41a' },
                 ].map((r,i,arr) => (
@@ -552,7 +546,7 @@ export default function AgendaPage() {
 
             const toggleExtra = (
               <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                <span style={{ fontSize:13, color:'rgba(0,0,0,0.65)', whiteSpace:'nowrap' }}>Visualizar por parcela</span>
+                <span style={{ fontSize:13, color:'rgba(0,0,0,0.65)', whiteSpace:'nowrap' }}>Agrupar por arranjo</span>
                 <div onClick={()=>setAgrupado(!agrupado)} style={{ width:40, height:22, borderRadius:11, background:agrupado?'#1890FF':'#d9d9d9', cursor:'pointer', position:'relative', transition:'background 0.2s', flexShrink:0 }}>
                   <div style={{ position:'absolute', top:3, left:agrupado?20:3, width:16, height:16, borderRadius:'50%', background:'#fff', boxShadow:'0 2px 4px rgba(0,35,11,0.2)', transition:'left 0.2s' }} />
                 </div>
@@ -563,51 +557,53 @@ export default function AgendaPage() {
             const sFilter = filterStatus ? [filterStatus] : ['Pago','Pendente','Antecipado','Chargeback','Liquidado']
 
             return agrupado ? (
-              /* ── Visão agrupada por lote ── */
+              /* ── Visão agrupada por adquirente + bandeira (arranjo) ── */
               <div style={{ background:'#fff', border:'1px solid rgba(0,0,0,0.06)', borderRadius:2, boxShadow:'0 2px 0 rgba(0,0,0,0.02)' }}>
                 <div style={{ padding:'16px 24px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-                  <span style={{ fontSize:16, fontWeight:600, color:'rgba(0,0,0,0.85)', fontFamily:'Roboto, sans-serif' }}>Seus recebíveis</span>
+                  <span style={{ fontSize:16, fontWeight:600, color:'rgba(0,0,0,0.85)', fontFamily:'Roboto, sans-serif' }}>Recebíveis por arranjo</span>
                   {toggleExtra}
                 </div>
                 <div style={{ overflowX:'auto', padding:'0 21px 21px' }}>
                   <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12 }}>
                     <thead>
                       <tr style={{ background:'#fafafa' }}>
-                        {['Data de Liquidação','Bandeira','Qtd Transações','Valor Bruto do Lote','MDR retido','Antecipação tomada','Vlr. Líquido do Lote','Status do Lote'].map(h => (
+                        {['Arranjo (Adquirente / Bandeira)','Parcelas','Crédito bruto (adquirente)','MDR pago','Antecipação tomada','Crédito líquido','Status'].map(h => (
                           <th key={h} style={{ padding:'10px 14px', textAlign:'left', fontWeight:500, color:'rgba(0,0,0,0.85)', borderBottom:'1px solid #f0f0f0', whiteSpace:'nowrap', fontSize:12 }}>{h}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
-                      {groupedLotes.map(lote => {
-                        const isExp = expandedLotes[lote.key]
-                        const allPago = lote.rows.every(r=>r.status==='Pago')
-                        const loteStatus = lote.antecipDescontada > 0 ? 'Antecipado' : allPago ? 'Liquidado' : 'Pendente'
+                      {groupedArranjo.map(arr => {
+                        const isExp = expandedLotes[arr.key]
+                        const allPago = arr.rows.every(r=>r.status==='Pago')
+                        const arrStatus = arr.antecipDescontada > 0 ? 'Antecipado' : allPago ? 'Liquidado' : 'Pendente'
                         return [
-                          <tr key={lote.key} style={{ borderBottom:'1px solid #f0f0f0', background:'#fafafa', cursor:'pointer' }}
-                            onClick={()=>toggleLote(lote.key)}
+                          <tr key={arr.key} style={{ borderBottom:'1px solid #f0f0f0', background:'#fafafa', cursor:'pointer' }}
+                            onClick={()=>toggleLote(arr.key)}
                             onMouseEnter={e=>(e.currentTarget as HTMLElement).style.background='#f0f7ff'}
                             onMouseLeave={e=>(e.currentTarget as HTMLElement).style.background='#fafafa'}>
-                            <td style={{ padding:'12px 14px', display:'flex', alignItems:'center', gap:6 }}>
-                              <span style={{ color:'#1890FF', display:'flex', alignItems:'center' }}><Icon name={isExp ? 'chevronDown' : 'chevronRight'} size={12} /></span>
-                              <span style={{ fontWeight:600, color:'#1890FF' }}>{lote.data}</span>
+                            <td style={{ padding:'12px 14px' }}>
+                              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                                <span style={{ color:'#1890FF', display:'flex', alignItems:'center' }}><Icon name={isExp ? 'chevronDown' : 'chevronRight'} size={12} /></span>
+                                <BrandLogo brand={arr.adq} />
+                                <span style={{ color:'rgba(0,0,0,0.25)', fontSize:12 }}>·</span>
+                                <BrandLogo brand={arr.bandeira} size={20} showLabel />
+                              </div>
                             </td>
-                            <td style={{ padding:'12px 14px' }}><BrandLogo brand={lote.bandeira} size={20} showLabel /></td>
-                            <td style={{ padding:'12px 14px', color:'rgba(0,0,0,0.65)' }}>{lote.rows.length} transações</td>
-                            <td style={{ padding:'12px 14px', fontWeight:600, color:'rgba(0,0,0,0.85)' }}>{fmt(lote.bruto)}</td>
-                            <td style={{ padding:'12px 14px', color:'rgba(0,0,0,0.65)' }}>{fmt(lote.comissao)}</td>
-                            <td style={{ padding:'12px 14px', color:lote.antecipDescontada>0?'#fa8c16':'rgba(0,0,0,0.25)' }}>{lote.antecipDescontada>0?fmt(lote.antecipDescontada):'—'}</td>
-                            <td style={{ padding:'12px 14px', fontWeight:600, color:'#52c41a' }}>{fmt(lote.liquido)}</td>
-                            <td style={{ padding:'12px 14px' }}><Tag status={loteStatus} /></td>
+                            <td style={{ padding:'12px 14px', color:'rgba(0,0,0,0.65)' }}>{arr.rows.length} parcelas</td>
+                            <td style={{ padding:'12px 14px', fontWeight:600, color:'rgba(0,0,0,0.85)' }}>{fmt(arr.bruto)}</td>
+                            <td style={{ padding:'12px 14px', color:'#ff4d4f' }}>{fmt(arr.comissao)}</td>
+                            <td style={{ padding:'12px 14px', color:arr.antecipDescontada>0?'#fa8c16':'rgba(0,0,0,0.25)' }}>{arr.antecipDescontada>0?fmt(arr.antecipDescontada):'—'}</td>
+                            <td style={{ padding:'12px 14px', fontWeight:600, color:'#52c41a' }}>{fmt(arr.liquido)}</td>
+                            <td style={{ padding:'12px 14px' }}><Tag status={arrStatus} /></td>
                           </tr>,
                           ...(isExp ? [
-                            ...lote.rows.map((r,i) => (
-                              <tr key={`${lote.key}-${i}`} style={{ borderBottom:'1px solid #f0f0f0', background:'#fff' }}
+                            ...arr.rows.map((r,i) => (
+                              <tr key={`${arr.key}-${i}`} style={{ borderBottom:'1px solid #f0f0f0', background:'#fff' }}
                                 onMouseEnter={e=>(e.currentTarget as HTMLElement).style.background='#fafafa'}
                                 onMouseLeave={e=>(e.currentTarget as HTMLElement).style.background='#fff'}>
-                                <td style={{ padding:'9px 14px 9px 36px', color:'rgba(0,0,0,0.45)', fontFamily:'Roboto Mono', fontSize:11 }}>{r.nsu}</td>
-                                <td style={{ padding:'9px 14px', fontSize:12, color:'rgba(0,0,0,0.65)', fontWeight:500 }}>{r.ec}</td>
-                                <td style={{ padding:'9px 14px', color:'rgba(0,0,0,0.65)' }}>{r.lancamento} · {r.parcela}</td>
+                                <td style={{ padding:'9px 14px 9px 36px', color:'rgba(0,0,0,0.45)', fontFamily:'Roboto Mono', fontSize:11 }}>{r.nsu} · {r.data}</td>
+                                <td style={{ padding:'9px 14px', fontSize:12, color:'rgba(0,0,0,0.65)', fontWeight:500 }}>{r.ec} · {r.lancamento} · {r.parcela}</td>
                                 <td style={{ padding:'9px 14px', color:'rgba(0,0,0,0.85)' }}>{fmt(r.valor)}</td>
                                 <td style={{ padding:'9px 14px', color:'rgba(0,0,0,0.55)' }}>{fmt(r.comissao)}</td>
                                 <td style={{ padding:'9px 14px', color:r.antecipDescontada>0?'#fa8c16':'rgba(0,0,0,0.2)' }}>{r.antecipDescontada>0?fmt(r.antecipDescontada):'–'}</td>
@@ -615,13 +611,12 @@ export default function AgendaPage() {
                                 <td style={{ padding:'9px 14px' }}><Tag status={r.status} /></td>
                               </tr>
                             )),
-                            <tr key={`${lote.key}-subtotal`} style={{ background:'#e6f7ff', borderBottom:'1px solid #91d5ff' }}>
-                              <td style={{ padding:'9px 14px', color:'#1890FF', fontWeight:600 }} colSpan={2}>Subtotal {lote.bandeira}:</td>
-                              <td />
-                              <td style={{ padding:'9px 14px', fontWeight:600, color:'#1890FF' }}>{fmt(lote.bruto)}</td>
-                              <td style={{ padding:'9px 14px', fontWeight:600, color:'#1890FF' }}>{fmt(lote.comissao)}</td>
-                              <td style={{ padding:'9px 14px', fontWeight:600, color:lote.antecipDescontada>0?'#fa8c16':'rgba(0,0,0,0.25)' }}>{lote.antecipDescontada>0?fmt(lote.antecipDescontada):'—'}</td>
-                              <td style={{ padding:'9px 14px', fontWeight:600, color:'#1890FF' }}>{fmt(lote.liquido)}</td>
+                            <tr key={`${arr.key}-subtotal`} style={{ background:'#e6f7ff', borderBottom:'1px solid #91d5ff' }}>
+                              <td style={{ padding:'9px 14px', color:'#1890FF', fontWeight:600 }} colSpan={2}>Subtotal {arr.adq} / {arr.bandeira}:</td>
+                              <td style={{ padding:'9px 14px', fontWeight:600, color:'#1890FF' }}>{fmt(arr.bruto)}</td>
+                              <td style={{ padding:'9px 14px', fontWeight:600, color:'#ff4d4f' }}>{fmt(arr.comissao)}</td>
+                              <td style={{ padding:'9px 14px', fontWeight:600, color:arr.antecipDescontada>0?'#fa8c16':'rgba(0,0,0,0.25)' }}>{arr.antecipDescontada>0?fmt(arr.antecipDescontada):'—'}</td>
+                              <td style={{ padding:'9px 14px', fontWeight:600, color:'#52c41a' }}>{fmt(arr.liquido)}</td>
                               <td />
                             </tr>
                           ] : [])
@@ -629,9 +624,8 @@ export default function AgendaPage() {
                       })}
                       <tr style={{ background:'#e6f7ff', borderTop:'2px solid #91d5ff' }}>
                         <td colSpan={2} style={{ padding:'12px 14px', fontWeight:700, color:'#1890FF', fontSize:13 }}>TOTAL GERAL</td>
-                        <td />
                         <td style={{ padding:'12px 14px', fontWeight:700, color:'#1890FF' }}>{fmt(filtered.reduce((s,r)=>s+r.valor,0))}</td>
-                        <td style={{ padding:'12px 14px', fontWeight:700, color:'#1890FF' }}>{fmt(filtered.reduce((s,r)=>s+r.comissao,0))}</td>
+                        <td style={{ padding:'12px 14px', fontWeight:700, color:'#ff4d4f' }}>{fmt(filtered.reduce((s,r)=>s+r.comissao,0))}</td>
                         <td style={{ padding:'12px 14px', fontWeight:700, color:'#fa8c16' }}>{fmt(filtered.reduce((s,r)=>s+r.antecipDescontada,0))}</td>
                         <td style={{ padding:'12px 14px', fontWeight:700, color:'#52c41a' }}>{fmt(filtered.reduce((s,r)=>s+r.liquido,0))}</td>
                         <td />
@@ -642,12 +636,12 @@ export default function AgendaPage() {
               </div>
             ) : (
               <DataTable<Parcela>
-                title="Seus recebíveis"
+                title="Recebíveis detalhados"
                 titleExtra={toggleExtra}
                 columns={parcelaColumns}
                 dataSource={filtered}
                 rowKey="nsu"
-                searchPlaceholder="Pesquise o pagamento"
+                searchPlaceholder="Pesquise NSU, merchant, bandeira..."
                 searchValue={search}
                 onSearch={setSearch}
                 filters={[
@@ -686,72 +680,6 @@ export default function AgendaPage() {
           </div>
         </div>
       )}
-
-
-      {/* ── POR LOTE TAB ── */}
-      {tab==='lote' && (()=>{
-        const LOTES_DATA = [
-          { adquirente:'Adiq',   bandeira:'Visa',       lote:'L-001', qtd:412, bruto:198400, comissao:5952,  antecip:0,     liquido:192448, data:'10/04/2026', status:'Liquidado'  },
-          { adquirente:'Adiq',   bandeira:'Mastercard', lote:'L-002', qtd:287, bruto:134200, comissao:4026,  antecip:60000, liquido:70174,  data:'10/04/2026', status:'Antecipado' },
-          { adquirente:'Rede',   bandeira:'Visa',       lote:'L-003', qtd:198, bruto:87500,  comissao:2625,  antecip:0,     liquido:84875,  data:'11/04/2026', status:'Liquidado'  },
-          { adquirente:'Rede',   bandeira:'Elo',        lote:'L-004', qtd:156, bruto:72000,  comissao:2160,  antecip:30000, liquido:39840,  data:'11/04/2026', status:'Antecipado' },
-          { adquirente:'Cielo',  bandeira:'Mastercard', lote:'L-005', qtd:334, bruto:156700, comissao:4701,  antecip:0,     liquido:151999, data:'12/04/2026', status:'Pendente'   },
-          { adquirente:'Cielo',  bandeira:'Visa',       lote:'L-006', qtd:221, bruto:103400, comissao:3102,  antecip:50000, liquido:50298,  data:'12/04/2026', status:'Antecipado' },
-          { adquirente:'Getnet', bandeira:'Visa',       lote:'L-007', qtd:178, bruto:83200,  comissao:2496,  antecip:0,     liquido:80704,  data:'13/04/2026', status:'Pendente'   },
-        ]
-        type LoteRow = typeof LOTES_DATA[0]
-        const loteCols: ColumnType<LoteRow>[] = [
-          { title:'Lote / Adquirente', key:'id', width:220, render: (_,r) => (
-            <div>
-              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                <BrandLogo brand={r.adquirente} />
-                <span style={{ color:'rgba(0,0,0,0.35)', fontSize:12 }}>—</span>
-                <BrandLogo brand={r.bandeira} size={20} showLabel />
-              </div>
-              <div style={{ fontSize:11, color:'rgba(0,0,0,0.45)', fontFamily:'Roboto Mono', marginTop:2 }}>Lote {r.lote} · {r.data}</div>
-            </div>
-          )},
-          { title:'Qtd', key:'qtd', dataIndex:'qtd', width:70, render: v => <span style={{ color:'rgba(0,0,0,0.65)' }}>{(v as number).toLocaleString('pt-BR')}</span> },
-          { title:'Bruto', key:'bruto', dataIndex:'bruto', width:130, render: v => <span style={{ color:'rgba(0,0,0,0.85)' }}>{fmt(v as number)}</span> },
-          { title:'Comissão Sub', key:'comissao', dataIndex:'comissao', width:130, render: v => <span style={{ color:'#ff4d4f' }}>{fmt(v as number)}</span> },
-          { title:'Antecipação', key:'antecip', dataIndex:'antecip', width:130, render: v => <span style={{ color:(v as number)>0?'#fa8c16':'rgba(0,0,0,0.25)' }}>{(v as number)>0?fmt(v as number):'—'}</span> },
-          { title:'Líquido', key:'liquido', dataIndex:'liquido', width:130, render: v => <span style={{ fontWeight:600, color:'#52c41a' }}>{fmt(v as number)}</span> },
-          { title:'Status', key:'status', dataIndex:'status', width:110, render: v => <Tag status={v as string} /> },
-        ]
-        return (
-          <div style={{ padding:24, display:'flex', flexDirection:'column', gap:12 }}>
-            <DataTable<LoteRow>
-              title="Lotes de liquidação — Abril 2026"
-              columns={loteCols}
-              dataSource={LOTES_DATA}
-              rowKey="lote"
-              showPagination={false}
-              searchPlaceholder="Buscar por adquirente, bandeira, lote..."
-              filters={[
-                { label:'Adquirente', options:[{label:'Adiq',value:'Adiq'},{label:'Rede',value:'Rede'},{label:'Cielo',value:'Cielo'},{label:'Getnet',value:'Getnet'}], value:[], onChange:()=>{} },
-                { label:'Bandeira', options:[{label:'Visa',value:'Visa'},{label:'Mastercard',value:'Mastercard'},{label:'Elo',value:'Elo'}], value:[], onChange:()=>{} },
-              ]}
-              onExport={()=>{}}
-              periodOptions={PERIOD_OPTIONS}
-              defaultPeriod="hoje"
-            />
-            <div style={{ background:'#e6f7ff', border:'1px solid #91d5ff', borderRadius:2, padding:'12px 20px', display:'flex', gap:32, justifyContent:'flex-end', alignItems:'center' }}>
-              <span style={{ fontSize:13, fontWeight:600, color:'#1890FF', flex:1 }}>TOTAL — 7 lotes · 1.786 transações</span>
-              {[
-                {l:'Total Bruto',      v:fmt(835400),  c:'rgba(0,0,0,0.85)'},
-                {l:'Total Comissão',   v:fmt(25062),   c:'#ff4d4f'},
-                {l:'Total Antecipado', v:fmt(140000),  c:'#fa8c16'},
-                {l:'Total Líquido',    v:fmt(670338),  c:'#52c41a'},
-              ].map(s=>(
-                <div key={s.l} style={{ textAlign:'right' }}>
-                  <div style={{ fontSize:11, color:'rgba(0,0,0,0.45)' }}>{s.l}</div>
-                  <div style={{ fontSize:14, fontWeight:700, color:s.c }}>{s.v}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )
-      })()}
 
     </div>
   )

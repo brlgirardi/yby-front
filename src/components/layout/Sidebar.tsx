@@ -13,8 +13,7 @@ const NAV = [
   { key: 'agenda', icon: 'calendar', label: 'Agenda', screen: 'agenda',
     sub: [
       { label: 'Recebíveis',  screen: 'agenda', tab: 'calendario' },
-      { label: 'Por parcela', screen: 'agenda', tab: 'detalhada'  },
-      { label: 'Por lote',    screen: 'agenda', tab: 'lote'       },
+      { label: 'Detalhado',   screen: 'agenda', tab: 'detalhada'  },
     ] },
   { key: 'financial', icon: 'landmark', label: 'Financeiro', screen: 'financial',
     sub: [

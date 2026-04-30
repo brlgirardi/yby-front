@@ -505,11 +505,11 @@ export default function FinancialPage() {
       { label:'Transações registradas', value:'488', bg:'#f5f5f5', border:'#d9d9d9', color:'rgba(0,0,0,0.85)', sub:'Total de transações nos arquivos publicados' },
     ],
     antecipacoes: [
-      { label:'Saldo devedor total', value:'R$ 140.000,00', bg:'#fff7e6', border:'#ffd591', color:'#fa8c16', sub:'Em aberto com adquirentes' },
+      { label:'Capital adiantado (em aberto)', value:'R$ 140.000,00', bg:'#fff7e6', border:'#ffd591', color:'#fa8c16', sub:'Saldo devedor dos ECs com o sub — a recuperar via repasses' },
       { label:'Antecipado no mês', value:'R$ 85.000,00', bg:'#e6f7ff', border:'#91d5ff', color:'#1890FF', sub:'3 operações em abril/26' },
-      { label:'Taxa média tomada', value:'1,99% a.m.', bg:'#f5f5f5', border:'#d9d9d9', color:'rgba(0,0,0,0.85)', sub:'Média ponderada das ops' },
-      { label:'Juros recebidos (receita)', value:'R$ 1.691,00', bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'Juros cobrados dos merchants pelas antecipações' },
-      { label:'Elegível para antecipar', value:'R$ 670.338,00', bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'Recebíveis livres de gravame' },
+      { label:'Taxa média cobrada dos ECs', value:'2,50% a.m.', bg:'#f5f5f5', border:'#d9d9d9', color:'rgba(0,0,0,0.85)', sub:'Média ponderada das operações vigentes' },
+      { label:'Juros recebidos (receita)', value:'R$ 2.105,00', bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'Receita gerada pelas antecipações concedidas' },
+      { label:'Recebíveis livres (elegível)', value:'R$ 670.338,00', bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'Parcelas sem oneração — base para novas antecipações' },
     ],
     dre: [
       { label:'Receita bruta (MDR + juros)', value:'R$ 44.164,00', bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'MDR cobrado + juros de antecipações' },
@@ -792,14 +792,54 @@ export default function FinancialPage() {
                   <span style={{ fontSize:12, fontWeight:600, color:'#52c41a', flex:1 }}>Resumo das operações</span>
                   {[
                     { l:'Total antecipado', v:fmt(140000), c:'#1890FF' },
-                    { l:'Juros a receber', v:fmt(2105), c:'#52c41a' },
-                    { l:'A recuperar dos adquirentes', v:fmt(85000), c:'#fa8c16' },
+                    { l:'Juros recebidos', v:fmt(2105), c:'#52c41a' },
+                    { l:'A recuperar via repasses', v:fmt(85000), c:'#fa8c16' },
                   ].map((s,i)=>(
                     <div key={i} style={{ textAlign:'right' }}>
                       <div style={{ fontSize:11, color:'rgba(0,0,0,0.45)' }}>{s.l}</div>
                       <div style={{ fontSize:13, fontWeight:700, color:s.c }}>{s.v}</div>
                     </div>
                   ))}
+                </div>
+
+                {/* Fluxo de recuperação */}
+                <div style={{ background:'#fff', border:'1px solid rgba(0,0,0,0.06)', borderRadius:2, overflow:'hidden' }}>
+                  <div style={{ padding:'14px 20px', borderBottom:'1px solid #f0f0f0' }}>
+                    <div style={{ fontSize:14, fontWeight:600, color:'rgba(0,0,0,0.85)' }}>Fluxo de recuperação</div>
+                    <div style={{ fontSize:12, color:'rgba(0,0,0,0.45)', marginTop:2 }}>Parcelas futuras com oneração — o sub desconta no próximo repasse ao EC</div>
+                  </div>
+                  <div style={{ overflowX:'auto' }}>
+                    <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12 }}>
+                      <thead>
+                        <tr style={{ background:'#fafafa' }}>
+                          {['Vencimento','EC (merchant)','Adquirente','Valor da parcela','Desconto antecip.','Saldo após recuperação','Operação'].map(h => (
+                            <th key={h} style={{ padding:'9px 14px', textAlign:'left', fontWeight:500, color:'rgba(0,0,0,0.85)', borderBottom:'1px solid #f0f0f0', whiteSpace:'nowrap', fontSize:12 }}>{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {[
+                          { venc:'05/05/2026', ec:'Mercado Livre',  adq:'Adiq',  parcela:22500, desconto:22500, saldo:22500, op:'AEC-001' },
+                          { venc:'05/05/2026', ec:'Mercado Livre',  adq:'Adiq',  parcela:22500, desconto:22500, saldo:0,     op:'AEC-001' },
+                          { venc:'05/05/2026', ec:'Amazon Brasil',  adq:'Rede',  parcela:14000, desconto:14000, saldo:14000, op:'AEC-002' },
+                          { venc:'05/05/2026', ec:'Amazon Brasil',  adq:'Rede',  parcela:14000, desconto:14000, saldo:0,     op:'AEC-002' },
+                          { venc:'08/05/2026', ec:'Rappi Brasil',   adq:'Cielo', parcela:12000, desconto:12000, saldo:0,     op:'AEC-003' },
+                        ].map((r,i) => (
+                          <tr key={i} style={{ borderBottom:'1px solid #f0f0f0', background:'#fff' }}
+                            onMouseEnter={e=>(e.currentTarget as HTMLElement).style.background='#fafafa'}
+                            onMouseLeave={e=>(e.currentTarget as HTMLElement).style.background='#fff'}>
+                            <td style={{ padding:'9px 14px', color:'rgba(0,0,0,0.65)', whiteSpace:'nowrap' }}>{r.venc}</td>
+                            <td style={{ padding:'9px 14px', fontWeight:500, color:'rgba(0,0,0,0.85)' }}>{r.ec}</td>
+                            <td style={{ padding:'9px 14px', color:'rgba(0,0,0,0.65)' }}>{r.adq}</td>
+                            <td style={{ padding:'9px 14px', color:'rgba(0,0,0,0.85)' }}>{fmt(r.parcela)}</td>
+                            <td style={{ padding:'9px 14px', color:'#fa8c16', fontWeight:500 }}>{fmt(r.desconto)}</td>
+                            <td style={{ padding:'9px 14px', fontWeight:600, color:r.saldo>0?'#fa8c16':'#52c41a' }}>{r.saldo>0?fmt(r.saldo):'Quitado'}</td>
+                            <td style={{ padding:'9px 14px', color:'#1890FF', fontFamily:'Roboto Mono', fontSize:11 }}>{r.op}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </>
             )

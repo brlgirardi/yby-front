@@ -113,11 +113,8 @@ export default function AgendaPage() {
   const [filterStatus, setFilterStatus] = useState('')
   const [selectedDay, setSelectedDay] = useState(22)
   const [expandedLotes, setExpandedLotes] = useState<Record<string,boolean>>({'10/04/2026-Visa': true})
-  const [calView, setCalView] = useState<'bruto' | 'repasse' | 'liquido'>('bruto')
-  const [calBrutoSub, setCalBrutoSub] = useState<'consolidado' | 'adquirente'>('consolidado')
   const [selectedAdqs, setSelectedAdqs] = useState<string[]>([])
-  const [adqDropOpen, setAdqDropOpen] = useState(false)
-  const isPerAdquirente = calView === 'bruto' && calBrutoSub === 'adquirente'
+  const isPerAdquirente = selectedAdqs.length > 0
   // Banners/legendas dispensáveis (session-only)
   const [dismissed, setDismissed] = useState<Set<string>>(new Set())
   const dismiss = (id: string) => setDismissed(p => { const s = new Set(p); s.add(id); return s })
@@ -240,76 +237,35 @@ export default function AgendaPage() {
         <div style={{ padding:24, display:'flex', gap:24, flex:1 }}>
           {/* ── Painel esquerdo: calendário — white card com divider após header ── */}
           <div style={{ flex:1, background:'#fff', border:'1px solid rgba(0,0,0,0.06)', borderRadius:2, display:'flex', flexDirection:'column' }}>
-            {/* Header: mês + toggle de visão */}
-            <div style={{ padding:'16px 21px', display:'flex', justifyContent:'space-between', alignItems:'center', borderBottom:'1px solid #f0f0f0' }}>
+            {/* Header: mês + filtro de adquirente */}
+            <div style={{ padding:'16px 21px', display:'flex', justifyContent:'space-between', alignItems:'center', borderBottom:'1px solid #f0f0f0', flexWrap:'wrap', gap:8 }}>
               <div style={{ display:'flex', alignItems:'center', gap:12 }}>
                 <button style={{ border:'none', background:'none', cursor:'pointer', color:'rgba(0,0,0,0.45)', display:'flex', alignItems:'center', padding:'4px 6px' }}><Icon name="chevronLeft" size={16} /></button>
                 <span style={{ fontSize:16, fontWeight:600, color:'rgba(0,0,0,0.85)' }}>{MONTHS[calMonth]} {calYear}</span>
                 <button style={{ border:'none', background:'none', cursor:'pointer', color:'rgba(0,0,0,0.45)', display:'flex', alignItems:'center', padding:'4px 6px' }}><Icon name="chevronRight" size={16} /></button>
               </div>
-              <div style={{ display:'flex', background:'#f5f5f5', borderRadius:4, padding:2, gap:1 }}>
-                {([
-                  ['bruto',   'Bruto'],
-                  ['repasse', 'Repasses'],
-                  ['liquido', 'Líquido'],
-                ] as ['bruto'|'repasse'|'liquido', string][]).map(([k, l]) => (
-                  <button
-                    key={k}
-                    onClick={() => { setCalView(k); if (k !== 'bruto') setCalBrutoSub('consolidado') }}
-                    style={{ border:'none', borderRadius:3, padding:'6px 14px', fontSize:12, cursor:'pointer', background:calView===k?'#fff':'transparent', color:calView===k?'#1890FF':'rgba(0,0,0,0.55)', fontWeight:calView===k?600:400, boxShadow:calView===k?'0 1px 3px rgba(0,0,0,0.12)':undefined, transition:'all 0.15s', whiteSpace:'nowrap' }}
-                  >{l}</button>
-                ))}
+              <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                <span style={{ fontSize:11, color:'rgba(0,0,0,0.35)', fontWeight:500, whiteSpace:'nowrap' }}>Adquirente:</span>
+                <button
+                  onClick={() => setSelectedAdqs([])}
+                  style={{ border:`1px solid ${selectedAdqs.length===0?'#1890FF':'#d9d9d9'}`, borderRadius:12, padding:'3px 12px', fontSize:12, cursor:'pointer', background:selectedAdqs.length===0?'#1890FF':'#fff', color:selectedAdqs.length===0?'#fff':'rgba(0,0,0,0.55)', fontWeight:selectedAdqs.length===0?500:400, transition:'all 0.15s' }}>
+                  Todos
+                </button>
+                {ALL_ADQS.map(a => {
+                  const isSelected = selectedAdqs.includes(a)
+                  return (
+                    <button key={a}
+                      onClick={() => setSelectedAdqs(prev => prev.includes(a) ? prev.filter(x=>x!==a) : [...prev, a])}
+                      style={{ border:`1px solid ${isSelected?'#1890FF':'#d9d9d9'}`, borderRadius:12, padding:'3px 12px', fontSize:12, cursor:'pointer', background:isSelected?'#e6f7ff':'#fff', color:isSelected?'#1890FF':'rgba(0,0,0,0.55)', fontWeight:isSelected?500:400, transition:'all 0.15s' }}>
+                      {a}
+                    </button>
+                  )
+                })}
               </div>
             </div>
 
-            {/* Body: pills + grid + legenda */}
+            {/* Body: grid + legenda */}
             <div style={{ padding:'16px 21px', display:'flex', flexDirection:'column', gap:16 }}>
-              {/* Legenda de view */}
-              {calView === 'repasse' && (
-                <div style={{ fontSize:11, color:'rgba(0,0,0,0.45)', display:'flex', alignItems:'center', gap:4 }}>
-                  <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,0.3)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                  Valor que o sub repassa aos merchants (ECs) — bruto menos MDR retido
-                </div>
-              )}
-              {calView === 'liquido' && (
-                <div style={{ fontSize:11, color:'rgba(0,0,0,0.45)', display:'flex', alignItems:'center', gap:4 }}>
-                  <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,0.3)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                  Margem líquida do sub (MDR retido − custos de processamento)
-                </div>
-              )}
-              {calView === 'bruto' && (
-                <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                  <span style={{ fontSize:11, color:'rgba(0,0,0,0.35)', fontWeight:500, whiteSpace:'nowrap' }}>Quebrar por:</span>
-                  <button
-                    onClick={()=>{ setCalBrutoSub('consolidado'); setSelectedAdqs([]) }}
-                    style={{ border:`1px solid ${calBrutoSub==='consolidado'?'#1890FF':'#d9d9d9'}`, borderRadius:12, padding:'3px 12px', fontSize:12, cursor:'pointer', background:calBrutoSub==='consolidado'?'#1890FF':'#fff', color:calBrutoSub==='consolidado'?'#fff':'rgba(0,0,0,0.55)', fontWeight:calBrutoSub==='consolidado'?500:400, transition:'all 0.15s' }}>
-                    Todos
-                  </button>
-                  {ALL_ADQS.map(a => {
-                    const isActive = calBrutoSub === 'adquirente' && (selectedAdqs.length === 0 || selectedAdqs.includes(a))
-                    const isSelected = calBrutoSub === 'adquirente' && selectedAdqs.includes(a)
-                    return (
-                      <button key={a}
-                        onClick={()=>{
-                          setCalBrutoSub('adquirente')
-                          setSelectedAdqs(prev =>
-                            prev.includes(a)
-                              ? prev.filter(x => x !== a)
-                              : [...prev, a]
-                          )
-                        }}
-                        style={{ border:`1px solid ${isSelected?'#1890FF':calBrutoSub==='adquirente'&&selectedAdqs.length===0?'#91d5ff':'#d9d9d9'}`, borderRadius:12, padding:'3px 12px', fontSize:12, cursor:'pointer', background:isSelected?'#e6f7ff':calBrutoSub==='adquirente'&&selectedAdqs.length===0?'#f0f7ff':'#fff', color:isSelected||isActive?'#1890FF':'rgba(0,0,0,0.55)', fontWeight:isSelected?500:400, transition:'all 0.15s' }}>
-                        {a}
-                      </button>
-                    )
-                  })}
-                  {calBrutoSub === 'adquirente' && selectedAdqs.length > 0 && (
-                    <button onClick={()=>setSelectedAdqs([])} style={{ border:'none', background:'none', fontSize:11, color:'rgba(0,0,0,0.35)', cursor:'pointer', padding:'2px 4px', textDecoration:'underline' }}>
-                      limpar
-                    </button>
-                  )}
-                </div>
-              )}
 
               {/* Grid do calendário */}
               <div style={{ border:'1px solid rgba(0,0,0,0.06)', borderRadius:2 }}>
@@ -324,7 +280,7 @@ export default function AgendaPage() {
                     const isSelected = d.day === selectedDay
                     const isToday = d.day === 22
                     const isPast = d.day < 22
-                    const effectiveView = isPerAdquirente ? 'adquirente' : calView
+                    const effectiveView = isPerAdquirente ? 'adquirente' : 'bruto'
                     const dayVal = (CAL_VALUES[effectiveView] ?? CAL_VALUES.bruto)[d.day - 1] ?? 0
                     const adqLabel = isPerAdquirente ? CAL_ADQUIRENTES[d.day - 1] : null
                     const dayNumColor = isToday ? '#1890FF' : isPast ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.65)'

@@ -100,14 +100,14 @@ const CALENDAR_DAYS = Array.from({length:30},(_,i)=>{
 
 const AGENDA_TABS = [
   { key:'calendario', label:'Recebíveis' },
-  { key:'detalhada',  label:'Detalhado' },
 ]
 
 export default function AgendaPage() {
   const { agendaTab, setAgendaTab } = useNavStore()
   const tab = agendaTab
 
-  const [agrupado, setAgrupado] = useState(false)
+  const [agrupado, setAgrupado] = useState(true)
+  const [drawerImportAgenda, setDrawerImportAgenda] = useState(false)
   const [search, setSearch] = useState('')
   const [filterBandeira, setFilterBandeira] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
@@ -164,13 +164,6 @@ export default function AgendaPage() {
       { label:'Líquido a Receber', value:fmt(totalLiquido), bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'Estimativa de crédito em conta' },
       { label:'Recebíveis futuros (90 dias)', value:fmt(pipelineFuturo), bg:'#fffbe6', border:'#ffe58f', color:'#faad14', sub:'Parcelas previstas — todos os adquirentes' },
     ],
-    detalhada: [
-      { label:'Total de parcelas', value:String(PARCELAS_DATA.length), bg:'#e6f7ff', border:'#91d5ff', color:'#1890FF', sub:'No período filtrado' },
-      { label:'Valor bruto total', value:fmt(totalBruto), bg:'#f5f5f5', border:'#d9d9d9', color:'rgba(0,0,0,0.85)', sub:'Soma de todas as parcelas' },
-      { label:'Parcelas antecipadas', value:String(PARCELAS_DATA.filter(r=>r.antecipado).length), bg:'#fff7e6', border:'#ffd591', color:'#fa8c16', sub:`${[...new Set(PARCELAS_DATA.filter(r=>r.antecipado).map(r=>r.nsu))].length} operações · ${fmt(totalAntecip)}` },
-      { label:'Deduções (MDR)', value:fmt(totalComissao), bg:'#fff1f0', border:'#ffa39e', color:'#ff4d4f', sub:'Comissão sub sobre EC' },
-      { label:'Valor líquido total', value:fmt(totalLiquido), bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'Após deduções e antecipações' },
-    ],
   }
   const currentKpis = KPI_BY_TAB[tab] || KPI_BY_TAB.calendario
 
@@ -203,10 +196,53 @@ export default function AgendaPage() {
 
   return (
     <div style={{ flex:1, overflow:'auto', display:'flex', flexDirection:'column' }}>
+      {/* Drawer importar CSV agenda */}
+      {drawerImportAgenda && (
+        <div style={{ position:'fixed', inset:0, zIndex:2000, display:'flex', justifyContent:'flex-end' }}
+          onClick={e => { if(e.target === e.currentTarget) setDrawerImportAgenda(false) }}>
+          <div style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.45)' }} onClick={() => setDrawerImportAgenda(false)} />
+          <div style={{ position:'relative', width:560, height:'100%', background:'#fff', boxShadow:'-4px 0 16px rgba(0,0,0,0.15)', display:'flex', flexDirection:'column', zIndex:1 }}>
+            <div style={{ padding:'16px 24px', borderBottom:'1px solid #f0f0f0', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+              <span style={{ fontWeight:600, fontSize:16 }}>Importar arquivo de captura</span>
+              <button onClick={() => setDrawerImportAgenda(false)} style={{ border:'none', background:'none', cursor:'pointer', display:'flex', alignItems:'center' }}><Icon name="x" size={20} /></button>
+            </div>
+            <div style={{ flex:1, overflow:'auto', padding:24, display:'flex', flexDirection:'column', gap:20 }}>
+              <div style={{ background:'#e6f7ff', border:'1px solid #91d5ff', borderRadius:2, padding:'12px 16px', display:'flex', gap:10, alignItems:'flex-start' }}>
+                <Icon name="info" size={16} color="#1890FF" />
+                <div style={{ fontSize:13, color:'rgba(0,0,0,0.65)', lineHeight:'20px' }}>
+                  O arquivo CSV será enviado para a <strong>Núclea (registradora)</strong> para processamento. Acompanhe o status em <strong>Financeiro → Arquivos</strong>.
+                </div>
+              </div>
+              <div style={{ border:'2px dashed #d9d9d9', borderRadius:4, padding:'48px 24px', display:'flex', flexDirection:'column', alignItems:'center', gap:12, cursor:'pointer', background:'#fafafa' }}
+                onMouseEnter={e=>(e.currentTarget as HTMLElement).style.borderColor='#1890FF'}
+                onMouseLeave={e=>(e.currentTarget as HTMLElement).style.borderColor='#d9d9d9'}>
+                <Icon name="download" size={32} color="rgba(0,0,0,0.25)" />
+                <div style={{ fontSize:14, color:'rgba(0,0,0,0.65)' }}>Arraste o arquivo ou <span style={{ color:'#1890FF', cursor:'pointer' }}>clique para selecionar</span></div>
+                <div style={{ fontSize:12, color:'rgba(0,0,0,0.35)' }}>Formatos aceitos: .csv · máx. 50MB</div>
+              </div>
+              <div style={{ fontSize:12, color:'rgba(0,0,0,0.45)', lineHeight:'20px' }}>
+                <div style={{ fontWeight:600, color:'rgba(0,0,0,0.65)', marginBottom:6 }}>Colunas esperadas no CSV:</div>
+                <div style={{ fontFamily:'Roboto Mono', background:'#f5f5f5', padding:'8px 12px', borderRadius:2, fontSize:11 }}>
+                  data · adquirente · bandeira · nsu · ec · lancamento · parcela · valor · mdr · antecipacao
+                </div>
+              </div>
+            </div>
+            <div style={{ padding:'14px 24px', borderTop:'1px solid #f0f0f0', display:'flex', gap:12 }}>
+              <button onClick={() => setDrawerImportAgenda(false)} style={{ flex:1, border:'1px solid #d9d9d9', background:'#fff', borderRadius:2, padding:'8px 0', fontSize:13, cursor:'pointer' }}>Cancelar</button>
+              <button style={{ flex:2, border:'none', background:'#1890FF', color:'#fff', borderRadius:2, padding:'8px 0', fontSize:13, cursor:'pointer', fontWeight:500 }}>Enviar para processamento</button>
+            </div>
+          </div>
+        </div>
+      )}
       <PageHeader
-        title={AGENDA_TABS.find(t => t.key === tab)?.label ?? 'Agenda de Recebíveis'}
-        breadcrumb={`Sub-adquirente / Agenda / ${AGENDA_TABS.find(t => t.key === tab)?.label ?? ''}`}
+        title="Agenda de Recebíveis"
+        breadcrumb="Sub-adquirente / Agenda / Recebíveis"
         onBack={() => {}}
+        extra={
+          <button onClick={() => setDrawerImportAgenda(true)} style={{ border:'1px solid #1890FF', background:'#e6f4ff', color:'#1890FF', borderRadius:2, height:32, padding:'5px 16px', fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:5 }}>
+            <Icon name="download" size={14} color="#1890FF" /> Importar CSV
+          </button>
+        }
       />
 
       {/* KPI cards */}
@@ -375,26 +411,25 @@ export default function AgendaPage() {
                     icon: 'users' as const,
                     color: '#1890ff',
                     label: 'Repasse aos ECs',
-                    summary: 'Repasse líquido',
-                    summaryValue: '−R$ 149.840,00',
+                    summary: 'A repassar hoje',
+                    summaryValue: 'R$ 149.840,00',
                     summaryColor: '#1890ff',
                     rows: [
-                      { l: <Tooltip text="Total repassado aos merchants pelo valor bruto das vendas.">Repasse bruto</Tooltip>, v:'−R$ 158.000,00', c:'rgba(0,0,0,0.65)' },
-                      { l: <Tooltip text="MDR cobrado dos merchants (spread sobre o MDR pago ao adquirente). Receita de intermediação do sub.">+ MDR cobrado do EC</Tooltip>, v:'+R$ 8.160,00', c:'#52c41a' },
+                      { l: <Tooltip text="Valor bruto das vendas que o sub deve repassar aos merchants hoje.">Repasse bruto</Tooltip>, v:'R$ 158.000,00', c:'rgba(0,0,0,0.85)' },
+                      { l: <Tooltip text="MDR cobrado dos merchants — retido pelo sub antes do repasse.">− MDR retido do EC</Tooltip>, v:'−R$ 8.160,00', c:'#ff4d4f' },
                     ],
                   },
                   {
                     key: 'resultado',
                     icon: 'barChart' as const,
                     color: '#722ED1',
-                    label: 'Margem do dia',
-                    summary: 'Margem do dia',
-                    summaryValue: '−R$ 16.600,00',
+                    label: 'Receita operacional',
+                    summary: 'Receita operacional',
+                    summaryValue: '+R$ 8.400,00',
                     summaryColor: '#722ED1',
                     rows: [
+                      { l: <Tooltip text="Diferença entre o MDR cobrado dos ECs e o MDR pago aos adquirentes. Margem de intermediação do sub.">Spread de MDR</Tooltip>, v:'+R$ 8.160,00', c:'#52c41a' },
                       { l: <Tooltip text="Juros cobrados dos merchants pelas antecipações concedidas. Receita financeira do sub.">Juros de antecipações</Tooltip>, v:'+R$ 240,00', c:'#52c41a' },
-                      { l: <Tooltip text="Diferença entre o MDR cobrado dos ECs e o MDR pago aos adquirentes.">Spread de MDR</Tooltip>, v:'+R$ 8.160,00', c:'#52c41a' },
-                      { l: <Tooltip text="MDR pago ao adquirente — custo de liquidação.">− MDR pago</Tooltip>, v:'−R$ 25.000,00', c:'#ff4d4f' },
                     ],
                   },
                   {
@@ -457,8 +492,8 @@ export default function AgendaPage() {
         </div>
       )}
 
-      {/* ── VISÃO DETALHADA TAB ── */}
-      {tab==='detalhada' && (
+      {/* ── VISÃO DETALHADA TAB (removed — unified with Liquidações in Financeiro) ── */}
+      {false && (
         <div style={{ padding:24, display:'flex', flexDirection:'column', gap:16 }}>
           {(() => {
             const parcelaColumns: ColumnType<Parcela>[] = [

@@ -11,6 +11,8 @@ const fmt = (v: number) => 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDi
 
 const FINANCIAL_TABS = [
   { key:'liquidacoes',  label:'Liquidações' },
+  { key:'repasses',     label:'Repasses para ECs' },
+  { key:'arquivos',     label:'Arquivos' },
   { key:'antecipacoes', label:'Antecipações' },
   { key:'dre',          label:'DRE Operacional' },
 ]
@@ -23,17 +25,26 @@ const LIQCEN_ADQS = [
 ]
 
 const LIQ_EVENTOS = [
-  { data:'10/04/2026', adq:'Adiq',   tipo:'Crédito normal',    bruto:198400, desc:5952,  antecip:0,     cred:192448, conta:'CC 12345-6', status:'Liquidado' },
-  { data:'10/04/2026', adq:'Adiq',   tipo:'Desc. antecipação', bruto:134200, desc:4026,  antecip:60000, cred:70174,  conta:'CC 12345-6', status:'Liquidado' },
-  { data:'11/04/2026', adq:'Rede',   tipo:'Crédito normal',    bruto:87500,  desc:2625,  antecip:0,     cred:84875,  conta:'CC 12345-6', status:'Liquidado' },
-  { data:'11/04/2026', adq:'Rede',   tipo:'Desc. antecipação', bruto:72000,  desc:2160,  antecip:30000, cred:39840,  conta:'CC 12345-6', status:'Liquidado' },
-  { data:'12/04/2026', adq:'Cielo',  tipo:'Crédito normal',    bruto:156700, desc:4701,  antecip:0,     cred:151999, conta:'CC 12345-6', status:'Pendente' },
-  { data:'13/04/2026', adq:'Getnet', tipo:'Crédito normal',    bruto:83200,  desc:2496,  antecip:0,     cred:80704,  conta:'CC 12345-6', status:'Pendente' },
-  { data:'25/04/2026', adq:'Adiq',   tipo:'Crédito normal',    bruto:82000,  desc:2460,  antecip:0,     cred:79540,  conta:'CC 12345-6', status:'Previsto' },
-  { data:'25/04/2026', adq:'Rede',   tipo:'Crédito normal',    bruto:54000,  desc:1620,  antecip:0,     cred:52380,  conta:'CC 12345-6', status:'Previsto' },
+  { data:'10/04/2026', adq:'Adiq',   bandeira:'Visa',   bruto:198400, desc:5952,  antecip:0,     travado:0,      cred:192448, conta:'CC 12345-6', registradora:'Núclea', statusNuclea:'Publicado',        status:'Liquidado'              },
+  { data:'10/04/2026', adq:'Adiq',   bandeira:'Master', bruto:134200, desc:4026,  antecip:60000, travado:0,      cred:70174,  conta:'CC 12345-6', registradora:'Núclea', statusNuclea:'Publicado',        status:'Parcialmente liquidado'  },
+  { data:'11/04/2026', adq:'Rede',   bandeira:'Visa',   bruto:87500,  desc:2625,  antecip:0,     travado:0,      cred:84875,  conta:'CC 12345-6', registradora:'Núclea', statusNuclea:'Publicado',        status:'Liquidado'              },
+  { data:'11/04/2026', adq:'Rede',   bandeira:'Elo',    bruto:72000,  desc:2160,  antecip:30000, travado:15000,  cred:24840,  conta:'CC 12345-6', registradora:'Núclea', statusNuclea:'Publicado',        status:'Parcialmente liquidado'  },
+  { data:'12/04/2026', adq:'Cielo',  bandeira:'Visa',   bruto:156700, desc:4701,  antecip:0,     travado:0,      cred:151999, conta:'CC 12345-6', registradora:'Núclea', statusNuclea:'Em processamento', status:'Em processamento'        },
+  { data:'13/04/2026', adq:'Getnet', bandeira:'Master', bruto:83200,  desc:2496,  antecip:0,     travado:0,      cred:80704,  conta:'CC 12345-6', registradora:'Núclea', statusNuclea:'Em processamento', status:'Em processamento'        },
+  { data:'25/04/2026', adq:'Adiq',   bandeira:'Visa',   bruto:82000,  desc:2460,  antecip:0,     travado:20000,  cred:59540,  conta:'CC 12345-6', registradora:'Núclea', statusNuclea:'Publicado',        status:'Previsto'               },
+  { data:'25/04/2026', adq:'Rede',   bandeira:'Master', bruto:54000,  desc:1620,  antecip:0,     travado:0,      cred:52380,  conta:'CC 12345-6', registradora:'Núclea', statusNuclea:'Publicado',        status:'Previsto'               },
 ]
 
 type LiqEvento = typeof LIQ_EVENTOS[0]
+
+const ARQUIVOS_DATA = [
+  { arquivo:'captura_adiq_20260410.csv', enviado:'10/04 08:32', adq:'Adiq',   registradora:'Núclea', transacoes:142, statusNuclea:'Publicado',        erro:'' },
+  { arquivo:'captura_rede_20260410.csv',  enviado:'10/04 08:35', adq:'Rede',   registradora:'Núclea', transacoes:98,  statusNuclea:'Em processamento', erro:'' },
+  { arquivo:'captura_cielo_20260411.csv', enviado:'11/04 09:01', adq:'Cielo',  registradora:'Núclea', transacoes:76,  statusNuclea:'Reprovado',        erro:'Formato de data inválido na linha 34' },
+  { arquivo:'captura_getnet_20260411.csv',enviado:'11/04 09:15', adq:'Getnet', registradora:'Núclea', transacoes:54,  statusNuclea:'Publicado',        erro:'' },
+  { arquivo:'captura_adiq_20260425.csv',  enviado:'25/04 07:58', adq:'Adiq',   registradora:'Núclea', transacoes:118, statusNuclea:'Em processamento', erro:'' },
+]
+type ArquivoRow = typeof ARQUIVOS_DATA[0]
 
 const EXTRATO_DATA = [
   { data:'10/04', desc:'Liquidação lote L-001', tipo:'Crédito adquirente', adq:'Adiq',   entrada:192448, saida:0,      saldo:192448 },
@@ -97,10 +108,11 @@ const DrawerLiquidacaoDetalhes = ({ open, onClose, liq }: { open: boolean; onClo
       </div>
       {[
         { label:'Adquirente', value: liq.adq },
-        { label:'Tipo de crédito', value: liq.tipo },
+        { label:'Bandeira', value: liq.bandeira },
         { label:'Data', value: liq.data },
         { label:'Conta de liquidação', value: liq.conta },
-        { label:'Registradora', value: LIQCEN_ADQS.find(a=>a.adq===liq.adq)?.registradora || '—' },
+        { label:'Registradora', value: liq.registradora },
+        { label:'Status Núclea', value: liq.statusNuclea },
       ].map((r,i) => (
         <div key={i} style={{ display:'flex', justifyContent:'space-between', padding:'10px 0', borderBottom:'1px solid #f0f0f0', fontSize:13 }}>
           <span style={{ color:'rgba(0,0,0,0.45)' }}>{r.label}</span>
@@ -463,7 +475,7 @@ export default function FinancialPage() {
   const [drawerSim, setDrawerSim] = useState(false)
   const [drawerImport, setDrawerImport] = useState(false)
   const [dismissed, setDismissed] = useState<Set<string>>(new Set())
-  const [liqSubTab, setLiqSubTab] = useState<'sub' | 'ecs'>('sub')
+  const [liqStatusFilter, setLiqStatusFilter] = useState<string>('todos')
   const [dreMonth, setDreMonth] = useState(3)
   const [dreYear,  setDreYear]  = useState(2026)
   const prevDreMonth = () => { if (dreMonth === 0) { setDreMonth(11); setDreYear(y => y-1) } else setDreMonth(m => m-1) }
@@ -473,11 +485,24 @@ export default function FinancialPage() {
 
   const KPI_FIN: Record<string, Array<{label:string;value:string;bg:string;border:string;color:string;sub:string}>> = {
     liquidacoes: [
-      { label:'Total liquidado (mês)', value:'R$ 1.240.500,00', bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'Créditos confirmados adquirentes' },
-      { label:'A liquidar (pendente)', value:'R$ 239.900,00', bg:'#fffbe6', border:'#ffe58f', color:'#faad14', sub:'Aguardando crédito nos domicílios' },
-      { label:'Liq. centralizada ativa', value:'4 adquirentes', bg:'#e6f7ff', border:'#91d5ff', color:'#1890FF', sub:'Domicílio configurado e operando' },
-      { label:'Gravames ativos', value:'R$ 140.000,00', bg:'#fff7e6', border:'#ffd591', color:'#fa8c16', sub:'Oneração em registradora' },
-      { label:'Custo de processamento', value:'R$ 29.772,00', bg:'#fff1f0', border:'#ffa39e', color:'#ff4d4f', sub:'MDR + tarifas do mês' },
+      { label:'Liquidado no mês', value:'R$ 492.337,00', bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'Créditos confirmados pelos adquirentes' },
+      { label:'Em processamento', value:'R$ 232.703,00', bg:'#e6f7ff', border:'#91d5ff', color:'#1890FF', sub:'Aguardando publicação na Núclea' },
+      { label:'Previsto (próx. vencimentos)', value:'R$ 111.920,00', bg:'#fffbe6', border:'#ffe58f', color:'#faad14', sub:'Parcelas a vencer — todos os adquirentes' },
+      { label:'Crédito travado (gravame)', value:'R$ 35.000,00', bg:'#fff7e6', border:'#ffd591', color:'#fa8c16', sub:'Bloqueado na Núclea — antecipação/oneração' },
+      { label:'MDR pago no mês', value:'R$ 23.040,00', bg:'#fff1f0', border:'#ffa39e', color:'#ff4d4f', sub:'Taxa descontada pelos adquirentes' },
+    ],
+    repasses: [
+      { label:'Repassado no mês', value:'R$ 8.861.834,00', bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'Transferido às contas dos merchants' },
+      { label:'Pendente de repasse', value:'R$ 1.054.390,00', bg:'#fffbe6', border:'#ffe58f', color:'#faad14', sub:'Agendado para os próximos dias' },
+      { label:'MDR retido (receita)', value:'R$ 291.309,00', bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'Spread cobrado dos merchants no mês' },
+      { label:'Antecipação recolhida', value:'R$ 85.000,00', bg:'#fff7e6', border:'#ffd591', color:'#fa8c16', sub:'Retido para abater antecipações concedidas' },
+      { label:'Reserva operacional', value:'R$ 43.200,00', bg:'#f5f5f5', border:'#d9d9d9', color:'rgba(0,0,0,0.65)', sub:'Rolling reserve — libera em 90 dias' },
+    ],
+    arquivos: [
+      { label:'Arquivos publicados', value:'2', bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'Aceitos e processados pela Núclea' },
+      { label:'Em processamento', value:'2', bg:'#e6f7ff', border:'#91d5ff', color:'#1890FF', sub:'Na fila da Núclea — aguardando retorno' },
+      { label:'Reprovados', value:'1', bg:'#fff1f0', border:'#ffa39e', color:'#ff4d4f', sub:'Rejeitados — reenvio necessário' },
+      { label:'Transações registradas', value:'488', bg:'#f5f5f5', border:'#d9d9d9', color:'rgba(0,0,0,0.85)', sub:'Total de transações nos arquivos publicados' },
     ],
     antecipacoes: [
       { label:'Saldo devedor total', value:'R$ 140.000,00', bg:'#fff7e6', border:'#ffd591', color:'#fa8c16', sub:'Em aberto com adquirentes' },
@@ -520,120 +545,49 @@ export default function FinancialPage() {
       {/* ── LIQUIDAÇÕES TAB ── */}
       {tab==='liquidacoes' && (
         <div style={{ padding:24, display:'flex', flexDirection:'column', gap:16 }}>
+          {/* Banner Liquidação Centralizada */}
+          <div style={{ background:'#e6f7ff', border:'1px solid #91d5ff', borderRadius:2, padding:'10px 16px', display:'flex', gap:10, alignItems:'flex-start' }}>
+            <Icon name="info" size={15} color="#1890FF" />
+            <div style={{ flex:1, fontSize:12, color:'rgba(0,0,0,0.65)', lineHeight:'18px' }}>
+              <strong>Liquidação Centralizada via Núclea.</strong> Os adquirentes creditam no domicílio bancário do sub-adquirente após publicação na registradora.
+              Gravame ativo: <strong>R$ 35.000,00</strong> em créditos travados como garantia de antecipações.
+            </div>
+          </div>
 
-          {/* Subtabs: liquidação do sub vs repasses para ECs */}
-          <div style={{ display:'flex', gap:0, borderBottom:'2px solid #f0f0f0' }}>
-            {([{ key:'sub', label:'Recebimentos do adquirente' }, { key:'ecs', label:'Repasses para ECs' }] as const).map(s => (
-              <button
-                key={s.key}
-                onClick={() => setLiqSubTab(s.key)}
-                style={{
-                  background:'none', border:'none', cursor:'pointer', padding:'8px 20px',
-                  fontSize:13, fontWeight: liqSubTab===s.key ? 600 : 400,
-                  color: liqSubTab===s.key ? '#1890FF' : 'rgba(0,0,0,0.55)',
-                  borderBottom: liqSubTab===s.key ? '2px solid #1890FF' : '2px solid transparent',
-                  marginBottom:-2, transition:'color 0.15s',
-                }}
-              >{s.label}</button>
+          {/* Filtros de status */}
+          <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
+            {(['todos','Liquidado','Parcialmente liquidado','Em processamento','Previsto','Crédito bloqueado'] as const).map(s => (
+              <button key={s} onClick={() => setLiqStatusFilter(s)}
+                style={{ border:`1px solid ${liqStatusFilter===s?'#1890FF':'#d9d9d9'}`, borderRadius:12, padding:'3px 14px', fontSize:12, cursor:'pointer', background:liqStatusFilter===s?'#1890FF':'#fff', color:liqStatusFilter===s?'#fff':'rgba(0,0,0,0.55)', fontWeight:liqStatusFilter===s?500:400, transition:'all 0.15s' }}>
+                {s === 'todos' ? 'Todos' : s}
+              </button>
             ))}
           </div>
 
-          {liqSubTab==='ecs' && (()=>{
-            const PAGAMENTOS_DATA = [
-              { name:'Mercado Livre',   cnpj:'03.007.331/0001-41', data:'10/04/2026', bruto:3450200, taxa:103506, rep:3346694, conta:'AG 0001 / CC 12345-6', status:'Pago' },
-              { name:'Amazon Brasil',   cnpj:'15.436.940/0001-03', data:'10/04/2026', bruto:2180700, taxa:65421,  rep:2115279, conta:'AG 0001 / CC 23456-7', status:'Pago' },
-              { name:'Americanas S.A.', cnpj:'00.776.574/0001-56', data:'11/04/2026', bruto:1240500, taxa:37215,  rep:1203285, conta:'AG 0001 / CC 34567-8', status:'Pago' },
-              { name:'Magazine Luiza',  cnpj:'47.960.950/0001-21', data:'12/04/2026', bruto:987200,  taxa:29616,  rep:957584,  conta:'AG 0001 / CC 45678-9', status:'Pago' },
-              { name:'iFood Ltda',      cnpj:'14.380.200/0001-21', data:'25/04/2026', bruto:654900,  taxa:19647,  rep:635253,  conta:'AG 0002 / CC 56789-0', status:'Pendente' },
-              { name:'Shopee Brasil',   cnpj:'35.060.991/0001-56', data:'25/04/2026', bruto:432100,  taxa:12963,  rep:419137,  conta:'AG 0002 / CC 67890-1', status:'Pendente' },
-              { name:'Rappi Brasil',    cnpj:'28.665.021/0001-89', data:'13/04/2026', bruto:765400,  taxa:22962,  rep:742438,  conta:'AG 0001 / CC 78901-2', status:'Pago' },
-            ]
-            type PRow = typeof PAGAMENTOS_DATA[0]
-            const cols: ColumnType<PRow>[] = [
-              { title:'Merchant', dataIndex:'name', key:'name', render: v => <span style={{ fontWeight:500, color:'rgba(0,0,0,0.85)' }}>{v}</span> },
-              { title:'CNPJ', dataIndex:'cnpj', key:'cnpj', render: v => <span style={{ fontFamily:'Roboto Mono', fontSize:11, color:'rgba(0,0,0,0.45)' }}>{v}</span> },
-              { title:'Data repasse', dataIndex:'data', key:'data', width:110 },
-              { title:'Bruto vendas', dataIndex:'bruto', key:'bruto', align:'right' as const, render: v => fmt(v) },
-              { title:'Taxas retidas', dataIndex:'taxa', key:'taxa', align:'right' as const, render: v => <span style={{ color:'#ff4d4f' }}>{fmt(v)}</span> },
-              { title:'Valor repassado', dataIndex:'rep', key:'rep', align:'right' as const, render: v => <span style={{ fontWeight:600, color:'#52c41a' }}>{fmt(v)}</span> },
-              { title:'Conta destino', dataIndex:'conta', key:'conta', render: v => <span style={{ fontFamily:'Roboto Mono', fontSize:11, color:'rgba(0,0,0,0.45)' }}>{v}</span> },
-              { title:'Status', dataIndex:'status', key:'status', width:90, render: v => <Tag status={v} /> },
-            ]
-            return (
-              <>
-                <div style={{ background:'#fff', border:'1px solid rgba(0,0,0,0.06)', borderRadius:2, padding:'10px 20px', display:'flex', gap:20, alignItems:'center', alignSelf:'flex-start' }}>
-                  <div>
-                    <div style={{ fontSize:11, color:'rgba(0,0,0,0.45)' }}>Reserva operacional (rolling reserve)</div>
-                    <div style={{ fontSize:16, fontWeight:700, color:'#722ED1' }}>R$ 43.200,00</div>
-                  </div>
-                  <div style={{ width:1, height:32, background:'#f0f0f0' }} />
-                  <div>
-                    <div style={{ fontSize:11, color:'rgba(0,0,0,0.45)' }}>Retenção aplicada</div>
-                    <div style={{ fontSize:14, fontWeight:600, color:'rgba(0,0,0,0.65)' }}>3% · libera em 90d</div>
-                  </div>
-                </div>
-                <DataTable<PRow>
-                  title="Repasses a merchants — Abril 2026"
-                  columns={cols}
-                  dataSource={PAGAMENTOS_DATA}
-                  rowKey={(_,i)=>String(i)}
-                  onExport={()=>{}}
-                  periodOptions={PERIOD_OPTIONS}
-                  defaultPeriod="hoje"
-                />
-              </>
-            )
-          })()}
-
-          {liqSubTab==='sub' && <>
-            <div style={{ background:'#e6f7ff', border:'1px solid #91d5ff', borderRadius:2, padding:'12px 16px', display:'flex', gap:12, alignItems:'flex-start' }}>
-              <Icon name="info" size={16} color="#1890FF" />
-              <div style={{ flex:1 }}>
-                <div style={{ fontSize:13, fontWeight:600, color:'rgba(0,0,0,0.85)', marginBottom:4 }}>Liquidação Centralizada ativa</div>
-                <div style={{ fontSize:12, color:'rgba(0,0,0,0.65)', lineHeight:'18px' }}>
-                  Os adquirentes creditam diretamente no <strong>domicílio bancário</strong> do sub-adquirente via registradora (CIP/CERC/TAG).
-                  Oneração (gravame) de <strong>R$ 140.000,00</strong> registrada como garantia de antecipações em aberto.
-                </div>
-              </div>
-              <button style={{ border:'1px solid #91d5ff', background:'#fff', borderRadius:2, padding:'4px 12px', fontSize:12, cursor:'pointer', color:'#1890FF', whiteSpace:'nowrap' }}>Ver configuração</button>
-            </div>
-
           {(()=>{
-            const domCols: ColumnType<typeof LIQCEN_ADQS[0]>[] = [
-              { title:'Adquirente', dataIndex:'adq', key:'adq', render: v => <span style={{ fontWeight:600 }}>{v}</span> },
-              { title:'Registradora', dataIndex:'registradora', key:'registradora', render: v => <span style={{ background:'#f5f5f5', border:'1px solid #d9d9d9', borderRadius:2, padding:'1px 7px', fontSize:11, fontWeight:500 }}>{v}</span> },
-              { title:'Domicílio bancário', dataIndex:'domicilio', key:'domicilio', render: v => <span style={{ color:'rgba(0,0,0,0.65)', fontFamily:'Roboto Mono', fontSize:11 }}>{v}</span> },
-              { title:'Volume liquidado', dataIndex:'vol', key:'vol', render: v => <span style={{ fontWeight:600, color:'#52c41a' }}>{fmt(v)}</span> },
-              { title:'Status', dataIndex:'status', key:'status', width:100, render: v => <Tag status={v} /> },
-                            { title:'Ações', key:'actions', width:70, render: () => (
-                <button title="Editar" style={{ border:'none', background:'none', color:'rgba(0,0,0,0.35)', cursor:'pointer', padding:4, display:'flex', alignItems:'center', borderRadius:4 }} onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.color='#1890FF';(e.currentTarget as HTMLElement).style.background='#f5f5f5'}} onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.color='rgba(0,0,0,0.35)';(e.currentTarget as HTMLElement).style.background='none'}}>
-                  <Icon name="edit" size={14} color="currentColor" />
-                </button>
-              ) },
-            ]
-            return (
-              <DataTable
-                title="Domicílio bancário por adquirente"
-                titleExtra={<button style={{ border:'none', background:'#1890FF', color:'#fff', borderRadius:2, height:32, padding:'5px 16px', fontSize:14, cursor:'pointer', display:'flex', alignItems:'center', gap:5 }}><Icon name="plus" size={14} color="#fff" /> Adicionar</button>}
-                columns={domCols}
-                dataSource={LIQCEN_ADQS}
-                rowKey="adq"
-                showPagination={false}
-              />
-            )
-          })()}
-
-          {(()=>{
+            const filtered = liqStatusFilter === 'todos' ? LIQ_EVENTOS : LIQ_EVENTOS.filter(r => r.status === liqStatusFilter)
+            const STATUS_NUCLEA_STYLE: Record<string,{bg:string;color:string;border:string}> = {
+              'Publicado':        { bg:'#f6ffed', color:'#389e0d', border:'#b7eb8f' },
+              'Em processamento': { bg:'#e6f7ff', color:'#1890FF', border:'#91d5ff' },
+              'Reprovado':        { bg:'#fff1f0', color:'#ff4d4f', border:'#ffa39e' },
+            }
             const evCols: ColumnType<LiqEvento>[] = [
               { title:'Data', dataIndex:'data', key:'data', width:110, render: v => <span style={{ color:'rgba(0,0,0,0.65)', whiteSpace:'nowrap' }}>{v}</span> },
-              { title:'Adquirente', dataIndex:'adq', key:'adq', width:90, render: v => <span style={{ fontWeight:600 }}>{v}</span> },
-              { title:'Tipo de crédito', dataIndex:'tipo', key:'tipo', render: v => <span style={{ fontSize:11, background:v.includes('Desc.')?'#fff7e6':'#e6f7ff', color:v.includes('Desc.')?'#fa8c16':'#1890FF', border:`1px solid ${v.includes('Desc.')?'#ffd591':'#91d5ff'}`, borderRadius:2, padding:'1px 6px' }}>{v}</span> },
-              { title:'Crédito bruto (adquirente)', dataIndex:'bruto', key:'bruto', render: v => <span style={{ color:'rgba(0,0,0,0.85)' }}>{fmt(v)}</span> },
-              { title:'MDR / Tarifas', dataIndex:'desc', key:'desc', render: v => <span style={{ color:'#ff4d4f' }}>{fmt(v)}</span> },
-              { title:'Antecipação descontada', dataIndex:'antecip', key:'antecip', render: v => <span style={{ color:v>0?'#fa8c16':'rgba(0,0,0,0.25)' }}>{v>0?fmt(v):'—'}</span> },
-              { title:'Crédito líquido', dataIndex:'cred', key:'cred', render: v => <span style={{ fontWeight:600, color:'#52c41a' }}>{fmt(v)}</span> },
+              { title:'Adquirente', dataIndex:'adq', key:'adq', width:80, render: v => <span style={{ fontWeight:600 }}>{v}</span> },
+              { title:'Bandeira', dataIndex:'bandeira', key:'bandeira', width:80, render: v => <span style={{ fontSize:11, color:'rgba(0,0,0,0.65)' }}>{v}</span> },
+              { title:'Crédito bruto', dataIndex:'bruto', key:'bruto', render: v => <span style={{ color:'rgba(0,0,0,0.85)' }}>{fmt(v)}</span> },
+              { title:'MDR pago', dataIndex:'desc', key:'desc', render: v => <span style={{ color:'#ff4d4f' }}>{fmt(v)}</span> },
+              { title:'Antecipação debitada', dataIndex:'antecip', key:'antecip', render: v => <span style={{ color:v>0?'#fa8c16':'rgba(0,0,0,0.2)' }}>{v>0?fmt(v):'—'}</span> },
+              { title:'Crédito travado', dataIndex:'travado', key:'travado', render: v => v>0
+                ? <span style={{ color:'#722ED1', fontWeight:500 }}>{fmt(v)}</span>
+                : <span style={{ color:'rgba(0,0,0,0.2)' }}>—</span> },
+              { title:'Líquido a receber', dataIndex:'cred', key:'cred', render: v => <span style={{ fontWeight:600, color:'#52c41a' }}>{fmt(v)}</span> },
               { title:'Conta creditada', dataIndex:'conta', key:'conta', render: v => <span style={{ color:'rgba(0,0,0,0.45)', fontFamily:'Roboto Mono', fontSize:11 }}>{v}</span> },
-              { title:'Status', dataIndex:'status', key:'status', width:90, render: v => <Tag status={v} /> },
+              { title:'Núclea', dataIndex:'statusNuclea', key:'statusNuclea', width:130, render: v => {
+                const s = STATUS_NUCLEA_STYLE[v] || STATUS_NUCLEA_STYLE['Em processamento']
+                return <span style={{ fontSize:11, background:s.bg, color:s.color, border:`1px solid ${s.border}`, borderRadius:2, padding:'1px 6px', fontWeight:500, whiteSpace:'nowrap' }}>{v}</span>
+              }},
+              { title:'Status', dataIndex:'status', key:'status', width:160, render: v => <Tag status={v} /> },
               { title:'', key:'acao', width:56, render: (_,r) => (
                 <button onClick={()=>setDrawerLiq(r)} title="Ver detalhes" style={{ border:'none', background:'none', color:'rgba(0,0,0,0.35)', cursor:'pointer', padding:4, display:'flex', alignItems:'center', borderRadius:4 }} onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.color='#1890FF';(e.currentTarget as HTMLElement).style.background='#f5f5f5'}} onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.color='rgba(0,0,0,0.35)';(e.currentTarget as HTMLElement).style.background='none'}}>
                   <Icon name="eye" size={14} color="currentColor" />
@@ -643,26 +597,27 @@ export default function FinancialPage() {
             return (
               <>
                 <DataTable<LiqEvento>
-                  title="Eventos de liquidação — Abril 2026"
+                  title="Recebimentos dos adquirentes — Abril 2026"
                   titleExtra={
-                    <button onClick={()=>setDrawerImport(true)} style={{ border:'1px solid #1890FF', background:'#e6f4ff', color:'#1890FF', borderRadius:2, height:32, padding:'5px 16px', fontSize:14, cursor:'pointer', display:'flex', alignItems:'center', gap:5 }}>
-                      <Icon name="upload" size={14} color="#1890FF" /> Importar CSV
+                    <button onClick={()=>setDrawerImport(true)} style={{ border:'1px solid #1890FF', background:'#e6f4ff', color:'#1890FF', borderRadius:2, height:32, padding:'5px 16px', fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:5 }}>
+                      <Icon name="download" size={14} color="#1890FF" /> Importar CSV
                     </button>
                   }
                   columns={evCols}
-                  dataSource={LIQ_EVENTOS}
+                  dataSource={filtered}
                   rowKey={(_,i)=>String(i)}
                   onExport={()=>{}}
                   periodOptions={PERIOD_OPTIONS}
                   defaultPeriod="mes"
                 />
-                <div style={{ padding:'12px 16px', background:'#e6f7ff', border:'1px solid #91d5ff', borderRadius:2, display:'flex', gap:32, justifyContent:'flex-end', alignItems:'center' }}>
-                  <span style={{ fontSize:13, fontWeight:600, color:'#1890FF', flex:1 }}>TOTAL — {LIQ_EVENTOS.length} eventos</span>
+                <div style={{ padding:'12px 16px', background:'#f6ffed', border:'1px solid #b7eb8f', borderRadius:2, display:'flex', gap:32, justifyContent:'flex-end', alignItems:'center' }}>
+                  <span style={{ fontSize:13, fontWeight:600, color:'#52c41a', flex:1 }}>TOTAL — {filtered.length} eventos</span>
                   {[
-                    {l:'Bruto total', v:fmt(LIQ_EVENTOS.reduce((s,r)=>s+r.bruto,0)), c:'rgba(0,0,0,0.85)'},
-                    {l:'MDR total', v:fmt(LIQ_EVENTOS.reduce((s,r)=>s+r.desc,0)), c:'#ff4d4f'},
-                    {l:'Antecip. descontada', v:fmt(LIQ_EVENTOS.reduce((s,r)=>s+r.antecip,0)), c:'#fa8c16'},
-                    {l:'Crédito líquido', v:fmt(LIQ_EVENTOS.reduce((s,r)=>s+r.cred,0)), c:'#52c41a'},
+                    {l:'Bruto', v:fmt(filtered.reduce((s,r)=>s+r.bruto,0)), c:'rgba(0,0,0,0.85)'},
+                    {l:'MDR pago', v:fmt(filtered.reduce((s,r)=>s+r.desc,0)), c:'#ff4d4f'},
+                    {l:'Antecipação debitada', v:fmt(filtered.reduce((s,r)=>s+r.antecip,0)), c:'#fa8c16'},
+                    {l:'Crédito travado', v:fmt(filtered.reduce((s,r)=>s+r.travado,0)), c:'#722ED1'},
+                    {l:'Líquido a receber', v:fmt(filtered.reduce((s,r)=>s+r.cred,0)), c:'#52c41a'},
                   ].map(s=>(
                     <div key={s.l} style={{ textAlign:'right' }}>
                       <div style={{ fontSize:11, color:'rgba(0,0,0,0.45)' }}>{s.l}</div>
@@ -673,9 +628,117 @@ export default function FinancialPage() {
               </>
             )
           })()}
-          </>}
         </div>
       )}
+
+      {/* ── REPASSES PARA ECS TAB ── */}
+      {tab==='repasses' && (()=>{
+        const PAGAMENTOS_DATA = [
+          { name:'Mercado Livre',   cnpj:'03.007.331/0001-41', data:'10/04/2026', bruto:3450200, taxa:103506, antecipRecolhida:0,     rep:3346694, conta:'AG 0001 / CC 12345-6', status:'Repassado' },
+          { name:'Amazon Brasil',   cnpj:'15.436.940/0001-03', data:'10/04/2026', bruto:2180700, taxa:65421,  antecipRecolhida:28000, rep:2087279, conta:'AG 0001 / CC 23456-7', status:'Repassado' },
+          { name:'Americanas S.A.', cnpj:'00.776.574/0001-56', data:'11/04/2026', bruto:1240500, taxa:37215,  antecipRecolhida:45000, rep:1158285, conta:'AG 0001 / CC 34567-8', status:'Repassado' },
+          { name:'Magazine Luiza',  cnpj:'47.960.950/0001-21', data:'12/04/2026', bruto:987200,  taxa:29616,  antecipRecolhida:0,     rep:957584,  conta:'AG 0001 / CC 45678-9', status:'Repassado' },
+          { name:'iFood Ltda',      cnpj:'14.380.200/0001-21', data:'25/04/2026', bruto:654900,  taxa:19647,  antecipRecolhida:12000, rep:623253,  conta:'AG 0002 / CC 56789-0', status:'Pendente'  },
+          { name:'Shopee Brasil',   cnpj:'35.060.991/0001-56', data:'25/04/2026', bruto:432100,  taxa:12963,  antecipRecolhida:0,     rep:419137,  conta:'AG 0002 / CC 67890-1', status:'Pendente'  },
+          { name:'Rappi Brasil',    cnpj:'28.665.021/0001-89', data:'13/04/2026', bruto:765400,  taxa:22962,  antecipRecolhida:0,     rep:742438,  conta:'AG 0001 / CC 78901-2', status:'Repassado' },
+        ]
+        type PRow = typeof PAGAMENTOS_DATA[0]
+        const cols: ColumnType<PRow>[] = [
+          { title:'Merchant (EC)', dataIndex:'name', key:'name', render: v => <span style={{ fontWeight:500, color:'rgba(0,0,0,0.85)' }}>{v}</span> },
+          { title:'CNPJ', dataIndex:'cnpj', key:'cnpj', render: v => <span style={{ fontFamily:'Roboto Mono', fontSize:11, color:'rgba(0,0,0,0.45)' }}>{v}</span> },
+          { title:'Data repasse', dataIndex:'data', key:'data', width:110 },
+          { title:'Bruto vendas', dataIndex:'bruto', key:'bruto', render: v => <span style={{ color:'rgba(0,0,0,0.85)' }}>{fmt(v)}</span> },
+          { title:'MDR retido', dataIndex:'taxa', key:'taxa', render: v => <span style={{ color:'#ff4d4f' }}>{fmt(v)}</span> },
+          { title:'Antecip. recolhida', dataIndex:'antecipRecolhida', key:'antecipRecolhida', render: v => v>0
+            ? <span style={{ color:'#fa8c16', fontWeight:500 }}>{fmt(v)}</span>
+            : <span style={{ color:'rgba(0,0,0,0.2)' }}>—</span> },
+          { title:'Valor repassado', dataIndex:'rep', key:'rep', render: v => <span style={{ fontWeight:600, color:'#52c41a' }}>{fmt(v)}</span> },
+          { title:'Conta destino', dataIndex:'conta', key:'conta', render: v => <span style={{ fontFamily:'Roboto Mono', fontSize:11, color:'rgba(0,0,0,0.45)' }}>{v}</span> },
+          { title:'Status', dataIndex:'status', key:'status', width:100, render: v => <Tag status={v} /> },
+        ]
+        return (
+          <div style={{ padding:24, display:'flex', flexDirection:'column', gap:16 }}>
+            <div style={{ background:'#fff', border:'1px solid rgba(0,0,0,0.06)', borderRadius:2, padding:'10px 20px', display:'flex', gap:20, alignItems:'center', alignSelf:'flex-start' }}>
+              <div>
+                <div style={{ fontSize:11, color:'rgba(0,0,0,0.45)' }}>Reserva operacional (rolling reserve)</div>
+                <div style={{ fontSize:16, fontWeight:700, color:'#722ED1' }}>R$ 43.200,00</div>
+              </div>
+              <div style={{ width:1, height:32, background:'#f0f0f0' }} />
+              <div>
+                <div style={{ fontSize:11, color:'rgba(0,0,0,0.45)' }}>Retenção aplicada</div>
+                <div style={{ fontSize:14, fontWeight:600, color:'rgba(0,0,0,0.65)' }}>3% · libera em 90d</div>
+              </div>
+            </div>
+            <DataTable<PRow>
+              title="Repasses a merchants — Abril 2026"
+              titleExtra={
+                <button onClick={()=>setDrawerImport(true)} style={{ border:'1px solid #1890FF', background:'#e6f4ff', color:'#1890FF', borderRadius:2, height:32, padding:'5px 16px', fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:5 }}>
+                  <Icon name="download" size={14} color="#1890FF" /> Importar CSV
+                </button>
+              }
+              columns={cols}
+              dataSource={PAGAMENTOS_DATA}
+              rowKey={(_,i)=>String(i)}
+              onExport={()=>{}}
+              periodOptions={PERIOD_OPTIONS}
+              defaultPeriod="mes"
+            />
+          </div>
+        )
+      })()}
+
+      {/* ── ARQUIVOS TAB ── */}
+      {tab==='arquivos' && (()=>{
+        const STATUS_NUCLEA_STYLE: Record<string,{bg:string;color:string;border:string}> = {
+          'Publicado':        { bg:'#f6ffed', color:'#389e0d', border:'#b7eb8f' },
+          'Em processamento': { bg:'#e6f7ff', color:'#1890FF', border:'#91d5ff' },
+          'Reprovado':        { bg:'#fff1f0', color:'#ff4d4f', border:'#ffa39e' },
+        }
+        const cols: ColumnType<ArquivoRow>[] = [
+          { title:'Arquivo', dataIndex:'arquivo', key:'arquivo', render: v => <span style={{ fontFamily:'Roboto Mono', fontSize:11, color:'rgba(0,0,0,0.65)' }}>{v}</span> },
+          { title:'Enviado em', dataIndex:'enviado', key:'enviado', width:110, render: v => <span style={{ color:'rgba(0,0,0,0.55)' }}>{v}</span> },
+          { title:'Adquirente', dataIndex:'adq', key:'adq', width:90, render: v => <span style={{ fontWeight:600 }}>{v}</span> },
+          { title:'Registradora', dataIndex:'registradora', key:'registradora', width:100, render: v => <span style={{ background:'#f5f5f5', border:'1px solid #d9d9d9', borderRadius:2, padding:'1px 7px', fontSize:11, fontWeight:500 }}>{v}</span> },
+          { title:'Transações', dataIndex:'transacoes', key:'transacoes', width:100, render: v => <span style={{ color:'rgba(0,0,0,0.65)' }}>{v}</span> },
+          { title:'Status Núclea', dataIndex:'statusNuclea', key:'statusNuclea', width:150, render: v => {
+            const s = STATUS_NUCLEA_STYLE[v] || STATUS_NUCLEA_STYLE['Em processamento']
+            return <span style={{ fontSize:11, background:s.bg, color:s.color, border:`1px solid ${s.border}`, borderRadius:2, padding:'2px 8px', fontWeight:600 }}>{v}</span>
+          }},
+          { title:'Erro', dataIndex:'erro', key:'erro', render: v => v
+            ? <span style={{ fontSize:11, color:'#ff4d4f' }}>{v}</span>
+            : <span style={{ color:'rgba(0,0,0,0.2)' }}>—</span> },
+          { title:'Ações', key:'acoes', width:100, render: (_,r) => (
+            <div style={{ display:'flex', gap:6 }}>
+              <button title="Ver detalhes" style={{ border:'none', background:'none', color:'rgba(0,0,0,0.35)', cursor:'pointer', padding:4, display:'flex', alignItems:'center', borderRadius:4 }} onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.color='#1890FF';(e.currentTarget as HTMLElement).style.background='#f5f5f5'}} onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.color='rgba(0,0,0,0.35)';(e.currentTarget as HTMLElement).style.background='none'}}>
+                <Icon name="eye" size={14} color="currentColor" />
+              </button>
+              {r.statusNuclea === 'Reprovado' && (
+                <button title="Reenviar" style={{ border:'1px solid #ff4d4f', background:'#fff1f0', color:'#ff4d4f', cursor:'pointer', padding:'2px 8px', display:'flex', alignItems:'center', borderRadius:2, fontSize:11 }}>
+                  Reenviar
+                </button>
+              )}
+            </div>
+          )},
+        ]
+        return (
+          <div style={{ padding:24, display:'flex', flexDirection:'column', gap:16 }}>
+            <DataTable<ArquivoRow>
+              title="Fila de processamento — Núclea"
+              titleExtra={
+                <button onClick={()=>setDrawerImport(true)} style={{ border:'1px solid #1890FF', background:'#e6f4ff', color:'#1890FF', borderRadius:2, height:32, padding:'5px 16px', fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:5 }}>
+                  <Icon name="download" size={14} color="#1890FF" /> Importar CSV
+                </button>
+              }
+              columns={cols}
+              dataSource={ARQUIVOS_DATA}
+              rowKey="arquivo"
+              onExport={()=>{}}
+              periodOptions={PERIOD_OPTIONS}
+              defaultPeriod="mes"
+            />
+          </div>
+        )
+      })()}
 
       {/* ── ANTECIPAÇÕES TAB ── */}
       {tab==='antecipacoes' && (

@@ -239,8 +239,8 @@ export default function AgendaPage() {
         breadcrumb="Sub-adquirente / Agenda / Recebíveis"
         onBack={() => {}}
         extra={
-          <button onClick={() => setDrawerImportAgenda(true)} style={{ border:'1px solid #1890FF', background:'#e6f4ff', color:'#1890FF', borderRadius:2, height:32, padding:'5px 16px', fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:5 }}>
-            <Icon name="download" size={14} color="#1890FF" /> Importar CSV
+          <button onClick={() => setDrawerImportAgenda(true)} style={{ border:'none', background:'#1890FF', color:'#fff', borderRadius:2, height:32, padding:'5px 16px', fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:6, fontWeight:500 }}>
+            <Icon name="download" size={14} color="#fff" /> Importar CSV
           </button>
         }
       />

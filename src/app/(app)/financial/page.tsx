@@ -528,6 +528,25 @@ export default function FinancialPage() {
         title={FINANCIAL_TABS.find(t => t.key === tab)?.label ?? 'Financeiro'}
         breadcrumb={`Sub-adquirente / Financeiro / ${FINANCIAL_TABS.find(t => t.key === tab)?.label ?? ''}`}
         onBack={() => {}}
+        extra={
+          tab === 'liquidacoes' ? (
+            <button onClick={()=>setDrawerImport(true)} style={{ border:'none', background:'#1890FF', color:'#fff', borderRadius:2, height:32, padding:'5px 16px', fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:6, fontWeight:500 }}>
+              <Icon name="download" size={14} color="#fff" /> Importar CSV
+            </button>
+          ) : tab === 'repasses' ? (
+            <button onClick={()=>setDrawerImport(true)} style={{ border:'none', background:'#1890FF', color:'#fff', borderRadius:2, height:32, padding:'5px 16px', fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:6, fontWeight:500 }}>
+              <Icon name="download" size={14} color="#fff" /> Importar CSV
+            </button>
+          ) : tab === 'arquivos' ? (
+            <button onClick={()=>setDrawerImport(true)} style={{ border:'none', background:'#1890FF', color:'#fff', borderRadius:2, height:32, padding:'5px 16px', fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:6, fontWeight:500 }}>
+              <Icon name="download" size={14} color="#fff" /> Importar CSV
+            </button>
+          ) : tab === 'antecipacoes' ? (
+            <button onClick={()=>setDrawerSim(true)} style={{ border:'none', background:'#1890FF', color:'#fff', borderRadius:2, height:32, padding:'5px 16px', fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:6, fontWeight:500 }}>
+              <Icon name="barChart" size={14} color="#fff" /> Simular antecipação
+            </button>
+          ) : undefined
+        }
       />
 
       {/* KPI cards */}
@@ -598,11 +617,6 @@ export default function FinancialPage() {
               <>
                 <DataTable<LiqEvento>
                   title="Recebimentos dos adquirentes — Abril 2026"
-                  titleExtra={
-                    <button onClick={()=>setDrawerImport(true)} style={{ border:'1px solid #1890FF', background:'#e6f4ff', color:'#1890FF', borderRadius:2, height:32, padding:'5px 16px', fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:5 }}>
-                      <Icon name="download" size={14} color="#1890FF" /> Importar CSV
-                    </button>
-                  }
                   columns={evCols}
                   dataSource={filtered}
                   rowKey={(_,i)=>String(i)}
@@ -671,11 +685,6 @@ export default function FinancialPage() {
             </div>
             <DataTable<PRow>
               title="Repasses a merchants — Abril 2026"
-              titleExtra={
-                <button onClick={()=>setDrawerImport(true)} style={{ border:'1px solid #1890FF', background:'#e6f4ff', color:'#1890FF', borderRadius:2, height:32, padding:'5px 16px', fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:5 }}>
-                  <Icon name="download" size={14} color="#1890FF" /> Importar CSV
-                </button>
-              }
               columns={cols}
               dataSource={PAGAMENTOS_DATA}
               rowKey={(_,i)=>String(i)}
@@ -724,11 +733,6 @@ export default function FinancialPage() {
           <div style={{ padding:24, display:'flex', flexDirection:'column', gap:16 }}>
             <DataTable<ArquivoRow>
               title="Fila de processamento — Núclea"
-              titleExtra={
-                <button onClick={()=>setDrawerImport(true)} style={{ border:'1px solid #1890FF', background:'#e6f4ff', color:'#1890FF', borderRadius:2, height:32, padding:'5px 16px', fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:5 }}>
-                  <Icon name="download" size={14} color="#1890FF" /> Importar CSV
-                </button>
-              }
               columns={cols}
               dataSource={ARQUIVOS_DATA}
               rowKey="arquivo"
@@ -771,16 +775,6 @@ export default function FinancialPage() {
               <>
                 <DataTable<AntecipEC>
                   title="Antecipações concedidas a merchants"
-                  titleExtra={
-                    <div style={{ display:'flex', gap:8 }}>
-                      <button onClick={()=>setDrawerSim(true)} style={{ border:'1px solid #1890FF', background:'#e6f4ff', color:'#1890FF', borderRadius:2, height:32, padding:'5px 16px', fontSize:14, cursor:'pointer', display:'flex', alignItems:'center', gap:5 }}>
-                        <Icon name="barChart" size={14} color="#1890FF" /> Simular antecipação
-                      </button>
-                      <button style={{ border:'none', background:'#1890FF', color:'#fff', borderRadius:2, height:32, padding:'5px 16px', fontSize:14, cursor:'pointer', display:'flex', alignItems:'center', gap:5 }}>
-                        <Icon name="plus" size={14} color="#fff" /> Nova antecipação
-                      </button>
-                    </div>
-                  }
                   columns={cols}
                   dataSource={ANTECIP_EC_DATA}
                   rowKey="id"

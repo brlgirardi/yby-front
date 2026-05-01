@@ -454,19 +454,16 @@ export default function AgendaPage() {
                         onClick={() => togglePainel(section.key)}
                         style={{ display:'flex', alignItems:'center', padding:'10px 18px', cursor:'pointer', userSelect:'none' }}
                       >
-                        <div style={{ display:'flex', alignItems:'center', gap:6, flex:1, minWidth:0 }}>
-                          <Icon name={section.icon} size={12} color={section.color} />
-                          <span style={{ fontSize:11, fontWeight:700, color:section.color, letterSpacing:'0.4px', textTransform:'uppercase', whiteSpace:'nowrap' }}>{section.label}</span>
-                        </div>
-                        {!isOpen && (
-                          <div style={{ display:'flex', alignItems:'center', gap:8, flexShrink:0 }}>
-                            <span style={{ fontSize:12, fontWeight:700, color:section.summaryColor }}>{section.summaryValue}</span>
-                            <Icon name="chevronDown" size={12} color="rgba(0,0,0,0.35)" />
+                        <div style={{ flex:1, minWidth:0 }}>
+                          <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom: isOpen ? 0 : 3 }}>
+                            <Icon name={section.icon} size={12} color={section.color} />
+                            <span style={{ fontSize:11, fontWeight:500, color:'rgba(0,0,0,0.45)', letterSpacing:'0.3px', textTransform:'uppercase', whiteSpace:'nowrap' }}>{section.label}</span>
                           </div>
-                        )}
-                        {isOpen && (
-                          <Icon name="chevronUp" size={12} color="rgba(0,0,0,0.35)" />
-                        )}
+                          {!isOpen && (
+                            <span style={{ fontSize:15, fontWeight:700, color:section.summaryColor, paddingLeft:18 }}>{section.summaryValue}</span>
+                          )}
+                        </div>
+                        <Icon name={isOpen ? 'chevronUp' : 'chevronDown'} size={12} color="rgba(0,0,0,0.35)" />
                       </div>
                       {/* Detalhe expandido */}
                       {isOpen && (

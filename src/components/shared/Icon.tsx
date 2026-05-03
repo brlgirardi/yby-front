@@ -50,7 +50,33 @@ const PATHS: Record<string, React.ReactNode> = {
   upload: <><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></>,
 }
 
+// Special icons that don't fit the 24×24 stroke-based pattern (custom shapes/fills).
+// These are rendered as raw <svg> with their own viewBox and use currentColor for the fill.
+const CUSTOM_ICONS: Record<string, (size: number, color: string) => React.ReactNode> = {
+  // Maquininha de cartão (POS device) — design system Yby (14×14, fill-based)
+  pos: (size, color) => (
+    <svg width={size} height={size} viewBox="0 0 14 14" fill={color} xmlns="http://www.w3.org/2000/svg">
+      {/* Body of the device */}
+      <path d="M4.4 3.96c-.13.21-.13.41-.13.55v8.49c0 .12.05.27.16.36.12.1.21.13.37.13h4.4c.16 0 .25-.03.37-.13.11-.09.16-.24.16-.36V4.51c-.01-.27-.07-.41-.16-.55-.1-.1-.21-.11-.36-.11h-.42v.55l.18.12c.06.05.08.09.09.16v3.31c0 .14-.03.23-.12.34-.09.06-.16.06-.27.06H5.07c-.29 0-.29 0-.42-.12-.03-.08-.03-.12-.04-.2V4.84c0-.11.04-.18.1-.27.06-.06.06-.06.2-.12v-.55h-.16c-.18 0-.32.02-.35.06z"/>
+      {/* Display screen */}
+      <path d="M5.55 5.0v1.97h2.9V5.0H5.55z"/>
+      {/* Top antenna/header */}
+      <path d="M5.82.6v3.78h2.36V.6H5.82z"/>
+      {/* Keypad rows */}
+      <rect x="5.0" y="8.45" width="2.0" height=".7" rx=".25"/>
+      <rect x="7.1" y="8.45" width="2.0" height=".7" rx=".25"/>
+      <rect x="5.0" y="10.0" width="2.0" height=".7" rx=".25"/>
+      <rect x="7.1" y="10.0" width="2.0" height=".7" rx=".25"/>
+      <rect x="5.0" y="11.55" width="2.0" height=".7" rx=".25"/>
+      <rect x="7.1" y="11.55" width="2.0" height=".7" rx=".25"/>
+    </svg>
+  ),
+}
+
 export default function Icon({ name, size = 16, color = 'currentColor', strokeWidth = 2 }: IconProps) {
+  const custom = CUSTOM_ICONS[name]
+  if (custom) return <>{custom(size, color)}</>
+
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
       {PATHS[name] || null}

@@ -10,7 +10,7 @@ import DataTable, { type ColumnType, PERIOD_OPTIONS } from '@/components/ui/Data
 
 const fmt = (v: number) => 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
-type Channel = 'pos' | 'link' | 'ecommerce' | 'marketplace'
+type Channel = 'pos' | 'link' | 'ecommerce'
 type StatusKey = 'Aprovada' | 'Recusada' | 'Cancelada' | 'Estorno' | 'Pendente' | 'Chargeback'
 
 type Transaction = {
@@ -37,7 +37,7 @@ const TRANSACTIONS: Transaction[] = [
   { channel:'ecommerce',                  marketplace:'iFood Ltda',     ec:'iFood Restaurante',bandeira:'Elo',        parcelas:'2x',  data:'20/04/2026', hora:'11:42', valor:430.00,  authCode:'112844',                                  nsu:'000000103',   status:'Pendente'   },
   { channel:'pos',         posId:'45102', marketplace:'Magazine Luiza', ec:'ML Centro',        bandeira:'Visa',       parcelas:'1x',  data:'20/04/2026', hora:'11:31', valor:128.90,  authCode:'778219',                                  nsu:'000000102',   status:'Aprovada'   },
   { channel:'link',                       marketplace:'Rappi Brasil',   ec:'Rappi Quick',      bandeira:'Pix',        parcelas:'Pix', data:'20/04/2026', hora:'10:58', valor:87.50,   authCode:'—',                                       nsu:'PIX-9991',    status:'Aprovada'   },
-  { channel:'marketplace',                marketplace:'Americanas S.A.',ec:'AME Loja 04',      bandeira:'Visa',       parcelas:'1x',  data:'20/04/2026', hora:'10:30', valor:999.00,  authCode:'002311',                                  nsu:'000000099',   status:'Aprovada'   },
+  { channel:'ecommerce',                  marketplace:'Americanas S.A.',ec:'AME Loja 04',      bandeira:'Visa',       parcelas:'1x',  data:'20/04/2026', hora:'10:30', valor:999.00,  authCode:'002311',                                  nsu:'000000099',   status:'Aprovada'   },
   { channel:'ecommerce',                  marketplace:'Amazon Brasil',  ec:'AMZ Online',       bandeira:'Mastercard', parcelas:'1x',  data:'20/04/2026', hora:'10:12', valor:2100.00, authCode:'440092',                                  nsu:'000000097',   status:'Estorno'    },
   { channel:'pos',         posId:'33099', marketplace:'Mercado Livre',  ec:'ML Loja 0044',     bandeira:'Visa',       parcelas:'4x',  data:'20/04/2026', hora:'09:55', valor:312.10,  authCode:'558719',                                  nsu:'000000095',   status:'Chargeback' },
   { channel:'ecommerce',                  marketplace:'Shopee Brasil',  ec:'Shopee Eletro',    bandeira:'Mastercard', parcelas:'10x', data:'20/04/2026', hora:'09:38', valor:1879.40, authCode:'661233',                                  nsu:'000000093',   status:'Aprovada'   },
@@ -54,14 +54,13 @@ const STATUS_TIPS: Record<StatusKey, string> = {
 }
 
 const CHANNEL_META: Record<Channel, { icon: string; label: string; tip: string }> = {
-  pos:         { icon:'smartphone',   label:'POS',         tip:'POS — transação capturada em maquininha física no estabelecimento.'                  },
-  link:        { icon:'link2',        label:'Link',        tip:'Link de pagamento — checkout enviado por mensagem/email.'                            },
-  ecommerce:   { icon:'shoppingCart', label:'Ecommerce',   tip:'Ecommerce — checkout integrado no site do estabelecimento.'                          },
-  marketplace: { icon:'building2',    label:'Marketplace', tip:'Marketplace — venda dentro da plataforma do master merchant (sub-credenciamento).'   },
+  pos:         { icon:'pos',          label:'POS',         tip:'POS — transação capturada em maquininha física no estabelecimento.' },
+  link:        { icon:'link2',        label:'Link',        tip:'Link de pagamento — checkout enviado por mensagem/email.'           },
+  ecommerce:   { icon:'shoppingCart', label:'Ecommerce',   tip:'Ecommerce — checkout integrado no site do estabelecimento.'         },
 }
 
 const ALL_STATUSES: StatusKey[] = ['Aprovada','Recusada','Cancelada','Estorno','Pendente','Chargeback']
-const ALL_CHANNELS: Channel[] = ['pos','link','ecommerce','marketplace']
+const ALL_CHANNELS: Channel[] = ['pos','link','ecommerce']
 const ALL_BANDEIRAS = ['Visa','Mastercard','Elo','Pix']
 
 // Truncate text com tooltip de valor completo no hover
@@ -136,7 +135,7 @@ export default function TransactionsPage() {
       render: (v: Channel, r) => <ChannelChip channel={v} posId={r.posId} />,
     },
     {
-      title: 'EC (Marketplace)', dataIndex: 'ec', key: 'ec', width: 220,
+      title: 'Estabelecimento', dataIndex: 'ec', key: 'ec', width: 220,
       render: (_, r) => (
         <div style={{ display:'flex', flexDirection:'column', gap:2, minWidth:0 }}>
           <span style={{ fontWeight:500, color:'rgba(0,0,0,0.85)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', maxWidth:200 }}>{r.ec}</span>

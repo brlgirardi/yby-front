@@ -26,7 +26,7 @@ export default function PageHeader({ title, breadcrumb, extra, onBack, tabs, act
       <div style={{ padding: tabs ? '8px 24px 0' : '8px 24px 16px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:12 }}>
         <div style={{ display:'flex', alignItems:'center', gap:8 }}>
           {onBack && (
-            <button onClick={onBack} style={{ border:'none', background:'none', cursor:'pointer', color:'rgba(0,0,0,0.45)', display:'flex', alignItems:'center', padding:'4px 6px 4px 0', borderRadius:2, transition:'color 0.15s' }}
+            <button onClick={onBack} aria-label="Voltar" style={{ border:'none', background:'none', cursor:'pointer', color:'rgba(0,0,0,0.45)', display:'flex', alignItems:'center', padding:'4px 6px 4px 0', borderRadius:2, transition:'color 0.15s' }}
               onMouseEnter={e=>(e.currentTarget as HTMLElement).style.color='rgba(0,0,0,0.85)'}
               onMouseLeave={e=>(e.currentTarget as HTMLElement).style.color='rgba(0,0,0,0.45)'}>
               <Icon name="arrowLeft" size={16} />

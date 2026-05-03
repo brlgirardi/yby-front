@@ -1,11 +1,12 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { App, Button, Spin, Typography } from 'antd'
+import { App, Button, Typography } from 'antd'
 import { ArrowLeft, Inbox } from 'lucide-react'
 import { useRouter, usePathname } from 'next/navigation'
 import PageHeader from '@/components/shared/PageHeader'
 import ChannelPriceSection, { CHANNELS } from '@/components/pricing/ChannelPriceSection'
+import PricingSkeleton from '@/components/pricing/PricingSkeleton'
 import { ACQUIRER_NAMES, getAcquirerDisplayName, usePricingData } from '@/hooks/pricing/usePricingData'
 
 const { Text } = Typography
@@ -67,17 +68,17 @@ function PricesPageInner() {
       />
 
       <div style={{ flex: 1, overflow: 'auto', background: '#fff', padding: 24 }}>
-        {loading && (
-          <div style={{ textAlign: 'center', padding: 48 }}>
-            <Spin size="large" />
-          </div>
-        )}
+        {loading && <PricingSkeleton variant="prices" />}
 
         {showEmpty && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 0' }}>
-            <Inbox size={48} color="#d9d9d9" style={{ marginBottom: 16 }} />
-            <Text style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16 }}>
-              Configure os custos primeiro para definir preços.
+          <div role="status" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 0', maxWidth: 460, margin: '0 auto', textAlign: 'center' }}>
+            <Inbox size={48} color="#d9d9d9" style={{ marginBottom: 16 }} aria-hidden="true" />
+            <Text strong style={{ fontSize: 15, color: 'rgba(0,0,0,0.85)', marginBottom: 6, display: 'block' }}>
+              Defina os custos antes de configurar preços
+            </Text>
+            <Text style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 20, fontSize: 13, display: 'block' }}>
+              Os preços vendidos aos ECs são derivados dos custos pagos aos adquirentes (custo + sua
+              margem em pontos percentuais). Sem custos configurados, não há base para calcular preços.
             </Text>
             <Button type="primary" onClick={() => router.push('/pricing/costs')} style={{ borderRadius: 0, background: '#1890FF', borderColor: '#1890FF' }}>
               Ir para Custos

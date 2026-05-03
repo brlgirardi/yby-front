@@ -118,7 +118,7 @@ export default function SettlementsTab() {
         title={
           <div className="flex items-center justify-between w-full">
             <span className="text-base font-semibold">Detalhes da Liquidação</span>
-            <button onClick={() => setDrawerRow(null)} className="text-[rgba(0,0,0,0.45)] hover:text-[rgba(0,0,0,0.85)]">
+            <button onClick={() => setDrawerRow(null)} aria-label="Fechar detalhes" className="text-[rgba(0,0,0,0.45)] hover:text-[rgba(0,0,0,0.85)]">
               <X size={18} />
             </button>
           </div>

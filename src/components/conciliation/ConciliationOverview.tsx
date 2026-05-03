@@ -101,6 +101,7 @@ export default function ConciliationOverview({ date, onDateChange, onBrandClick 
             value={filters.searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
             placeholder="Buscar bandeira..."
+            aria-label="Buscar bandeira"
             style={{
               width: '100%', border: '1px solid #d9d9d9', borderRadius: 2,
               padding: '5px 10px 5px 30px', fontSize: 13, outline: 'none',
@@ -115,6 +116,7 @@ export default function ConciliationOverview({ date, onDateChange, onBrandClick 
         <select
           value={filters.statusFilter}
           onChange={e => setStatusFilter(e.target.value)}
+          aria-label="Filtrar por status"
           style={{ border: '1px solid #d9d9d9', borderRadius: 2, padding: '5px 8px', fontSize: 13, fontFamily: 'Roboto', outline: 'none', background: '#fff' }}
         >
           {STATUS_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
@@ -123,6 +125,7 @@ export default function ConciliationOverview({ date, onDateChange, onBrandClick 
         <select
           value={filters.brandFilter}
           onChange={e => setBrandFilter(e.target.value)}
+          aria-label="Filtrar por bandeira"
           style={{ border: '1px solid #d9d9d9', borderRadius: 2, padding: '5px 8px', fontSize: 13, fontFamily: 'Roboto', outline: 'none', background: '#fff' }}
         >
           {BRAND_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}

@@ -79,6 +79,7 @@ export default function GlobalHeader() {
       <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
         <button
           onClick={toggleSidebar}
+          aria-label="Alternar menu lateral"
           style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center' }}
         >
           <Icon name="menu" size={18} />
@@ -156,7 +157,7 @@ export default function GlobalHeader() {
 
         {/* Bell */}
         <Badge count={5}>
-          <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center' }}>
+          <button aria-label="Notificações" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center' }}>
             <Icon name="bell" size={18} />
           </button>
         </Badge>

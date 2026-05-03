@@ -94,6 +94,7 @@ export default function BrandDetail({ brand, date, onDateChange, onBack }: Brand
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
             placeholder="Buscar IRD..."
+            aria-label="Buscar IRD"
             style={{ width: '100%', border: '1px solid #d9d9d9', borderRadius: 2, padding: '5px 10px 5px 30px', fontSize: 13, outline: 'none', fontFamily: 'Roboto' }}
           />
         </div>

@@ -8,8 +8,7 @@ import { useRouter } from 'next/navigation'
 
 const NAV = [
   { key: 'dashboard', icon: 'dashboard', label: 'Dashboard', screen: 'dashboard' },
-  { key: 'merchants', icon: 'users', label: 'Merchants', screen: 'merchants',
-    sub: [{ label: 'Lista de merchants', screen: 'merchants' }, { label: 'Novo merchant', screen: 'merchants' }] },
+  { key: 'merchants', icon: 'users', label: 'Merchants', screen: 'merchants' },
   { key: 'transactions', icon: 'receipt', label: 'Transações', screen: 'transactions' },
   { key: 'agenda', icon: 'calendar', label: 'Agenda', screen: 'agenda' },
   { key: 'financial', icon: 'landmark', label: 'Financeiro', screen: 'financial', badge: { count: 1, tone: 'error' as const },

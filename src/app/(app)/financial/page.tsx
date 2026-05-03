@@ -28,6 +28,22 @@ const LIQCEN_ADQS = [
   { adq:'Getnet', registradora:'CIP',  domicilio:'Banco Inter · Ag 0001 / CC 12345-6', status:'Pendente', vol:124050 },
 ]
 
+// Tooltips de status (delay 1s ao hover) — explicam significado para o operador
+const STATUS_TIPS: Record<string, string> = {
+  // Liquidações (lote)
+  'Liquidado':              'Crédito confirmado pelo adquirente. Dinheiro creditado na conta do sub.',
+  'Parcialmente liquidado': 'Lote liquidado parcialmente — parte do bruto foi descontado por antecipação tomada ou trava (gravame).',
+  'Em processamento':       'Aguardando publicação na Núclea. Após registro, o adquirente liquida na conta do sub.',
+  'Previsto':               'Recebível futuro com vencimento confirmado pelo adquirente. Indicador de fluxo de caixa próximo.',
+  'Crédito bloqueado':      'Crédito impedido por trava/oneração. Não vai para o sub — vai para o FIDC/banco que comprou o recebível.',
+  // Repasses (status do envio ao EC)
+  'Repassado':              'Valor já transferido para a conta do merchant.',
+  'Pendente':               'Aguardando confirmação do emissor ou processamento — pode levar alguns minutos.',
+  // Antecipações (operações concedidas a merchants)
+  'A recuperar':            'Antecipação ainda em aberto. O valor será descontado dos próximos repasses ao EC até quitação total.',
+  'Recuperado':             'Antecipação totalmente recuperada via descontos nos repasses. Operação encerrada.',
+}
+
 type Parcela = {
   nsu: string
   ec: string
@@ -871,7 +887,12 @@ export default function FinancialPage() {
                   ? <Tooltip text={tip} delay={1000} bare>{badge}</Tooltip>
                   : badge
               }},
-              { title:'Status', dataIndex:'status', key:'status', width:160, render: v => <Tag status={v} /> },
+              { title:'Status', dataIndex:'status', key:'status', width:160, render: v => {
+                const tip = STATUS_TIPS[v]
+                return tip
+                  ? <Tooltip text={tip} delay={1000} bare><span style={{ cursor:'help' }}><Tag status={v} /></span></Tooltip>
+                  : <Tag status={v} />
+              }},
               { title:'', key:'acao', width:56, render: (_,r) => (
                 <button onClick={()=>setDrawerLiq(r)} title="Ver detalhes" style={{ border:'none', background:'none', color:'rgba(0,0,0,0.35)', cursor:'pointer', padding:4, display:'flex', alignItems:'center', borderRadius:4 }} onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.color='#1890FF';(e.currentTarget as HTMLElement).style.background='#f5f5f5'}} onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.color='rgba(0,0,0,0.35)';(e.currentTarget as HTMLElement).style.background='none'}}>
                   <Icon name="eye" size={14} color="currentColor" />
@@ -899,7 +920,12 @@ export default function FinancialPage() {
                 ? <span style={{ color:'#722ED1', fontWeight:500 }}>{fmt(v)}</span>
                 : <span style={{ color:'rgba(0,0,0,0.2)' }}>—</span> },
               { title:'Líquido', dataIndex:'liquido', key:'liquido', render: v => <span style={{ fontWeight:600, color:'#52c41a' }}>{fmt(v)}</span> },
-              { title:'Status', dataIndex:'status', key:'status', width:140, render: v => <Tag status={v} /> },
+              { title:'Status', dataIndex:'status', key:'status', width:140, render: v => {
+                const tip = STATUS_TIPS[v]
+                return tip
+                  ? <Tooltip text={tip} delay={1000} bare><span style={{ cursor:'help' }}><Tag status={v} /></span></Tooltip>
+                  : <Tag status={v} />
+              }},
             ]
 
             const ViewToggle = (
@@ -1055,7 +1081,12 @@ export default function FinancialPage() {
             : <span style={{ color:'rgba(0,0,0,0.2)' }}>—</span> },
           { title:'Valor repassado', dataIndex:'rep', key:'rep', render: v => <span style={{ fontWeight:600, color:'#52c41a' }}>{fmt(v)}</span> },
           { title:'Conta destino', dataIndex:'conta', key:'conta', render: v => <span style={{ fontFamily:'Roboto Mono', fontSize:11, color:'rgba(0,0,0,0.45)' }}>{v}</span> },
-          { title:'Status', dataIndex:'status', key:'status', width:100, render: v => <Tag status={v} /> },
+          { title:'Status', dataIndex:'status', key:'status', width:100, render: v => {
+            const tip = STATUS_TIPS[v]
+            return tip
+              ? <Tooltip text={tip} delay={1000} bare><span style={{ cursor:'help' }}><Tag status={v} /></span></Tooltip>
+              : <Tag status={v} />
+          }},
         ]
 
         type TxFlat = RepTx & { repId: string; name: string; cnpj: string; data: string }
@@ -1252,7 +1283,12 @@ export default function FinancialPage() {
               { title:'Juros recebidos', dataIndex:'juros', key:'juros', width:130, render: v => <span style={{ fontWeight:600, color:'#52c41a', whiteSpace:'nowrap' }}>{fmt(v)}</span> },
               { title:'Vencimento original', dataIndex:'venc', key:'venc', width:140, render: v => <span style={{ color:'rgba(0,0,0,0.65)' }}>{v}</span> },
               { title:'A recuperar', dataIndex:'recuperar', key:'recuperar', width:120, render: v => <span style={{ fontWeight:600, color:v>0?'#fa8c16':'rgba(0,0,0,0.25)', whiteSpace:'nowrap' }}>{v>0?fmt(v):'—'}</span> },
-              { title:'Status', dataIndex:'status', key:'status', width:110, render: v => <Tag status={v} /> },
+              { title:'Status', dataIndex:'status', key:'status', width:110, render: v => {
+                const tip = STATUS_TIPS[v]
+                return tip
+                  ? <Tooltip text={tip} delay={1000} bare><span style={{ cursor:'help' }}><Tag status={v} /></span></Tooltip>
+                  : <Tag status={v} />
+              }},
             ]
             return (
               <>

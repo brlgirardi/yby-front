@@ -238,7 +238,7 @@ export default function AgendaPage() {
       <div style={{ padding:'16px 24px 0', display:'flex', gap:16 }}>
         {currentKpis.map((k,i) => {
           const card = (
-            <div style={{ width:'100%', background:k.bg, border:`1px solid ${k.border}`, borderRadius:2, padding:'14px 18px', boxSizing:'border-box', cursor: k.tip ? 'help' : 'default' }}>
+            <div style={{ width:'100%', background:k.bg, border:`1px solid ${k.border}`, borderRadius:2, padding:'14px 18px', boxSizing:'border-box', cursor: k.tip ? 'help' : 'default', display:'flex', flexDirection:'column', justifyContent:'space-between', minHeight:120 }}>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6 }}>
                 <span style={{ fontSize:12, color:'rgba(0,0,0,0.65)', fontWeight:500 }}>{k.label}</span>
                 {k.badge && <span style={{ fontSize:10, background:'#fff7e6', color:'#fa8c16', border:'1px solid #ffd591', borderRadius:2, padding:'0 5px', fontWeight:600 }}>{k.badge}</span>}
@@ -250,9 +250,6 @@ export default function AgendaPage() {
                   <span style={{
                     fontSize:10, fontWeight:600,
                     color: k.delta.positive ? '#52c41a' : '#ff4d4f',
-                    background: k.delta.positive ? '#f6ffed' : '#fff1f0',
-                    border: `1px solid ${k.delta.positive ? '#b7eb8f' : '#ffa39e'}`,
-                    borderRadius:2, padding:'1px 5px',
                   }}>
                     {k.delta.positive ? '↑' : '↓'} {k.delta.value}
                   </span>

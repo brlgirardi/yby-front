@@ -672,6 +672,8 @@ export default function FinancialPage() {
                 transition:'all 0.15s',
                 position:'relative',
                 boxSizing:'border-box',
+                display:'flex', flexDirection:'column', justifyContent:'space-between',
+                minHeight:120,
               }}
               onMouseEnter={e => { if (clickable && !isActive) (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)' }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = 'none' }}
@@ -691,9 +693,6 @@ export default function FinancialPage() {
                   <span style={{
                     fontSize:10, fontWeight:600,
                     color: k.delta.positive ? '#52c41a' : '#ff4d4f',
-                    background: k.delta.positive ? '#f6ffed' : '#fff1f0',
-                    border: `1px solid ${k.delta.positive ? '#b7eb8f' : '#ffa39e'}`,
-                    borderRadius:2, padding:'1px 5px',
                   }}>
                     {k.delta.positive ? '↑' : '↓'} {k.delta.value}
                   </span>

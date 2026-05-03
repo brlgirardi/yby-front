@@ -6,6 +6,7 @@ import Icon from '@/components/shared/Icon'
 import { useNavStore } from '@/store/nav.store'
 import DataTable, { type ColumnType, PERIOD_OPTIONS } from '@/components/ui/DataTable'
 import Tag from '@/components/shared/Tag'
+import BrandLogo from '@/components/shared/BrandLogo'
 
 const fmt = (v: number) => 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
@@ -592,8 +593,8 @@ export default function FinancialPage() {
             }
             const evCols: ColumnType<LiqEvento>[] = [
               { title:'Data', dataIndex:'data', key:'data', width:110, render: v => <span style={{ color:'rgba(0,0,0,0.65)', whiteSpace:'nowrap' }}>{v}</span> },
-              { title:'Adquirente', dataIndex:'adq', key:'adq', width:80, render: v => <span style={{ fontWeight:600 }}>{v}</span> },
-              { title:'Bandeira', dataIndex:'bandeira', key:'bandeira', width:80, render: v => <span style={{ fontSize:11, color:'rgba(0,0,0,0.65)' }}>{v}</span> },
+              { title:'Adquirente', dataIndex:'adq', key:'adq', width:120, render: v => <BrandLogo brand={v} size={20} showLabel /> },
+              { title:'Bandeira', dataIndex:'bandeira', key:'bandeira', width:110, render: v => <BrandLogo brand={v} size={20} showLabel /> },
               { title:'Crédito bruto', dataIndex:'bruto', key:'bruto', render: v => <span style={{ color:'rgba(0,0,0,0.85)' }}>{fmt(v)}</span> },
               { title:'MDR pago', dataIndex:'desc', key:'desc', render: v => <span style={{ color:'#ff4d4f' }}>{fmt(v)}</span> },
               { title:'Antecipação debitada', dataIndex:'antecip', key:'antecip', render: v => <span style={{ color:v>0?'#fa8c16':'rgba(0,0,0,0.2)' }}>{v>0?fmt(v):'—'}</span> },
@@ -706,8 +707,8 @@ export default function FinancialPage() {
         const cols: ColumnType<ArquivoRow>[] = [
           { title:'Arquivo', dataIndex:'arquivo', key:'arquivo', render: v => <span style={{ fontFamily:'Roboto Mono', fontSize:11, color:'rgba(0,0,0,0.65)' }}>{v}</span> },
           { title:'Enviado em', dataIndex:'enviado', key:'enviado', width:110, render: v => <span style={{ color:'rgba(0,0,0,0.55)' }}>{v}</span> },
-          { title:'Adquirente', dataIndex:'adq', key:'adq', width:90, render: v => <span style={{ fontWeight:600 }}>{v}</span> },
-          { title:'Registradora', dataIndex:'registradora', key:'registradora', width:100, render: v => <span style={{ background:'#f5f5f5', border:'1px solid #d9d9d9', borderRadius:2, padding:'1px 7px', fontSize:11, fontWeight:500 }}>{v}</span> },
+          { title:'Adquirente', dataIndex:'adq', key:'adq', width:120, render: v => <BrandLogo brand={v} size={20} showLabel /> },
+          { title:'Registradora', dataIndex:'registradora', key:'registradora', width:120, render: v => <BrandLogo brand={v} size={20} showLabel /> },
           { title:'Transações', dataIndex:'transacoes', key:'transacoes', width:100, render: v => <span style={{ color:'rgba(0,0,0,0.65)' }}>{v}</span> },
           { title:'Status Núclea', dataIndex:'statusNuclea', key:'statusNuclea', width:150, render: v => {
             const s = STATUS_NUCLEA_STYLE[v] || STATUS_NUCLEA_STYLE['Em processamento']

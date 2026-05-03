@@ -882,7 +882,7 @@ export default function FinancialPage() {
               { title:'Status', dataIndex:'status', key:'status', width:160, render: v => {
                 const tip = STATUS_TIPS[v]
                 return tip
-                  ? <Tooltip text={tip} delay={1000} bare><span style={{ cursor:'help' }}><Tag status={v} /></span></Tooltip>
+                  ? <Tooltip text={tip} delay={1000} bare><Tag status={v} /></Tooltip>
                   : <Tag status={v} />
               }},
               { title:'', key:'acao', width:56, render: (_,r) => (
@@ -915,7 +915,7 @@ export default function FinancialPage() {
               { title:'Status', dataIndex:'status', key:'status', width:140, render: v => {
                 const tip = STATUS_TIPS[v]
                 return tip
-                  ? <Tooltip text={tip} delay={1000} bare><span style={{ cursor:'help' }}><Tag status={v} /></span></Tooltip>
+                  ? <Tooltip text={tip} delay={1000} bare><Tag status={v} /></Tooltip>
                   : <Tag status={v} />
               }},
             ]
@@ -1076,7 +1076,7 @@ export default function FinancialPage() {
           { title:'Status', dataIndex:'status', key:'status', width:100, render: v => {
             const tip = STATUS_TIPS[v]
             return tip
-              ? <Tooltip text={tip} delay={1000} bare><span style={{ cursor:'help' }}><Tag status={v} /></span></Tooltip>
+              ? <Tooltip text={tip} delay={1000} bare><Tag status={v} /></Tooltip>
               : <Tag status={v} />
           }},
         ]
@@ -1207,8 +1207,9 @@ export default function FinancialPage() {
           { title:'Transações', dataIndex:'transacoes', key:'transacoes', width:100, render: v => <span style={{ color:'rgba(0,0,0,0.65)' }}>{v}</span> },
           { title:'Status', dataIndex:'statusNuclea', key:'statusNuclea', width:160, render: v => {
             const tip = STATUS_NUCLEA_TIPS[v] || ''
-            const tag = <span style={{ cursor: tip ? 'help' : 'default' }}><Tag status={v} /></span>
-            return tip ? <Tooltip text={tip} delay={1000} bare>{tag}</Tooltip> : tag
+            return tip
+              ? <Tooltip text={tip} delay={1000} bare><Tag status={v} /></Tooltip>
+              : <Tag status={v} />
           }},
           { title:'Erro', dataIndex:'erro', key:'erro', render: v => v
             ? <span style={{ fontSize:11, color:'#ff4d4f' }}>{v}</span>
@@ -1277,7 +1278,7 @@ export default function FinancialPage() {
               { title:'Status', dataIndex:'status', key:'status', width:110, render: v => {
                 const tip = STATUS_TIPS[v]
                 return tip
-                  ? <Tooltip text={tip} delay={1000} bare><span style={{ cursor:'help' }}><Tag status={v} /></span></Tooltip>
+                  ? <Tooltip text={tip} delay={1000} bare><Tag status={v} /></Tooltip>
                   : <Tag status={v} />
               }},
             ]

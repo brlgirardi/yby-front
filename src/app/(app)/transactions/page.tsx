@@ -90,7 +90,6 @@ function ChannelChip({ channel, posId }: { channel: Channel; posId?: string }) {
         background:'#F2F2F7',
         borderRadius:2, padding:'2px 7px', fontSize:12,
         color:'rgba(0,0,0,0.85)', whiteSpace:'nowrap',
-        cursor:'default',
       }}>
         <Icon name={meta.icon} size={14} color="rgba(0,0,0,0.65)" />
         <span>{truncated}</span>

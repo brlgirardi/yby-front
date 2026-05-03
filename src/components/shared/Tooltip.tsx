@@ -80,7 +80,14 @@ export default function Tooltip({ text, children, delay = 0, bare = false, style
     <>
       <span
         ref={wrapperRef}
-        style={{ position:'relative', display:'inline-flex', alignItems:'center', gap: bare ? 0 : 4, ...style }}
+        style={{
+          position:'relative', display:'inline-flex', alignItems:'center',
+          gap: bare ? 0 : 4,
+          // Cursor de "ajuda" é convenção do design system — sempre que houver tooltip,
+          // o usuário deve perceber que pode passar o mouse para obter info.
+          cursor: 'help',
+          ...style,
+        }}
         onMouseEnter={onEnter}
         onMouseLeave={onLeave}
       >

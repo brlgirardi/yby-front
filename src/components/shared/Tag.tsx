@@ -1,70 +1,91 @@
 'use client'
 
 export type TagVariant =
-  | 'Aprovado'
-  | 'Aprovada'
+  | 'Aprovado'   | 'Aprovada'
   | 'Pago'
-  | 'Liquidado'
-  | 'Quitado'
-  | 'Recuperado'
-  | 'Pendente'
-  | 'Em aberto'
-  | 'A recuperar'
-  | 'Previsto'
-  | 'Recusado'
-  | 'Recusada'
-  | 'Cancelado'
-  | 'Cancelada'
-  | 'Estorno'
-  | 'Estornada'
-  | 'Em análise'
+  | 'Liquidado'  | 'Quitado' | 'Recuperado'
+  | 'Repassado'  | 'Publicado'
+  | 'Pendente'   | 'Em processamento' | 'Em análise'
+  | 'Em aberto'  | 'A recuperar' | 'Previsto' | 'Antecipado' | 'Agendado'
+  | 'Recusado'   | 'Recusada'
+  | 'Cancelado'  | 'Cancelada' | 'Inativo'
+  | 'Estorno'    | 'Estornada' | 'Suspenso' | 'Parcialmente liquidado' | 'Reprovado'
+  | 'Chargeback' | 'Crédito bloqueado' | 'Bloqueado' | 'Erro'
   | 'Ativo'
-  | 'Suspenso'
-  | 'Inativo'
-  | 'Antecipado'
-  | 'Chargeback'
-  | 'Erro'
   | 'Info'
 
-type IconType = 'check' | 'info' | 'x' | 'minus' | 'alert'
+/**
+ * Sistema de status semântico — 5 níveis (Rauch + Pixel)
+ *
+ *   success    — operação concluída, nada a fazer        — VERDE
+ *   processing — sistema executando, usuário aguarda     — AZUL
+ *   future     — evento previsto/agendado, sem ação      — CINZA-ROXO
+ *   warning    — REQUER atenção/decisão do usuário        — AMARELO
+ *   error      — falha ou bloqueio definitivo            — VERMELHO
+ *   neutral    — operação encerrada sem efeito           — CINZA
+ */
+type SemanticTone = 'success' | 'processing' | 'future' | 'warning' | 'error' | 'neutral'
 
-const STATUS_MAP: Record<string, { bg: string; color: string; border: string; icon: IconType }> = {
-  // Sucesso — Polar Green
-  Aprovado:     { bg: '#F6FFED', color: '#237804', border: '#D9F7BE', icon: 'check' },
-  Aprovada:     { bg: '#F6FFED', color: '#237804', border: '#D9F7BE', icon: 'check' },
-  Pago:         { bg: '#F6FFED', color: '#237804', border: '#D9F7BE', icon: 'check' },
-  Ativo:        { bg: '#F6FFED', color: '#237804', border: '#D9F7BE', icon: 'check' },
-  Liquidado:    { bg: '#F6FFED', color: '#237804', border: '#D9F7BE', icon: 'check' },
-  Quitado:      { bg: '#F6FFED', color: '#237804', border: '#D9F7BE', icon: 'check' },
-  Recuperado:   { bg: '#F6FFED', color: '#237804', border: '#D9F7BE', icon: 'check' },
-
-  // Warning — Calendula Gold
-  Pendente:       { bg: '#FFFBE6', color: '#874D00', border: '#FFE58F', icon: 'info'  },
-  'Em aberto':    { bg: '#FFFBE6', color: '#874D00', border: '#FFE58F', icon: 'info'  },
-  'A recuperar':  { bg: '#FFFBE6', color: '#874D00', border: '#FFE58F', icon: 'info'  },
-  Suspenso:       { bg: '#FFFBE6', color: '#874D00', border: '#FFE58F', icon: 'alert' },
-  Antecipado:     { bg: '#FFF7E6', color: '#874D00', border: '#FFD591', icon: 'info'  },
-
-  // Erro — Dust Red
-  Recusado:     { bg: '#FFF1F0', color: '#820014', border: '#FFCCC7', icon: 'x'     },
-  Recusada:     { bg: '#FFF1F0', color: '#820014', border: '#FFCCC7', icon: 'x'     },
-  Chargeback:   { bg: '#FFF1F0', color: '#820014', border: '#FFCCC7', icon: 'x'     },
-  Erro:         { bg: '#FFF1F0', color: '#820014', border: '#FFCCC7', icon: 'x'     },
-
-  // Neutro
-  Cancelado:    { bg: '#F5F5F5', color: 'rgba(0,0,0,0.45)', border: '#D9D9D9', icon: 'minus' },
-  Cancelada:    { bg: '#F5F5F5', color: 'rgba(0,0,0,0.45)', border: '#D9D9D9', icon: 'minus' },
-  Estorno:      { bg: '#FFF7E6', color: '#874D00', border: '#FFD591', icon: 'alert' },
-  Estornada:    { bg: '#FFF7E6', color: '#874D00', border: '#FFD591', icon: 'alert' },
-  Inativo:      { bg: '#F5F5F5', color: 'rgba(0,0,0,0.45)', border: '#D9D9D9', icon: 'minus' },
-
-  // Info — DayBreak Blue
-  'Em análise': { bg: '#E6F7FF', color: '#003A8C', border: '#91D5FF', icon: 'info'  },
-  Info:         { bg: '#E6F7FF', color: '#003A8C', border: '#91D5FF', icon: 'info'  },
-  Previsto:     { bg: '#E6F7FF', color: '#003A8C', border: '#91D5FF', icon: 'info'  },
+const TONE_PALETTE: Record<SemanticTone, { bg: string; color: string; border: string }> = {
+  success:    { bg: '#F6FFED', color: '#237804',         border: '#B7EB8F' }, // Polar Green
+  processing: { bg: '#E6F7FF', color: '#003A8C',         border: '#91D5FF' }, // DayBreak Blue
+  future:     { bg: '#F9F0FF', color: '#531DAB',         border: '#D3ADF7' }, // Geek Purple — temporal
+  warning:    { bg: '#FFFBE6', color: '#874D00',         border: '#FFE58F' }, // Calendula Gold
+  error:      { bg: '#FFF1F0', color: '#820014',         border: '#FFCCC7' }, // Dust Red
+  neutral:    { bg: '#F5F5F5', color: 'rgba(0,0,0,0.55)', border: '#D9D9D9' }, // Cinza
 }
 
-// Circle-style icons — stroke="currentColor" herda a cor do texto do span pai
+type IconType = 'check' | 'loader' | 'clock' | 'alert' | 'x' | 'minus' | 'info'
+
+const STATUS_MAP: Record<string, { tone: SemanticTone; icon: IconType }> = {
+  // ─── SUCCESS — operação concluída ───
+  Aprovado:     { tone: 'success', icon: 'check' },
+  Aprovada:     { tone: 'success', icon: 'check' },
+  Pago:         { tone: 'success', icon: 'check' },
+  Liquidado:    { tone: 'success', icon: 'check' },
+  Quitado:      { tone: 'success', icon: 'check' },
+  Recuperado:   { tone: 'success', icon: 'check' },
+  Repassado:    { tone: 'success', icon: 'check' },
+  Publicado:    { tone: 'success', icon: 'check' },
+  Ativo:        { tone: 'success', icon: 'check' },
+
+  // ─── PROCESSING — sistema executando, usuário aguarda ───
+  Pendente:           { tone: 'processing', icon: 'loader' },
+  'Em processamento': { tone: 'processing', icon: 'loader' },
+  'Em análise':       { tone: 'processing', icon: 'loader' },
+
+  // ─── FUTURE — evento agendado/previsto, temporal ───
+  Previsto:     { tone: 'future', icon: 'clock' },
+  Agendado:     { tone: 'future', icon: 'clock' },
+  'A recuperar':{ tone: 'future', icon: 'clock' },
+  'Em aberto':  { tone: 'future', icon: 'clock' },
+  Antecipado:   { tone: 'future', icon: 'clock' },
+
+  // ─── WARNING — exige atenção/ação do usuário ───
+  'Parcialmente liquidado': { tone: 'warning', icon: 'alert' },
+  Reprovado:                { tone: 'warning', icon: 'alert' },
+  Suspenso:                 { tone: 'warning', icon: 'alert' },
+  Estorno:                  { tone: 'warning', icon: 'alert' },
+  Estornada:                { tone: 'warning', icon: 'alert' },
+
+  // ─── ERROR — falha/bloqueio definitivo ───
+  Recusado:             { tone: 'error', icon: 'x' },
+  Recusada:             { tone: 'error', icon: 'x' },
+  Chargeback:           { tone: 'error', icon: 'x' },
+  'Crédito bloqueado':  { tone: 'error', icon: 'x' },
+  Bloqueado:            { tone: 'error', icon: 'x' },
+  Erro:                 { tone: 'error', icon: 'x' },
+
+  // ─── NEUTRAL — encerrado sem efeito ───
+  Cancelado:    { tone: 'neutral', icon: 'minus' },
+  Cancelada:    { tone: 'neutral', icon: 'minus' },
+  Inativo:      { tone: 'neutral', icon: 'minus' },
+
+  // ─── INFO genérico (fallback) ───
+  Info:         { tone: 'processing', icon: 'info' },
+}
+
+// Ícones — todos no mesmo viewBox 24×24, stroke=currentColor, mesma weight 2.5
 const ICONS: Record<IconType, React.ReactNode> = {
   check: (
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
@@ -72,11 +93,30 @@ const ICONS: Record<IconType, React.ReactNode> = {
       <polyline points="9 12 11 14 15 10" />
     </svg>
   ),
-  info: (
+  loader: (
+    // círculo aberto = "em movimento" — sinal universal de processing
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+      <line x1="12" y1="2" x2="12" y2="6" />
+      <line x1="12" y1="18" x2="12" y2="22" />
+      <line x1="4.93" y1="4.93" x2="7.76" y2="7.76" />
+      <line x1="16.24" y1="16.24" x2="19.07" y2="19.07" />
+      <line x1="2" y1="12" x2="6" y2="12" />
+      <line x1="18" y1="12" x2="22" y2="12" />
+      <line x1="4.93" y1="19.07" x2="7.76" y2="16.24" />
+      <line x1="16.24" y1="7.76" x2="19.07" y2="4.93" />
+    </svg>
+  ),
+  clock: (
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
       <circle cx="12" cy="12" r="10" />
-      <line x1="12" y1="8" x2="12" y2="12" />
-      <line x1="12" y1="16" x2="12.01" y2="16" />
+      <polyline points="12 6 12 12 16 14" />
+    </svg>
+  ),
+  alert: (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+      <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+      <line x1="12" y1="9" x2="12" y2="13" />
+      <line x1="12" y1="17" x2="12.01" y2="17" />
     </svg>
   ),
   x: (
@@ -92,11 +132,11 @@ const ICONS: Record<IconType, React.ReactNode> = {
       <line x1="8" y1="12" x2="16" y2="12" />
     </svg>
   ),
-  alert: (
+  info: (
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-      <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-      <line x1="12" y1="9" x2="12" y2="13" />
-      <line x1="12" y1="17" x2="12.01" y2="17" />
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="8" x2="12" y2="12" />
+      <line x1="12" y1="16" x2="12.01" y2="16" />
     </svg>
   ),
 }
@@ -113,15 +153,16 @@ interface TagProps {
 }
 
 export default function Tag({ status, label, showIcon = true }: TagProps) {
-  const s = STATUS_MAP[status] ?? STATUS_MAP['Pendente']
-  const icon = ICONS[s.icon]
+  const def = STATUS_MAP[status] ?? STATUS_MAP['Info']
+  const palette = TONE_PALETTE[def.tone]
+  const icon = ICONS[def.icon]
 
   return (
     <span
       style={{
-        background: s.bg,
-        color: s.color,
-        border: `1px solid ${s.border}`,
+        background: palette.bg,
+        color: palette.color,
+        border: `1px solid ${palette.border}`,
         borderRadius: 2,
         padding: showIcon ? '1px 7px 1px 5px' : '0 7px',
         fontSize: 12,

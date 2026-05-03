@@ -879,13 +879,12 @@ export default function FinancialPage() {
                   </Tooltip>
                 : <span style={{ color:'rgba(0,0,0,0.2)' }}>—</span> },
               { title:'Líquido a receber', dataIndex:'cred', key:'cred', render: v => <span style={{ fontWeight:600, color:'#52c41a' }}>{fmt(v)}</span> },
-              { title:'Núclea', dataIndex:'statusNuclea', key:'statusNuclea', width:130, render: v => {
-                const s = STATUS_NUCLEA_STYLE[v] || STATUS_NUCLEA_STYLE['Em processamento']
+              { title:'Núclea', dataIndex:'statusNuclea', key:'statusNuclea', width:140, render: v => {
                 const tip = STATUS_NUCLEA_TIPS[v] || ''
-                const badge = <span style={{ fontSize:11, background:s.bg, color:s.color, border:`1px solid ${s.border}`, borderRadius:2, padding:'1px 6px', fontWeight:500, whiteSpace:'nowrap', cursor: tip ? 'help' : 'default' }}>{v}</span>
+                const tag = <span style={{ cursor: tip ? 'help' : 'default' }}><Tag status={v} /></span>
                 return tip
-                  ? <Tooltip text={tip} delay={1000} bare>{badge}</Tooltip>
-                  : badge
+                  ? <Tooltip text={tip} delay={1000} bare>{tag}</Tooltip>
+                  : tag
               }},
               { title:'Status', dataIndex:'status', key:'status', width:160, render: v => {
                 const tip = STATUS_TIPS[v]
@@ -1213,11 +1212,10 @@ export default function FinancialPage() {
           { title:'Adquirente', dataIndex:'adq', key:'adq', width:120, render: v => <BrandLogo brand={v} size={20} showLabel /> },
           { title:'Registradora', dataIndex:'registradora', key:'registradora', width:120, render: v => <BrandLogo brand={v} size={20} showLabel /> },
           { title:'Transações', dataIndex:'transacoes', key:'transacoes', width:100, render: v => <span style={{ color:'rgba(0,0,0,0.65)' }}>{v}</span> },
-          { title:'Status Núclea', dataIndex:'statusNuclea', key:'statusNuclea', width:150, render: v => {
-            const s = STATUS_NUCLEA_STYLE[v] || STATUS_NUCLEA_STYLE['Em processamento']
+          { title:'Status Núclea', dataIndex:'statusNuclea', key:'statusNuclea', width:160, render: v => {
             const tip = STATUS_NUCLEA_TIPS[v] || ''
-            const badge = <span style={{ fontSize:11, background:s.bg, color:s.color, border:`1px solid ${s.border}`, borderRadius:2, padding:'2px 8px', fontWeight:600, cursor: tip ? 'help' : 'default' }}>{v}</span>
-            return tip ? <Tooltip text={tip} delay={1000} bare>{badge}</Tooltip> : badge
+            const tag = <span style={{ cursor: tip ? 'help' : 'default' }}><Tag status={v} /></span>
+            return tip ? <Tooltip text={tip} delay={1000} bare>{tag}</Tooltip> : tag
           }},
           { title:'Erro', dataIndex:'erro', key:'erro', render: v => v
             ? <span style={{ fontSize:11, color:'#ff4d4f' }}>{v}</span>

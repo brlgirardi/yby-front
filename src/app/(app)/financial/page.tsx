@@ -879,13 +879,6 @@ export default function FinancialPage() {
                   </Tooltip>
                 : <span style={{ color:'rgba(0,0,0,0.2)' }}>—</span> },
               { title:'Líquido a receber', dataIndex:'cred', key:'cred', render: v => <span style={{ fontWeight:600, color:'#52c41a' }}>{fmt(v)}</span> },
-              { title:'Núclea', dataIndex:'statusNuclea', key:'statusNuclea', width:140, render: v => {
-                const tip = STATUS_NUCLEA_TIPS[v] || ''
-                const tag = <span style={{ cursor: tip ? 'help' : 'default' }}><Tag status={v} /></span>
-                return tip
-                  ? <Tooltip text={tip} delay={1000} bare>{tag}</Tooltip>
-                  : tag
-              }},
               { title:'Status', dataIndex:'status', key:'status', width:160, render: v => {
                 const tip = STATUS_TIPS[v]
                 return tip
@@ -1212,7 +1205,7 @@ export default function FinancialPage() {
           { title:'Adquirente', dataIndex:'adq', key:'adq', width:120, render: v => <BrandLogo brand={v} size={20} showLabel /> },
           { title:'Registradora', dataIndex:'registradora', key:'registradora', width:120, render: v => <BrandLogo brand={v} size={20} showLabel /> },
           { title:'Transações', dataIndex:'transacoes', key:'transacoes', width:100, render: v => <span style={{ color:'rgba(0,0,0,0.65)' }}>{v}</span> },
-          { title:'Status Núclea', dataIndex:'statusNuclea', key:'statusNuclea', width:160, render: v => {
+          { title:'Status', dataIndex:'statusNuclea', key:'statusNuclea', width:160, render: v => {
             const tip = STATUS_NUCLEA_TIPS[v] || ''
             const tag = <span style={{ cursor: tip ? 'help' : 'default' }}><Tag status={v} /></span>
             return tip ? <Tooltip text={tip} delay={1000} bare>{tag}</Tooltip> : tag

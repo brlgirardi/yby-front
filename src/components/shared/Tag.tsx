@@ -63,7 +63,6 @@ const STATUS_MAP: Record<string, { tone: SemanticTone; icon: IconType }> = {
 
   // ─── WARNING — exige atenção/ação do usuário ───
   'Parcialmente liquidado': { tone: 'warning', icon: 'alert' },
-  Reprovado:                { tone: 'warning', icon: 'alert' },
   Suspenso:                 { tone: 'warning', icon: 'alert' },
   Estorno:                  { tone: 'warning', icon: 'alert' },
   Estornada:                { tone: 'warning', icon: 'alert' },
@@ -71,6 +70,7 @@ const STATUS_MAP: Record<string, { tone: SemanticTone; icon: IconType }> = {
   // ─── ERROR — falha/bloqueio definitivo ───
   Recusado:             { tone: 'error', icon: 'x' },
   Recusada:             { tone: 'error', icon: 'x' },
+  Reprovado:            { tone: 'error', icon: 'x' },
   Chargeback:           { tone: 'error', icon: 'x' },
   'Crédito bloqueado':  { tone: 'error', icon: 'x' },
   Bloqueado:            { tone: 'error', icon: 'x' },
@@ -94,16 +94,11 @@ const ICONS: Record<IconType, React.ReactNode> = {
     </svg>
   ),
   loader: (
-    // círculo aberto = "em movimento" — sinal universal de processing
+    // Spinner animado — círculo com gap rotacionando (sinal claro de "está rolando")
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-      <line x1="12" y1="2" x2="12" y2="6" />
-      <line x1="12" y1="18" x2="12" y2="22" />
-      <line x1="4.93" y1="4.93" x2="7.76" y2="7.76" />
-      <line x1="16.24" y1="16.24" x2="19.07" y2="19.07" />
-      <line x1="2" y1="12" x2="6" y2="12" />
-      <line x1="18" y1="12" x2="22" y2="12" />
-      <line x1="4.93" y1="19.07" x2="7.76" y2="16.24" />
-      <line x1="16.24" y1="7.76" x2="19.07" y2="4.93" />
+      <path d="M21 12a9 9 0 1 1-6.219-8.56">
+        <animateTransform attributeName="transform" attributeType="XML" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite" />
+      </path>
     </svg>
   ),
   clock: (

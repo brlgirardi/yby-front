@@ -4,6 +4,8 @@ import { useState } from 'react'
 import Icon from '@/components/shared/Icon'
 import Badge from '@/components/shared/Badge'
 import { useNavStore, type Screen, type AgendaTab, type FinancialTab } from '@/store/nav.store'
+import { useAuthStore } from '@/store/auth.store'
+import { logout as apiLogout } from '@/services/authService'
 import { useRouter } from 'next/navigation'
 
 const NAV = [
@@ -20,13 +22,19 @@ const NAV = [
       { label: 'DRE Operacional',   screen: 'financial', tab: 'dre'          },
     ] },
   { key: 'reconciliation', icon: 'reconcile', label: 'Conciliação', screen: 'reconciliation' },
-  { key: 'pricing', icon: 'creditCard', label: 'Custos & Pricing', screen: 'pricing' },
+  { key: 'pricing', icon: 'creditCard', label: 'Pricing', screen: 'pricing',
+    sub: [
+      { label: 'Custos',                screen: 'pricing/costs',       tab: 'costs' },
+      { label: 'Preços',                screen: 'pricing/prices',      tab: 'prices' },
+      { label: 'Matriz de Intercâmbio', screen: 'pricing/interchange', tab: 'interchange' },
+    ] },
   { key: 'users', icon: 'userPlus', label: 'Usuários', screen: 'users' },
   { key: 'settings', icon: 'settings', label: 'Configurações', screen: 'settings' },
 ]
 
 export default function Sidebar() {
   const { sidebarOpen, activeNav, activeSubTab, setScreen, setActiveNav, setActiveSubTab, setAgendaTab, setFinancialTab } = useNavStore()
+  const clearAuth = useAuthStore(s => s.clearAuth)
   const [expanded, setExpanded] = useState<Record<string, boolean>>(() => ({ [activeNav]: true }))
   const [hoveredKey, setHoveredKey] = useState<string | null>(null)
   const [hoveredSubKey, setHoveredSubKey] = useState<string | null>(null)
@@ -36,12 +44,15 @@ export default function Sidebar() {
   const toggle = (k: string) => setExpanded(p => ({ ...p, [k]: !p[k] }))
 
   const onNavigate = (screen: string, navKey: string, tab?: string) => {
-    setScreen(screen as Screen)
+    // O Screen só rastreia o "topo" (pricing, financial). Sub-rotas como
+    // pricing/costs viajam pela URL — não armazenamos no store.
+    const topScreen = screen.split('/')[0]
+    setScreen(topScreen as Screen)
     setActiveNav(navKey)
     setActiveSubTab(tab ?? '')
     if (tab) {
-      if (screen === 'agenda') setAgendaTab(tab as AgendaTab)
-      if (screen === 'financial') setFinancialTab(tab as FinancialTab)
+      if (topScreen === 'agenda') setAgendaTab(tab as AgendaTab)
+      if (topScreen === 'financial') setFinancialTab(tab as FinancialTab)
     }
     router.push(`/${screen}`)
   }
@@ -114,6 +125,11 @@ export default function Sidebar() {
       </div>
       <div style={{ padding:'12px 0', borderTop:'1px solid #f0f0f0' }}>
         <div
+          onClick={async () => {
+            try { await apiLogout() } catch { /* ignore */ }
+            clearAuth()
+            router.replace('/login')
+          }}
           style={{ display:'flex', alignItems:'center', gap:10, padding:sidebarOpen?'0 16px':'0 14px', height:40, cursor:'pointer', color:hoveredLogout?'#1890FF':'rgba(0,0,0,0.45)', background:hoveredLogout?'rgba(24,144,255,0.08)':'transparent', borderRight:hoveredLogout?'3px solid #1890FF':'3px solid transparent', whiteSpace:'nowrap', overflow:'hidden' }}
           onMouseEnter={() => setHoveredLogout(true)}
           onMouseLeave={() => setHoveredLogout(false)}>

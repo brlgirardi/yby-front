@@ -93,6 +93,13 @@ Para manter consistência ao trabalhar entre o portal Tupi (yby-ui) e este front
 | **Status: reconciled / partially_reconciled / not_reconciled / mismatch** | Estados de conciliação (UI: Reconciliado / Parc. Conciliado / Não Conciliado / Divergência) |
 | **Card brand × type × tier × product × entry × sector** | Combinação que define uma taxa de intercâmbio |
 | **Rate / Fixed fee** | Taxa percentual + tarifa fixa por transação |
+| **Cost Blueprint** | Tabela de custos cobrados pelos adquirentes do sub-adquirente |
+| **Price Blueprint** | Tabela de preços cobrados dos ECs (= custo + margem) |
+| **Cost Item / Price Item** | Linha individual da tabela (bandeira × produto × parcelamento) |
+| **Installment** | Range de parcelamento (1x, 2-6x, 7-12x, 13+) |
+| **PricingModel** | `mdr` (taxa única) ou `interchange_plus` (custo + spread) |
+| **Channel** | `cp` (Cartão Presente — POS/TEF) ou `cnp` (Não Presente — Link/Gateway) |
+| **Margem (pp)** | Pontos percentuais somados ao custo. Ex: custo 1,45% + 1,00pp = preço 2,45% |
 
 **Convenção de código:** mantemos `snake_case` nos types/services (espelham o backend Tupi) e usamos `camelCase` apenas nos view-models (`BrandData`) e props de componente.
 

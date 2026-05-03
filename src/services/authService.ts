@@ -53,3 +53,68 @@ export async function fetchCurrentUser(): Promise<User> {
   }
   return request<User>('/auth/me')
 }
+
+/* ─── Recuperação de senha (3 etapas, vocabulário Tupi) ─────────────────── */
+
+export async function sendPasswordRecoveryCode(email: string): Promise<void> {
+  if (apiMode === 'mock') {
+    await mockDelay(400)
+    if (!email.includes('@')) {
+      throw new ApiError('E-mail inválido', 400, { message: 'Informe um e-mail válido.' })
+    }
+    return
+  }
+  await request('/auth/forgot-password/send-code', {
+    method: 'POST',
+    data: { email },
+    allowWriteInReadOnly: true,
+  })
+}
+
+export async function verifyPasswordRecoveryCode(email: string, code: string): Promise<void> {
+  if (apiMode === 'mock') {
+    await mockDelay(400)
+    if (code !== '123456') {
+      throw new ApiError('Código inválido', 400, { message: 'Código incorreto. Em modo demo, use 123456.' })
+    }
+    return
+  }
+  await request('/auth/forgot-password/verify-code', {
+    method: 'POST',
+    data: { email, code },
+    allowWriteInReadOnly: true,
+  })
+}
+
+export async function redefinePassword(email: string, code: string, newPassword: string): Promise<void> {
+  if (apiMode === 'mock') {
+    await mockDelay(500)
+    if (newPassword.length < 8) {
+      throw new ApiError('Senha fraca', 400, { message: 'A senha deve ter no mínimo 8 caracteres.' })
+    }
+    return
+  }
+  await request('/auth/forgot-password/redefine', {
+    method: 'POST',
+    data: { email, code, password: newPassword },
+    allowWriteInReadOnly: true,
+  })
+}
+
+export async function redefineTemporaryPassword(currentPassword: string, newPassword: string): Promise<void> {
+  if (apiMode === 'mock') {
+    await mockDelay(500)
+    if (newPassword.length < 8) {
+      throw new ApiError('Senha fraca', 400, { message: 'A senha deve ter no mínimo 8 caracteres.' })
+    }
+    if (currentPassword === newPassword) {
+      throw new ApiError('Senha repetida', 400, { message: 'A nova senha deve ser diferente da temporária.' })
+    }
+    return
+  }
+  await request('/auth/redefine-temporary-password', {
+    method: 'POST',
+    data: { current_password: currentPassword, new_password: newPassword },
+    allowWriteInReadOnly: true,
+  })
+}

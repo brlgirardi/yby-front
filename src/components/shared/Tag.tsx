@@ -13,6 +13,10 @@ export type TagVariant =
   | 'Chargeback' | 'Crédito bloqueado' | 'Bloqueado' | 'Erro'
   | 'Ativo'
   | 'Info'
+  // ─── Conciliação / Reconciliation (vocabulário Tupi) ───
+  | 'Reconciliado' | 'Conciliado'
+  | 'Parc. Conciliado' | 'Parcialmente conciliado'
+  | 'Divergência' | 'Não Conciliado' | 'Mismatch'
 
 /**
  * Sistema de status semântico — 5 níveis (Rauch + Pixel)
@@ -49,6 +53,10 @@ const STATUS_MAP: Record<string, { tone: SemanticTone; icon: IconType }> = {
   Publicado:    { tone: 'success', icon: 'check' },
   Ativo:        { tone: 'success', icon: 'check' },
 
+  // Conciliação Tupi: estado terminal positivo
+  Reconciliado: { tone: 'success', icon: 'check' },
+  Conciliado:   { tone: 'success', icon: 'check' },
+
   // ─── PROCESSING — sistema executando, usuário aguarda ───
   Pendente:           { tone: 'processing', icon: 'loader' },
   'Em processamento': { tone: 'processing', icon: 'loader' },
@@ -62,10 +70,12 @@ const STATUS_MAP: Record<string, { tone: SemanticTone; icon: IconType }> = {
   Antecipado:   { tone: 'future', icon: 'clock' },
 
   // ─── WARNING — exige atenção/ação do usuário ───
-  'Parcialmente liquidado': { tone: 'warning', icon: 'alert' },
-  Suspenso:                 { tone: 'warning', icon: 'alert' },
-  Estorno:                  { tone: 'warning', icon: 'alert' },
-  Estornada:                { tone: 'warning', icon: 'alert' },
+  'Parcialmente liquidado':  { tone: 'warning', icon: 'alert' },
+  'Parc. Conciliado':        { tone: 'warning', icon: 'alert' },
+  'Parcialmente conciliado': { tone: 'warning', icon: 'alert' },
+  Suspenso:                  { tone: 'warning', icon: 'alert' },
+  Estorno:                   { tone: 'warning', icon: 'alert' },
+  Estornada:                 { tone: 'warning', icon: 'alert' },
 
   // ─── ERROR — falha/bloqueio definitivo ───
   Recusado:             { tone: 'error', icon: 'x' },
@@ -75,6 +85,11 @@ const STATUS_MAP: Record<string, { tone: SemanticTone; icon: IconType }> = {
   'Crédito bloqueado':  { tone: 'error', icon: 'x' },
   Bloqueado:            { tone: 'error', icon: 'x' },
   Erro:                 { tone: 'error', icon: 'x' },
+
+  // Conciliação Tupi: divergência / não conciliado → ação requerida
+  'Divergência':        { tone: 'error', icon: 'alert' },
+  'Não Conciliado':     { tone: 'error', icon: 'alert' },
+  Mismatch:             { tone: 'error', icon: 'alert' },
 
   // ─── NEUTRAL — encerrado sem efeito ───
   Cancelado:    { tone: 'neutral', icon: 'minus' },

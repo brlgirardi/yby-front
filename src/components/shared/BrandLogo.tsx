@@ -190,11 +190,22 @@ export const BRAND_CATEGORIES = {
   produto: ['Tupi', 'Yby'],
 }
 
+/**
+ * Resolve case-insensitive — APIs Tupi enviam lowercase (ex: "visa", "mastercard")
+ * mas as keys do dicionário são capitalizadas. Sem isso, brand="visa" cai no
+ * fallback de texto.
+ */
+function resolveBrand(brand: string): React.ReactNode | undefined {
+  if (ALL_BRANDS[brand]) return ALL_BRANDS[brand]
+  const normalized = brand.charAt(0).toUpperCase() + brand.slice(1).toLowerCase()
+  return ALL_BRANDS[normalized]
+}
+
 export default function BrandLogo({ brand, size = 20, showLabel = false }: BrandLogoProps) {
   const h = size
   const w = Math.round(size * 1.6)
 
-  const svg = ALL_BRANDS[brand]
+  const svg = resolveBrand(brand)
   if (svg) {
     return (
       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>

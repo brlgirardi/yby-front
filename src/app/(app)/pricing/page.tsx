@@ -1,99 +1,104 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import PageHeader from '@/components/shared/PageHeader'
 import Icon from '@/components/shared/Icon'
-
-const schemes = [
-  { key:'visa', label:'Visa', color:'#1A1F71', txtColor:'#fff', products:[
-    { name:'Crédito à vista', mdr:'2,20%', antec:'1,99% a.m.', tarifa:'R$ 0,10' },
-    { name:'Crédito 2–6x', mdr:'2,90%', antec:'1,99% a.m.', tarifa:'R$ 0,10' },
-    { name:'Crédito 7–12x', mdr:'3,40%', antec:'1,99% a.m.', tarifa:'R$ 0,10' },
-    { name:'Débito', mdr:'1,50%', antec:'—', tarifa:'R$ 0,08' },
-  ]},
-  { key:'mastercard', label:'Mastercard', color:'#EB001B', txtColor:'#fff', products:[
-    { name:'Crédito à vista', mdr:'2,25%', antec:'1,99% a.m.', tarifa:'R$ 0,10' },
-    { name:'Crédito 2–6x', mdr:'2,95%', antec:'1,99% a.m.', tarifa:'R$ 0,10' },
-    { name:'Crédito 7–12x', mdr:'3,50%', antec:'1,99% a.m.', tarifa:'R$ 0,10' },
-    { name:'Débito', mdr:'1,55%', antec:'—', tarifa:'R$ 0,08' },
-  ]},
-  { key:'elo', label:'Elo', color:'#FFD700', txtColor:'#000', products:[
-    { name:'Crédito à vista', mdr:'2,30%', antec:'2,10% a.m.', tarifa:'R$ 0,10' },
-    { name:'Crédito 2–6x', mdr:'3,10%', antec:'2,10% a.m.', tarifa:'R$ 0,10' },
-    { name:'Crédito 7–12x', mdr:'3,70%', antec:'2,10% a.m.', tarifa:'R$ 0,10' },
-    { name:'Débito', mdr:'1,65%', antec:'—', tarifa:'R$ 0,08' },
-  ]},
-  { key:'pix', label:'PIX', color:'#00BDAE', txtColor:'#fff', products:[
-    { name:'PIX QR Code / Cobrança', mdr:'0,99%', antec:'—', tarifa:'R$ 0,05' },
-  ]},
-]
+import InterchangeRateCard from '@/components/interchange/InterchangeRateCard'
+import {
+  CARD_BRANDS_OPTIONS,
+  CARD_PRODUCTS_OPTIONS,
+  PJ_PF_OPTIONS,
+  CARD_ENTRY_OPTIONS,
+  SECTOR_OPTIONS,
+  useInterchangeRateFilters,
+} from '@/hooks/interchange/useInterchangeRateFilters'
+import { fetchInterchangeRateBrandSummary } from '@/services/interchangeRateService'
+import type { InterchangeRateBrandSummary } from '@/services/types/interchangeRate.types'
 
 export default function PricingPage() {
-  const [exp, setExp] = useState<Record<string,boolean>>({ visa:true, mastercard:false, elo:false, pix:false })
-  const toggle = (k: string) => setExp(p => ({ ...p, [k]: !p[k] }))
+  const [brands, setBrands] = useState<InterchangeRateBrandSummary[]>([])
+  const [loading, setLoading] = useState(true)
+  const { filters, setSearchTerm, setCardBrand, setCardProduct, setPersonType, setCardEntry, setSector } = useInterchangeRateFilters()
+
+  useEffect(() => {
+    fetchInterchangeRateBrandSummary().then(b => { setBrands(b); setLoading(false) })
+  }, [])
+
+  const filtered = brands.filter(b => {
+    if (filters.cardBrand !== 'Todas as bandeiras' && b.brand !== filters.cardBrand) return false
+    if (filters.searchTerm && !b.brand.toLowerCase().includes(filters.searchTerm.toLowerCase())) return false
+    return true
+  })
 
   return (
-    <div style={{ flex:1, overflow:'auto', display:'flex', flexDirection:'column' }}>
-      <PageHeader title="Custos & Pricing" breadcrumb="Sub-adquirente / Custos & Pricing" onBack={() => {}} extra={
-        <div style={{ display:'flex', gap:8 }}>
-          <button style={{ border:'1px solid #d9d9d9', background:'#fff', borderRadius:2, padding:'6px 16px', fontSize:14, cursor:'pointer', color:'rgba(0,0,0,0.65)' }}>Histórico</button>
-          <button style={{ border:'none', background:'#1890FF', color:'#fff', borderRadius:2, padding:'6px 16px', fontSize:14, cursor:'pointer' }}>Salvar alterações</button>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <PageHeader
+        title="Matriz de Intercâmbio"
+        breadcrumb="Configuração / Pricing"
+      />
+
+      <div style={{ flex: 1, overflow: 'auto', background: '#F2F4F8', padding: '16px 24px' }}>
+        <div style={{ background: '#E6F7FF', border: '1px solid #91D5FF', borderRadius: 2, padding: '10px 14px', marginBottom: 16, fontSize: 12, color: 'rgba(0,0,0,0.85)' }}>
+          <strong>Matriz de Intercâmbio:</strong> são as taxas (interchange) cobradas pelas bandeiras
+          do sub-adquirente em cada transação. O ITC (Interchange Transaction Cost) é determinado pela
+          combinação de bandeira × tipo × tier × produto × entrada × segmento. Estas taxas alimentam
+          o cálculo do MDR cobrado dos ECs.
         </div>
-      } />
-      <div style={{ padding:24, display:'flex', flexDirection:'column', gap:16 }}>
-        <div style={{ background:'#e6f7ff', border:'1px solid #91d5ff', borderRadius:2, padding:'10px 16px', display:'flex', gap:10, alignItems:'flex-start' }}>
-          <Icon name="info" size={16} color="#1890FF" />
-          <span style={{ fontSize:13, color:'rgba(0,0,0,0.65)' }}>As taxas abaixo refletem o pricing vigente para novos merchants. Alterações entram em vigor no próximo ciclo de faturamento.</span>
-        </div>
-        {schemes.map(scheme => (
-          <div key={scheme.key} style={{ background:'#fff', borderRadius:2, border:'1px solid rgba(0,0,0,0.06)', overflow:'hidden' }}>
-            <div onClick={() => toggle(scheme.key)}
-              style={{ padding:'14px 20px', display:'flex', alignItems:'center', gap:12, cursor:'pointer', borderBottom:exp[scheme.key]?'1px solid #f0f0f0':'none' }}
-              onMouseEnter={e=>(e.currentTarget as HTMLElement).style.background='#fafafa'}
-              onMouseLeave={e=>(e.currentTarget as HTMLElement).style.background='#fff'}>
-              <div style={{ width:32, height:20, borderRadius:2, background:scheme.color, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                <span style={{ fontSize:9, color:scheme.txtColor, fontWeight:700 }}>{scheme.label.slice(0,3).toUpperCase()}</span>
-              </div>
-              <span style={{ fontWeight:600, fontSize:14, color:'rgba(0,0,0,0.85)', flex:1 }}>{scheme.label}</span>
-              <span style={{ fontSize:12, color:'rgba(0,0,0,0.45)' }}>{scheme.products.length} produto(s)</span>
-              <Icon name={exp[scheme.key]?'chevronUp':'chevronDown'} size={14} color="rgba(0,0,0,0.45)" />
-            </div>
-            {exp[scheme.key] && (
-              <table style={{ width:'100%', borderCollapse:'collapse', fontSize:13 }}>
-                <thead>
-                  <tr style={{ background:'#fafafa' }}>
-                    {['Produto / Arranjo','MDR (%)','Taxa de antecipação','Tarifa por transação',''].map(h => (
-                      <th key={h} style={{ padding:'10px 20px', textAlign:'left', fontWeight:500, color:'rgba(0,0,0,0.65)', fontSize:12, borderBottom:'1px solid #f0f0f0' }}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {scheme.products.map((p, i) => (
-                    <tr key={i} style={{ borderBottom:i<scheme.products.length-1?'1px solid #f0f0f0':'none' }}
-                      onMouseEnter={e=>(e.currentTarget as HTMLElement).style.background='#fafafa'}
-                      onMouseLeave={e=>(e.currentTarget as HTMLElement).style.background='transparent'}>
-                      <td style={{ padding:'12px 20px', color:'rgba(0,0,0,0.85)' }}>{p.name}</td>
-                      <td style={{ padding:'12px 20px' }}>
-                        <input defaultValue={p.mdr}
-                          style={{ border:'1px solid #d9d9d9', borderRadius:2, padding:'4px 8px', width:80, fontSize:13, fontFamily:'Roboto Mono', textAlign:'right', outline:'none' }}
-                          onFocus={e=>(e.target as HTMLInputElement).style.border='1px solid #1890FF'}
-                          onBlur={e=>(e.target as HTMLInputElement).style.border='1px solid #d9d9d9'} />
-                      </td>
-                      <td style={{ padding:'12px 20px', color:p.antec==='—'?'rgba(0,0,0,0.25)':'rgba(0,0,0,0.65)' }}>{p.antec}</td>
-                      <td style={{ padding:'12px 20px', color:'rgba(0,0,0,0.65)' }}>{p.tarifa}</td>
-                      <td style={{ padding:'12px 20px', textAlign:'right' }}>
-                        <button title="Editar" style={{ border:'none', background:'none', color:'rgba(0,0,0,0.35)', cursor:'pointer', padding:4, display:'inline-flex', alignItems:'center', borderRadius:4 }} onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.color='#1890FF';(e.currentTarget as HTMLElement).style.background='#f5f5f5'}} onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.color='rgba(0,0,0,0.35)';(e.currentTarget as HTMLElement).style.background='none'}}>
-                          <Icon name="edit" size={14} color="currentColor" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+
+        <div style={{ background: '#fff', border: '1px solid #f0f0f0', borderRadius: 2, padding: '12px 14px', marginBottom: 16, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10 }}>
+          <div style={{ position: 'relative', flex: '1 1 240px', maxWidth: 320 }}>
+            <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', display: 'flex' }}>
+              <Icon name="search" size={14} color="rgba(0,0,0,0.45)" />
+            </span>
+            <input
+              value={filters.searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              placeholder="Buscar bandeira..."
+              style={{ width: '100%', border: '1px solid #d9d9d9', borderRadius: 2, padding: '5px 10px 5px 30px', fontSize: 13, outline: 'none', fontFamily: 'Roboto' }}
+            />
           </div>
-        ))}
+
+          <FilterSelect label="Bandeira" value={filters.cardBrand} onChange={setCardBrand} options={CARD_BRANDS_OPTIONS} />
+          <FilterSelect label="Produto" value={filters.cardProduct} onChange={setCardProduct} options={CARD_PRODUCTS_OPTIONS} />
+          <FilterSelect label="PF/PJ" value={filters.personType} onChange={setPersonType} options={PJ_PF_OPTIONS} />
+          <FilterSelect label="Entrada" value={filters.cardEntry} onChange={setCardEntry} options={CARD_ENTRY_OPTIONS} />
+          <FilterSelect label="Segmento" value={filters.sector} onChange={setSector} options={SECTOR_OPTIONS} />
+
+          <span style={{ marginLeft: 'auto', fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>
+            {filtered.length} de {brands.length} bandeiras
+          </span>
+        </div>
+
+        {loading && <div style={{ padding: 40, textAlign: 'center', color: 'rgba(0,0,0,0.45)', fontSize: 13 }}>Carregando matriz…</div>}
+        {!loading && filtered.map(b => <InterchangeRateCard key={b.id} brand={b} />)}
+        {!loading && filtered.length === 0 && (
+          <div style={{ padding: 40, textAlign: 'center', color: 'rgba(0,0,0,0.45)', fontSize: 13 }}>
+            Nenhuma bandeira corresponde aos filtros.
+          </div>
+        )}
       </div>
     </div>
+  )
+}
+
+interface FilterSelectProps {
+  label: string
+  value: string
+  onChange: (v: string) => void
+  options: { label: string; value: string }[]
+}
+
+function FilterSelect({ label, value, onChange, options }: FilterSelectProps) {
+  return (
+    <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'rgba(0,0,0,0.65)' }}>
+      {label}:
+      <select
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        style={{ border: '1px solid #d9d9d9', borderRadius: 2, padding: '4px 8px', fontSize: 12, fontFamily: 'Roboto', outline: 'none', background: '#fff', maxWidth: 180 }}
+      >
+        {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+      </select>
+    </label>
   )
 }

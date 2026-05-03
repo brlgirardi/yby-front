@@ -59,9 +59,42 @@ O app tem **dois modos** controlados por env vars (ver `.env.example`):
 Endpoints reais espelhados do projeto Tupi `yby-ui`:
 - `POST /auth/login`
 - `GET /auth/me`
+- `POST /auth/forgot-password/send-code` · `verify-code` · `redefine`
+- `POST /auth/redefine-temporary-password`
 - `GET /report/recon-summary`
 - `GET /report/recon-incoming-outgoing-by-group-code?consolidation_date_eq={date}`
 - `GET /report/recon-mismatch/{consolidationId}`
+- `GET /public/report/recon/acquirer/summary/capture-outgoing?consolidation_date_eq={date}`
+- `GET /public/report/recon/acquirer/mismatch/capture-outgoing?consolidation_date_eq={date}&use_config_id_eq={id}`
+- `GET /interchange-rate/brands` · `/interchange-rate?card_brand={brand}`
+
+---
+
+## Glossário Tupi — termos do domínio
+
+Para manter consistência ao trabalhar entre o portal Tupi (yby-ui) e este front, mantemos os termos originais:
+
+| Termo | Significado |
+|---|---|
+| **Conciliação / Reconciliation** | Comparação entre 2 origens (capture vs outgoing) |
+| **Capture (source A)** | O que o sub-adquirente registrou na captura |
+| **Outgoing (source B)** | O que a registradora (Núclea/CIP/CERC) liquidou |
+| **Mismatch / Divergência** | Transação faltando em uma origem ou com valores diferentes |
+| **TPV** | Total Payment Volume — volume bruto transacionado |
+| **ITC** | Interchange Transaction Cost — taxa cobrada pela bandeira |
+| **IRD** | Interchange Reimbursement Data — código de classificação Visa/MC |
+| **ARN** | Acquirer Reference Number — id único da transação |
+| **NSU** | Número Sequencial Único |
+| **BIN** | Bank Identification Number — primeiros 6 dígitos do cartão |
+| **Group Code** | Código de agrupamento (bandeira × tipo) |
+| **Use Config ID** | ID da configuração de uso (cliente × bandeira × tipo) |
+| **Consolidation ID** | ID da consolidação diária |
+| **Consolidation Rate** | % de transações conciliadas no dia |
+| **Status: reconciled / partially_reconciled / not_reconciled / mismatch** | Estados de conciliação (UI: Reconciliado / Parc. Conciliado / Não Conciliado / Divergência) |
+| **Card brand × type × tier × product × entry × sector** | Combinação que define uma taxa de intercâmbio |
+| **Rate / Fixed fee** | Taxa percentual + tarifa fixa por transação |
+
+**Convenção de código:** mantemos `snake_case` nos types/services (espelham o backend Tupi) e usamos `camelCase` apenas nos view-models (`BrandData`) e props de componente.
 
 ---
 

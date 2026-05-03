@@ -10,16 +10,18 @@ import DataTable, { type ColumnType, PERIOD_OPTIONS } from '@/components/ui/Data
 
 const fmt = (v: number) => 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
-type Origin = 'gateway' | 'pos'
+type Channel = 'pos' | 'link' | 'ecommerce' | 'marketplace'
 type StatusKey = 'Aprovada' | 'Recusada' | 'Cancelada' | 'Estorno' | 'Pendente' | 'Chargeback'
 
 type Transaction = {
-  origem: Origin
-  marketplace: string
-  ec: string
+  channel: Channel
+  posId?: string             // só quando channel === 'pos'
+  marketplace: string        // ex: Mercado Livre — entidade pai (master merchant)
+  ec: string                 // EC efetivamente operando dentro do marketplace
   bandeira: string
-  tipo: string
-  data: string
+  parcelas: string           // "1x", "12x", "Pix"
+  data: string               // dd/mm/aaaa
+  hora: string               // hh:mm
   valor: number
   authCode: string
   nsu: string
@@ -27,19 +29,19 @@ type Transaction = {
 }
 
 const TRANSACTIONS: Transaction[] = [
-  { origem:'pos',     marketplace:'Mercado Livre',  ec:'ML Loja 0021',     bandeira:'Mastercard', tipo:'Crédito - 12x', data:'20/04/26 12:42', valor:382.47,   authCode:'68e18784-7ddd-398f-9d19-6746e4a14cb9', nsu:'000000112',  status:'Recusada' },
-  { origem:'pos',     marketplace:'Mercado Livre',  ec:'ML Loja 0021',     bandeira:'Mastercard', tipo:'Crédito - 12x', data:'20/04/26 12:37', valor:509.97,   authCode:'585489',                                  nsu:'000000110',  status:'Aprovada' },
-  { origem:'pos',     marketplace:'Amazon Brasil',  ec:'AMZ Centro',       bandeira:'Mastercard', tipo:'Crédito - 3x',  data:'20/04/26 12:34', valor:394.50,   authCode:'049329',                                  nsu:'000473759764',status:'Aprovada' },
-  { origem:'pos',     marketplace:'Mercado Livre',  ec:'ML Loja 0021',     bandeira:'Mastercard', tipo:'Crédito - 12x', data:'20/04/26 12:34', valor:892.44,   authCode:'491866',                                  nsu:'000000108',  status:'Aprovada' },
-  { origem:'gateway', marketplace:'Shopee Brasil',  ec:'Shopee Boutique',  bandeira:'Visa',       tipo:'Crédito - 6x',  data:'20/04/26 11:58', valor:760.00,   authCode:'732910',                                  nsu:'000000105',  status:'Recusada' },
-  { origem:'gateway', marketplace:'iFood Ltda',     ec:'iFood Restaurante',bandeira:'Elo',        tipo:'Crédito - 2x',  data:'20/04/26 11:42', valor:430.00,   authCode:'112844',                                  nsu:'000000103',  status:'Pendente' },
-  { origem:'pos',     marketplace:'Magazine Luiza', ec:'ML Centro',        bandeira:'Visa',       tipo:'Débito',        data:'20/04/26 11:31', valor:128.90,   authCode:'778219',                                  nsu:'000000102',  status:'Aprovada' },
-  { origem:'gateway', marketplace:'Rappi Brasil',   ec:'Rappi Quick',      bandeira:'Pix',        tipo:'Pix',           data:'20/04/26 10:58', valor:87.50,    authCode:'—',                                       nsu:'PIX-9991',   status:'Aprovada' },
-  { origem:'pos',     marketplace:'Americanas S.A.',ec:'AME Loja 04',      bandeira:'Visa',       tipo:'Crédito - 1x',  data:'20/04/26 10:30', valor:999.00,   authCode:'002311',                                  nsu:'000000099',  status:'Aprovada' },
-  { origem:'gateway', marketplace:'Amazon Brasil',  ec:'AMZ Online',       bandeira:'Mastercard', tipo:'Crédito - 1x',  data:'20/04/26 10:12', valor:2100.00,  authCode:'440092',                                  nsu:'000000097',  status:'Estorno' },
-  { origem:'pos',     marketplace:'Mercado Livre',  ec:'ML Loja 0044',     bandeira:'Visa',       tipo:'Crédito - 4x',  data:'20/04/26 09:55', valor:312.10,   authCode:'558719',                                  nsu:'000000095',  status:'Chargeback' },
-  { origem:'pos',     marketplace:'iFood Ltda',     ec:'iFood Restaurante',bandeira:'Mastercard', tipo:'Crédito - 1x',  data:'20/04/26 09:20', valor:64.80,    authCode:'441298',                                  nsu:'000000091',  status:'Cancelada' },
-  { origem:'gateway', marketplace:'Shopee Brasil',  ec:'Shopee Eletro',    bandeira:'Mastercard', tipo:'Crédito - 10x', data:'20/04/26 09:38', valor:1879.40,  authCode:'661233',                                  nsu:'000000093',  status:'Aprovada' },
+  { channel:'pos',         posId:'12345', marketplace:'Mercado Livre',  ec:'ML Loja 0021',     bandeira:'Mastercard', parcelas:'12x', data:'20/04/2026', hora:'12:42', valor:382.47,  authCode:'68e18784-7ddd-398f-9d19-6746e4a14cb9', nsu:'000000112',   status:'Recusada'   },
+  { channel:'pos',         posId:'12345', marketplace:'Mercado Livre',  ec:'ML Loja 0021',     bandeira:'Mastercard', parcelas:'12x', data:'20/04/2026', hora:'12:37', valor:509.97,  authCode:'585489',                                  nsu:'000000110',   status:'Aprovada'   },
+  { channel:'ecommerce',                  marketplace:'Amazon Brasil',  ec:'AMZ Centro',       bandeira:'Mastercard', parcelas:'3x',  data:'20/04/2026', hora:'12:34', valor:394.50,  authCode:'049329',                                  nsu:'000473759764',status:'Aprovada'   },
+  { channel:'pos',         posId:'87654', marketplace:'Mercado Livre',  ec:'ML Loja 0021',     bandeira:'Mastercard', parcelas:'12x', data:'20/04/2026', hora:'12:34', valor:892.44,  authCode:'491866',                                  nsu:'000000108',   status:'Aprovada'   },
+  { channel:'link',                       marketplace:'Shopee Brasil',  ec:'Shopee Boutique',  bandeira:'Visa',       parcelas:'6x',  data:'20/04/2026', hora:'11:58', valor:760.00,  authCode:'732910',                                  nsu:'000000105',   status:'Recusada'   },
+  { channel:'ecommerce',                  marketplace:'iFood Ltda',     ec:'iFood Restaurante',bandeira:'Elo',        parcelas:'2x',  data:'20/04/2026', hora:'11:42', valor:430.00,  authCode:'112844',                                  nsu:'000000103',   status:'Pendente'   },
+  { channel:'pos',         posId:'45102', marketplace:'Magazine Luiza', ec:'ML Centro',        bandeira:'Visa',       parcelas:'1x',  data:'20/04/2026', hora:'11:31', valor:128.90,  authCode:'778219',                                  nsu:'000000102',   status:'Aprovada'   },
+  { channel:'link',                       marketplace:'Rappi Brasil',   ec:'Rappi Quick',      bandeira:'Pix',        parcelas:'Pix', data:'20/04/2026', hora:'10:58', valor:87.50,   authCode:'—',                                       nsu:'PIX-9991',    status:'Aprovada'   },
+  { channel:'marketplace',                marketplace:'Americanas S.A.',ec:'AME Loja 04',      bandeira:'Visa',       parcelas:'1x',  data:'20/04/2026', hora:'10:30', valor:999.00,  authCode:'002311',                                  nsu:'000000099',   status:'Aprovada'   },
+  { channel:'ecommerce',                  marketplace:'Amazon Brasil',  ec:'AMZ Online',       bandeira:'Mastercard', parcelas:'1x',  data:'20/04/2026', hora:'10:12', valor:2100.00, authCode:'440092',                                  nsu:'000000097',   status:'Estorno'    },
+  { channel:'pos',         posId:'33099', marketplace:'Mercado Livre',  ec:'ML Loja 0044',     bandeira:'Visa',       parcelas:'4x',  data:'20/04/2026', hora:'09:55', valor:312.10,  authCode:'558719',                                  nsu:'000000095',   status:'Chargeback' },
+  { channel:'ecommerce',                  marketplace:'Shopee Brasil',  ec:'Shopee Eletro',    bandeira:'Mastercard', parcelas:'10x', data:'20/04/2026', hora:'09:38', valor:1879.40, authCode:'661233',                                  nsu:'000000093',   status:'Aprovada'   },
+  { channel:'pos',         posId:'77821', marketplace:'iFood Ltda',     ec:'iFood Restaurante',bandeira:'Mastercard', parcelas:'1x',  data:'20/04/2026', hora:'09:20', valor:64.80,   authCode:'441298',                                  nsu:'000000091',   status:'Cancelada'  },
 ]
 
 const STATUS_TIPS: Record<StatusKey, string> = {
@@ -51,24 +53,62 @@ const STATUS_TIPS: Record<StatusKey, string> = {
   'Chargeback': 'Disputa aberta pelo portador junto à bandeira. Em análise — pode resultar em débito definitivo.',
 }
 
-const ORIGIN_TIPS: Record<Origin, string> = {
-  gateway: 'Gateway — transação online (e-commerce, link de pagamento, API).',
-  pos:     'POS — transação capturada em maquininha física no estabelecimento.',
+const CHANNEL_META: Record<Channel, { icon: string; label: string; tip: string }> = {
+  pos:         { icon:'smartphone',   label:'POS',         tip:'POS — transação capturada em maquininha física no estabelecimento.'                  },
+  link:        { icon:'link2',        label:'Link',        tip:'Link de pagamento — checkout enviado por mensagem/email.'                            },
+  ecommerce:   { icon:'shoppingCart', label:'Ecommerce',   tip:'Ecommerce — checkout integrado no site do estabelecimento.'                          },
+  marketplace: { icon:'building2',    label:'Marketplace', tip:'Marketplace — venda dentro da plataforma do master merchant (sub-credenciamento).'   },
 }
 
 const ALL_STATUSES: StatusKey[] = ['Aprovada','Recusada','Cancelada','Estorno','Pendente','Chargeback']
-const ALL_ORIGINS: Origin[] = ['gateway','pos']
+const ALL_CHANNELS: Channel[] = ['pos','link','ecommerce','marketplace']
 const ALL_BANDEIRAS = ['Visa','Mastercard','Elo','Pix']
+
+// Truncate text com tooltip de valor completo no hover
+function TruncatedMono({ text, max = 16 }: { text: string; max?: number }) {
+  const truncated = text.length > max ? text.slice(0, max) + '…' : text
+  if (text.length <= max) {
+    return <span style={{ fontFamily:'Roboto Mono', fontSize:11, color:'rgba(0,0,0,0.55)', whiteSpace:'nowrap' }}>{text}</span>
+  }
+  return (
+    <Tooltip text={text} bare>
+      <span style={{ fontFamily:'Roboto Mono', fontSize:11, color:'rgba(0,0,0,0.55)', whiteSpace:'nowrap', cursor:'help', borderBottom:'1px dotted rgba(0,0,0,0.25)' }}>{truncated}</span>
+    </Tooltip>
+  )
+}
+
+// Chip de canal — estilo Figma (bg #F2F2F7, ícone Lucide + texto)
+function ChannelChip({ channel, posId }: { channel: Channel; posId?: string }) {
+  const meta = CHANNEL_META[channel]
+  const label = channel === 'pos' && posId ? `POS-${posId}` : meta.label
+  const truncated = label.length > 12 ? label.slice(0, 10) + '…' : label
+  const showTooltip = label.length > 12 || true // sempre mostra explicação do canal
+
+  return (
+    <Tooltip text={`${meta.tip}${posId ? `\nID da maquininha: ${posId}` : ''}`} bare>
+      <span style={{
+        display:'inline-flex', alignItems:'center', gap:6,
+        background:'#F2F2F7',
+        borderRadius:2, padding:'2px 7px', fontSize:12,
+        color:'rgba(0,0,0,0.85)', whiteSpace:'nowrap',
+        cursor:'default',
+      }}>
+        <Icon name={meta.icon} size={14} color="rgba(0,0,0,0.65)" />
+        <span>{truncated}</span>
+      </span>
+    </Tooltip>
+  )
+}
 
 export default function TransactionsPage() {
   const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState<string[]>(ALL_STATUSES)
-  const [originFilter, setOriginFilter] = useState<string[]>(ALL_ORIGINS)
-  const [brandFilter, setBrandFilter]   = useState<string[]>(ALL_BANDEIRAS)
+  const [statusFilter, setStatusFilter]   = useState<string[]>(ALL_STATUSES)
+  const [channelFilter, setChannelFilter] = useState<string[]>(ALL_CHANNELS)
+  const [brandFilter, setBrandFilter]     = useState<string[]>(ALL_BANDEIRAS)
 
   const filtered = TRANSACTIONS.filter(r =>
     statusFilter.includes(r.status) &&
-    originFilter.includes(r.origem) &&
+    channelFilter.includes(r.channel) &&
     brandFilter.includes(r.bandeira) &&
     (!search ||
       r.marketplace.toLowerCase().includes(search.toLowerCase()) ||
@@ -92,56 +132,47 @@ export default function TransactionsPage() {
 
   const columns: ColumnType<Transaction>[] = [
     {
-      title: '',
-      dataIndex: 'origem',
-      key: 'origem',
-      width: 50,
-      render: (v: Origin) => (
-        <Tooltip text={ORIGIN_TIPS[v]} delay={1000} bare>
-          <span style={{
-            display:'inline-flex', alignItems:'center', justifyContent:'center',
-            width:28, height:28, borderRadius:4,
-            background: v==='gateway' ? '#f9f0ff' : '#fff7e6',
-            color: v==='gateway' ? '#722ED1' : '#fa8c16',
-            border: `1px solid ${v==='gateway' ? '#d3adf7' : '#ffd591'}`,
-          }}>
-            <Icon name={v==='gateway' ? 'zap' : 'smartphone'} size={14} color="currentColor" />
-          </span>
-        </Tooltip>
+      title: 'Canal', dataIndex: 'channel', key: 'channel', width: 150,
+      render: (v: Channel, r) => <ChannelChip channel={v} posId={r.posId} />,
+    },
+    {
+      title: 'EC (Marketplace)', dataIndex: 'ec', key: 'ec', width: 220,
+      render: (_, r) => (
+        <div style={{ display:'flex', flexDirection:'column', gap:2, minWidth:0 }}>
+          <span style={{ fontWeight:500, color:'rgba(0,0,0,0.85)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', maxWidth:200 }}>{r.ec}</span>
+          <span style={{ fontSize:11, color:'rgba(0,0,0,0.45)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', maxWidth:200 }}>{r.marketplace}</span>
+        </div>
       ),
     },
     {
-      title: 'Marketplace', dataIndex: 'marketplace', key: 'marketplace', width: 160,
-      render: v => <span style={{ fontWeight:500, color:'rgba(0,0,0,0.85)', whiteSpace:'nowrap' }}>{v}</span>,
-    },
-    {
-      title: 'EC', dataIndex: 'ec', key: 'ec', width: 160,
-      render: v => <span style={{ color:'rgba(0,0,0,0.65)', whiteSpace:'nowrap' }}>{v}</span>,
-    },
-    {
-      title: 'Tipo de Venda', dataIndex: 'tipo', key: 'tipo', width: 180,
+      title: 'Forma de Pagamento', dataIndex: 'bandeira', key: 'bandeira', width: 180,
       render: (_, r) => (
-        <span style={{ display:'inline-flex', alignItems:'center', gap:8 }}>
+        <span style={{ display:'inline-flex', alignItems:'center', gap:8, whiteSpace:'nowrap' }}>
           <BrandLogo brand={r.bandeira} size={20} />
-          <span style={{ color:'rgba(0,0,0,0.85)', whiteSpace:'nowrap' }}>{r.tipo}</span>
+          <span style={{ color:'rgba(0,0,0,0.85)' }}>{r.parcelas}</span>
         </span>
       ),
     },
     {
-      title: 'Data', dataIndex: 'data', key: 'data', width: 130,
-      render: v => <span style={{ color:'rgba(0,0,0,0.65)', whiteSpace:'nowrap' }}>{v}</span>,
+      title: 'Data', dataIndex: 'data', key: 'data', width: 110,
+      render: (_, r) => (
+        <div style={{ display:'flex', flexDirection:'column', gap:0 }}>
+          <span style={{ color:'rgba(0,0,0,0.85)', fontSize:13 }}>{r.data}</span>
+          <span style={{ color:'rgba(0,0,0,0.45)', fontSize:11 }}>{r.hora}</span>
+        </div>
+      ),
     },
     {
-      title: 'Valor Bruto', dataIndex: 'valor', key: 'valor', width: 120,
+      title: 'Valor', dataIndex: 'valor', key: 'valor', width: 120,
       render: v => <span style={{ fontWeight:600, color:'rgba(0,0,0,0.85)', whiteSpace:'nowrap' }}>{fmt(v)}</span>,
     },
     {
-      title: 'Código de Autorização', dataIndex: 'authCode', key: 'authCode', width: 180,
-      render: v => <span style={{ fontFamily:'Roboto Mono', fontSize:11, color:'rgba(0,0,0,0.55)' }}>{v}</span>,
+      title: 'Cód. Autorização', dataIndex: 'authCode', key: 'authCode', width: 160,
+      render: v => <TruncatedMono text={v} max={14} />,
     },
     {
-      title: 'NSU Adquirente', dataIndex: 'nsu', key: 'nsu', width: 140,
-      render: v => <span style={{ fontFamily:'Roboto Mono', fontSize:11, color:'rgba(0,0,0,0.55)' }}>{v}</span>,
+      title: 'NSU', dataIndex: 'nsu', key: 'nsu', width: 130,
+      render: v => <TruncatedMono text={v} max={14} />,
     },
     {
       title: 'Status', dataIndex: 'status', key: 'status', width: 130,
@@ -152,7 +183,7 @@ export default function TransactionsPage() {
       ),
     },
     {
-      title: 'Ações', key: 'acoes', width: 70,
+      title: '', key: 'acoes', width: 60,
       render: () => (
         <button title="Ver detalhes" style={{ border:'none', background:'none', color:'rgba(0,0,0,0.35)', cursor:'pointer', padding:4, display:'flex', alignItems:'center', borderRadius:4 }}
           onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.color='#1890FF';(e.currentTarget as HTMLElement).style.background='#f5f5f5'}}
@@ -187,18 +218,15 @@ export default function TransactionsPage() {
           columns={columns}
           dataSource={filtered}
           rowKey={(_,i) => String(i)}
-          searchPlaceholder="Buscar marketplace, EC, NSU ou código de autorização..."
+          searchPlaceholder="Buscar EC, marketplace, NSU ou código de autorização..."
           searchValue={search}
           onSearch={setSearch}
           filters={[
             {
-              label: 'Origem',
-              options: [
-                { label: 'Gateway',    value: 'gateway' },
-                { label: 'Maquininha', value: 'pos' },
-              ],
-              value: originFilter,
-              onChange: setOriginFilter,
+              label: 'Canal',
+              options: ALL_CHANNELS.map(c => ({ label: CHANNEL_META[c].label, value: c })),
+              value: channelFilter,
+              onChange: setChannelFilter,
             },
             {
               label: 'Status',

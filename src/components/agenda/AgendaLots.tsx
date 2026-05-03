@@ -1,6 +1,6 @@
 'use client'
 
-import { Tag } from 'antd'
+import Tag from '@/components/shared/Tag'
 import KpiCard from '@/components/ui/KpiCard'
 
 const statusBar: Record<string, string> = {
@@ -22,12 +22,6 @@ const statusLabel: Record<string, string> = {
   antecipado: 'Antecipado',
   pendente: 'Pendente',
 }
-const statusColor: Record<string, string> = {
-  liquidado: 'success',
-  antecipado: 'orange',
-  pendente: 'warning',
-}
-
 const kpis = [
   { label: 'Total de lotes', value: '5', variant: 'neutral' as const },
   { label: 'Bruto total', value: 'R$ 290.220', variant: 'info' as const },
@@ -56,7 +50,7 @@ export default function AgendaLots() {
                     <span className="text-xs" style={{ color: 'rgba(0,0,0,0.45)' }}>• {lot.qtd} transações</span>
                   </div>
                 </div>
-                <Tag color={statusColor[lot.status]}>{statusLabel[lot.status]}</Tag>
+                <Tag status={statusLabel[lot.status]} />
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <div>

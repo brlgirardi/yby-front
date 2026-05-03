@@ -2,6 +2,7 @@
 
 import { Table, Tag } from 'antd'
 import KpiCard from '@/components/ui/KpiCard'
+import StatusTag from '@/components/shared/Tag'
 
 const dreItems = [
   { label: 'Entradas (liquidações previstas)', value: 'R$ 193.420', color: '#52C41A' },
@@ -43,7 +44,7 @@ const liqColumns = [
   { title: 'Antecip.', dataIndex: 'antecip', key: 'antecip', align: 'right' as const, render: (v: string) => <span className="text-[#FA8C16]">{v}</span> },
   { title: 'Líquido', dataIndex: 'liquido', key: 'liquido', align: 'right' as const, render: (v: string) => <span className="font-semibold text-[#52C41A]">{v}</span> },
   { title: 'Conta', dataIndex: 'conta', key: 'conta', render: (v: string) => <span className="font-mono text-xs">{v}</span> },
-  { title: 'Status', dataIndex: 'status', key: 'status', render: (v: string) => <Tag color={v === 'Liquidado' ? 'success' : 'processing'}>{v}</Tag> },
+  { title: 'Status', dataIndex: 'status', key: 'status', render: (v: string) => <StatusTag status={v} /> },
 ]
 
 const kpis = [

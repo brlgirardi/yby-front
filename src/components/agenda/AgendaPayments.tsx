@@ -1,7 +1,8 @@
 'use client'
 
-import { Table, Tag } from 'antd'
+import { Table } from 'antd'
 import KpiCard from '@/components/ui/KpiCard'
+import Tag from '@/components/shared/Tag'
 
 const data = [
   { key: '1', merchant: 'Restaurante Bom Sabor', cnpj: '12.345.678/0001-90', data: '24/04/2026', bruto: 'R$ 14.320', taxas: 'R$ 430', repassado: 'R$ 13.890', conta: 'Itaú ...8821', status: 'Pago' },
@@ -19,7 +20,7 @@ const columns = [
   { title: 'Taxas retidas', dataIndex: 'taxas', key: 'taxas', align: 'right' as const, render: (v: string) => <span className="text-[#FF4D4F]">{v}</span> },
   { title: 'Valor repassado', dataIndex: 'repassado', key: 'repassado', align: 'right' as const, render: (v: string) => <span className="font-bold text-[#52C41A]">{v}</span> },
   { title: 'Conta destino', dataIndex: 'conta', key: 'conta', render: (v: string) => <span className="font-mono text-xs">{v}</span> },
-  { title: 'Status', dataIndex: 'status', key: 'status', render: (v: string) => <Tag color={v === 'Pago' ? 'success' : 'processing'}>{v}</Tag> },
+  { title: 'Status', dataIndex: 'status', key: 'status', render: (v: string) => <Tag status={v} /> },
 ]
 
 const kpis = [

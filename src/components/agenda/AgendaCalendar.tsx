@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Segmented, Tooltip, Checkbox } from 'antd'
+import { Segmented, Checkbox } from 'antd'
+import Tooltip from '@/components/shared/Tooltip'
 import { Info, ChevronLeft, ChevronRight } from 'lucide-react'
 import KpiCard from '@/components/ui/KpiCard'
 
@@ -286,8 +287,8 @@ export default function AgendaCalendar() {
                   <div className="flex items-center gap-1">
                     <span className="text-xs" style={{ color: 'rgba(0,0,0,0.65)' }}>{item.label}</span>
                     {item.tooltip && (
-                      <Tooltip title={item.tooltip} overlayStyle={{ maxWidth: 220 }} color="#1f1f1f">
-                        <Info size={13} className="cursor-help" style={{ color: 'rgba(0,0,0,0.45)' }} />
+                      <Tooltip text={item.tooltip} delay={1000} bare>
+                        <Info size={13} style={{ color: 'rgba(0,0,0,0.45)' }} />
                       </Tooltip>
                     )}
                   </div>

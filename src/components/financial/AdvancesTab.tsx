@@ -1,7 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Table, Tag, Button, Drawer, Select, Form, InputNumber, Tooltip } from 'antd'
+import { Table, Button, Drawer, Select, Form, InputNumber } from 'antd'
+import Tooltip from '@/components/shared/Tooltip'
+import Tag from '@/components/shared/Tag'
 import { PlusCircle, X, RefreshCw, ChevronDown, ChevronUp, Info } from 'lucide-react'
 import KpiCard from '@/components/ui/KpiCard'
 
@@ -48,7 +50,7 @@ const columns = [
   { title: 'Juros recebidos', dataIndex: 'juros', key: 'juros', align: 'right' as const, render: (v: string) => <span className="text-[#52C41A]">{v}</span> },
   { title: 'Vencimento', dataIndex: 'vencimento', key: 'vencimento' },
   { title: 'A recuperar', dataIndex: 'aRecuperar', key: 'aRecuperar', align: 'right' as const, render: (v: string) => <span className="font-semibold">{v}</span> },
-  { title: 'Status', dataIndex: 'status', key: 'status', render: (v: string) => <Tag color={v === 'Recuperado' ? 'success' : 'warning'}>{v}</Tag> },
+  { title: 'Status', dataIndex: 'status', key: 'status', render: (v: string) => <Tag status={v} /> },
 ]
 
 const kpis = [
@@ -135,7 +137,7 @@ export default function AdvancesTab() {
             <span className="text-sm font-medium" style={{ color: 'rgba(0,0,0,0.85)' }}>
               Fluxo de recuperação — parcelas a receber dos adquirentes
             </span>
-            <Tooltip title="Parcelas futuras oneradas que serão retidas pelo sub ao receber do adquirente, abatendo o saldo de cada antecipação concedida." color="#1f1f1f">
+            <Tooltip text="Parcelas futuras oneradas que serão retidas pelo sub ao receber do adquirente, abatendo o saldo de cada antecipação concedida." delay={1000} bare>
               <Info size={14} style={{ color: 'rgba(0,0,0,0.45)' }} />
             </Tooltip>
           </div>

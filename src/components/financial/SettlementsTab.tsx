@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Table, Tag, Button, Drawer } from 'antd'
 import { Download, RotateCcw, X } from 'lucide-react'
 import KpiCard from '@/components/ui/KpiCard'
+import StatusTag from '@/components/shared/Tag'
 
 interface LiqRow {
   key: string
@@ -39,7 +40,7 @@ const domColumns = [
   { title: 'Registradora', dataIndex: 'registradora', key: 'registradora', render: (v: string) => <Tag color={registradoras[v]}>{v}</Tag> },
   { title: 'Domicílio', dataIndex: 'domicilio', key: 'domicilio', render: (v: string) => <span className="font-mono text-xs">{v}</span> },
   { title: 'Volume', dataIndex: 'volume', key: 'volume', align: 'right' as const, render: (v: string) => <span className="font-semibold text-[#1890FF]">{v}</span> },
-  { title: 'Status', dataIndex: 'status', key: 'status', render: (v: string) => <Tag color={v === 'Ativo' ? 'success' : 'warning'}>{v}</Tag> },
+  { title: 'Status', dataIndex: 'status', key: 'status', render: (v: string) => v === 'Ativo' ? <StatusTag status="Ativo" /> : <StatusTag status="Suspenso" label={v} /> },
 ]
 
 const kpis = [
@@ -134,7 +135,7 @@ export default function SettlementsTab() {
         {drawerRow && (
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <Tag color="success">Liquidado</Tag>
+              <StatusTag status="Liquidado" />
               <span className="text-xs text-[rgba(0,0,0,0.45)]">{drawerRow.data}</span>
             </div>
 

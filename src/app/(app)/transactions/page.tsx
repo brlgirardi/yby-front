@@ -71,7 +71,7 @@ function TruncatedMono({ text, max = 16 }: { text: string; max?: number }) {
   }
   return (
     <Tooltip text={text} bare>
-      <span style={{ fontFamily:'Roboto Mono', fontSize:11, color:'rgba(0,0,0,0.55)', whiteSpace:'nowrap', cursor:'help', borderBottom:'1px dotted rgba(0,0,0,0.25)' }}>{truncated}</span>
+      <span style={{ fontFamily:'Roboto Mono', fontSize:11, color:'rgba(0,0,0,0.55)', whiteSpace:'nowrap', borderBottom:'1px dotted rgba(0,0,0,0.25)' }}>{truncated}</span>
     </Tooltip>
   )
 }

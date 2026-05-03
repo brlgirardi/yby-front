@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react'
 import { Input, Select, Switch, Button, Table, Tag, Empty } from 'antd'
 import { Search, X, ChevronDown, ChevronRight } from 'lucide-react'
 import KpiCard from '@/components/ui/KpiCard'
+import StatusTag from '@/components/shared/Tag'
 
 const { Option } = Select
 
@@ -93,7 +94,7 @@ export default function AgendaInstallments() {
     { title: 'Comissão', dataIndex: 'comissao', key: 'comissao', align: 'right' as const, render: (v: number) => <span className="text-[#FF4D4F]">{fmt(v)}</span> },
     { title: 'Valor Líquido', dataIndex: 'liquido', key: 'liquido', align: 'right' as const, render: (v: number) => <span className="font-semibold text-[#52C41A]">{fmt(v)}</span> },
     { title: 'Antecipado?', dataIndex: 'antecipado', key: 'antecipado', align: 'center' as const, render: (v: boolean) => v ? <Tag color="orange">Sim</Tag> : <span className="text-[rgba(0,0,0,0.45)] text-xs">—</span> },
-    { title: 'Status', dataIndex: 'status', key: 'status', render: (v: string) => <Tag color={v === 'Liquidado' ? 'success' : 'processing'}>{v}</Tag> },
+    { title: 'Status', dataIndex: 'status', key: 'status', render: (v: string) => <StatusTag status={v} /> },
   ]
 
   const kpis = [

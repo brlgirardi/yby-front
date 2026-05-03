@@ -875,7 +875,7 @@ export default function FinancialPage() {
               { title:'Antecipação debitada', dataIndex:'antecip', key:'antecip', render: v => <span style={{ color:v>0?'#fa8c16':'rgba(0,0,0,0.2)' }}>{v>0?fmt(v):'—'}</span> },
               { title:'Crédito travado', dataIndex:'travado', key:'travado', render: v => v>0
                 ? <Tooltip text="Crédito bloqueado na Núclea por trava de antecipação (gravame). O dinheiro vai liquidar normalmente, mas para o FIDC/banco que comprou o recebível, não para o sub." delay={1000} bare>
-                    <span style={{ color:'#722ED1', fontWeight:500, borderBottom:'1px dotted #722ED1', cursor:'help' }}>{fmt(v)}</span>
+                    <span style={{ color:'#722ED1', fontWeight:500, borderBottom:'1px dotted #722ED1' }}>{fmt(v)}</span>
                   </Tooltip>
                 : <span style={{ color:'rgba(0,0,0,0.2)' }}>—</span> },
               { title:'Líquido a receber', dataIndex:'cred', key:'cred', render: v => <span style={{ fontWeight:600, color:'#52c41a' }}>{fmt(v)}</span> },
@@ -1365,21 +1365,21 @@ export default function FinancialPage() {
             </div>
             <div style={{ padding:'14px 20px', display:'flex', gap:24 }}>
               <Tooltip text="Saldo financeiro em trânsito — já recebido dos adquirentes e ainda não repassado aos ECs. Posição de balanço (não é resultado)." delay={1000} bare style={{ flex:1, display:'flex' }}>
-                <div style={{ flex:1, padding:'10px 14px', background:'#e6f7ff', border:'1px solid #91d5ff', borderRadius:2, cursor:'help' }}>
+                <div style={{ flex:1, padding:'10px 14px', background:'#e6f7ff', border:'1px solid #91d5ff', borderRadius:2 }}>
                   <div style={{ fontSize:11, color:'rgba(0,0,0,0.65)', fontWeight:500, marginBottom:4 }}>Float do sub</div>
                   <div style={{ fontSize:18, fontWeight:700, color:'#1890FF' }}>R$ 78.328,00</div>
                   <div style={{ fontSize:11, color:'rgba(0,0,0,0.45)' }}>Saldo em trânsito na conta</div>
                 </div>
               </Tooltip>
               <Tooltip text="Capital adiantado aos ECs ainda não recuperado nos repasses futuros. Posição de balanço." delay={1000} bare style={{ flex:1, display:'flex' }}>
-                <div style={{ flex:1, padding:'10px 14px', background:'#e6f7ff', border:'1px solid #91d5ff', borderRadius:2, cursor:'help' }}>
+                <div style={{ flex:1, padding:'10px 14px', background:'#e6f7ff', border:'1px solid #91d5ff', borderRadius:2 }}>
                   <div style={{ fontSize:11, color:'rgba(0,0,0,0.65)', fontWeight:500, marginBottom:4 }}>Capital comprometido</div>
                   <div style={{ fontSize:18, fontWeight:700, color:'#1890FF' }}>R$ 140.000,00</div>
                   <div style={{ fontSize:11, color:'rgba(0,0,0,0.45)' }}>Antecipações em aberto</div>
                 </div>
               </Tooltip>
               <Tooltip text="Posição líquida = Float - Capital comprometido. Se negativa, capital está alocado em antecipações (estratégia de receita)." delay={1000} bare style={{ flex:1, display:'flex' }}>
-                <div style={{ flex:1, padding:'10px 14px', background:'#fff7e6', border:'1px solid #ffd591', borderRadius:2, cursor:'help' }}>
+                <div style={{ flex:1, padding:'10px 14px', background:'#fff7e6', border:'1px solid #ffd591', borderRadius:2 }}>
                   <div style={{ fontSize:11, color:'rgba(0,0,0,0.65)', fontWeight:500, marginBottom:4 }}>Posição líquida</div>
                   <div style={{ fontSize:18, fontWeight:700, color:'#fa8c16' }}>−R$ 61.672,00</div>
                   <div style={{ fontSize:11, color:'rgba(0,0,0,0.45)' }}>Capital alocado em antecipações</div>

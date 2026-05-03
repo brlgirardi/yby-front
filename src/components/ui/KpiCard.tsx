@@ -1,6 +1,6 @@
 'use client'
 
-import { Tooltip } from 'antd'
+import Tooltip from '@/components/shared/Tooltip'
 import Icon from '@/components/shared/Icon'
 
 export type KpiVariant = 'info' | 'orange' | 'error' | 'success' | 'warning' | 'neutral'
@@ -63,8 +63,8 @@ export default function KpiCard({
           {label}
         </span>
         {tooltip && (
-          <Tooltip title={tooltip} overlayStyle={{ maxWidth: 220 }} color="#1f1f1f">
-            <span style={{ display: 'flex', alignItems: 'center', cursor: 'help' }}>
+          <Tooltip text={tooltip} delay={1000} bare>
+            <span style={{ display: 'flex', alignItems: 'center' }}>
               <Icon name="info" size={13} color="rgba(0,0,0,0.45)" />
             </span>
           </Tooltip>

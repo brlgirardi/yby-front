@@ -1,7 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Table, Tag, Tooltip } from 'antd'
+import { Table } from 'antd'
+import Tooltip from '@/components/shared/Tooltip'
+import Tag from '@/components/shared/Tag'
 import { Info, ChevronDown, ChevronUp } from 'lucide-react'
 import KpiCard from '@/components/ui/KpiCard'
 
@@ -31,7 +33,7 @@ const columns = [
   { title: 'Juros recebidos', dataIndex: 'juros', key: 'juros', align: 'right' as const, render: (v: string) => <span className="text-[#52C41A]">{v}</span> },
   { title: 'Vencimento', dataIndex: 'vencimento', key: 'vencimento' },
   { title: 'A recuperar', dataIndex: 'aRecuperar', key: 'aRecuperar', align: 'right' as const, render: (v: string) => <span className="font-semibold">{v}</span> },
-  { title: 'Status', dataIndex: 'status', key: 'status', render: (v: string) => <Tag color={v === 'Recuperado' ? 'success' : 'warning'}>{v}</Tag> },
+  { title: 'Status', dataIndex: 'status', key: 'status', render: (v: string) => <Tag status={v} /> },
 ]
 
 const recoveryColumns = [
@@ -93,7 +95,7 @@ export default function AgendaAdvances() {
             <span className="text-sm font-medium" style={{ color: 'rgba(0,0,0,0.85)' }}>
               Fluxo de recuperação — parcelas a receber dos adquirentes
             </span>
-            <Tooltip title="Mostra quais parcelas futuras, já oneradas, vão abater as antecipações concedidas. Reflete o que aparece como 'Antecipações concedidas' no detalhe de cada dia do calendário." color="#1f1f1f">
+            <Tooltip text="Mostra quais parcelas futuras, já oneradas, vão abater as antecipações concedidas. Reflete o que aparece como 'Antecipações concedidas' no detalhe de cada dia do calendário." delay={1000} bare>
               <Info size={14} style={{ color: 'rgba(0,0,0,0.45)' }} />
             </Tooltip>
           </div>

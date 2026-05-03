@@ -11,11 +11,11 @@ const NAV = [
     sub: [{ label: 'Lista de merchants', screen: 'merchants' }, { label: 'Novo merchant', screen: 'merchants' }] },
   { key: 'transactions', icon: 'receipt', label: 'Transações', screen: 'transactions' },
   { key: 'agenda', icon: 'calendar', label: 'Agenda', screen: 'agenda' },
-  { key: 'financial', icon: 'landmark', label: 'Financeiro', screen: 'financial',
+  { key: 'financial', icon: 'landmark', label: 'Financeiro', screen: 'financial', badge: { count: 1, tone: 'error' as const },
     sub: [
       { label: 'Liquidações',       screen: 'financial', tab: 'liquidacoes'  },
       { label: 'Repasses para ECs', screen: 'financial', tab: 'repasses'     },
-      { label: 'Arquivos',          screen: 'financial', tab: 'arquivos'     },
+      { label: 'Arquivos',          screen: 'financial', tab: 'arquivos', badge: { count: 1, tone: 'error' as const } },
       { label: 'Antecipações',      screen: 'financial', tab: 'antecipacoes' },
       { label: 'DRE Operacional',   screen: 'financial', tab: 'dre'          },
     ] },
@@ -67,6 +67,18 @@ export default function Sidebar() {
                 {sidebarOpen && (
                   <>
                     <span style={{ flex:1, fontSize:13, fontWeight:isActive||isHovered?500:400 }}>{item.label}</span>
+                    {(item as { badge?: { count: number; tone: 'error'|'warning' } }).badge && (() => {
+                      const b = (item as { badge: { count: number; tone: 'error'|'warning' } }).badge
+                      return (
+                        <span style={{
+                          fontSize:10, fontWeight:700,
+                          color:'#fff',
+                          background: b.tone === 'error' ? '#ff4d4f' : '#fa8c16',
+                          borderRadius:8, padding:'1px 6px', marginRight:4,
+                          minWidth:16, textAlign:'center',
+                        }}>{b.count}</span>
+                      )
+                    })()}
                     {item.sub && <Icon name={isExp?'chevronUp':'chevronDown'} size={12} color="rgba(0,0,0,0.35)" />}
                   </>
                 )}
@@ -88,7 +100,18 @@ export default function Sidebar() {
                     }}
                     onMouseEnter={() => setHoveredSubKey(subKey)}
                     onMouseLeave={() => setHoveredSubKey(null)}>
-                    {s.label}
+                    <span style={{ flex:1 }}>{s.label}</span>
+                    {(s as { badge?: { count: number; tone: 'error'|'warning' } }).badge && (() => {
+                      const b = (s as { badge: { count: number; tone: 'error'|'warning' } }).badge
+                      return (
+                        <span style={{
+                          fontSize:10, fontWeight:700, color:'#fff',
+                          background: b.tone === 'error' ? '#ff4d4f' : '#fa8c16',
+                          borderRadius:8, padding:'1px 6px', marginRight:12,
+                          minWidth:16, textAlign:'center',
+                        }}>{b.count}</span>
+                      )
+                    })()}
                   </div>
                 )
               })}

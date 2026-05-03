@@ -7,6 +7,7 @@ import { useNavStore } from '@/store/nav.store'
 import DataTable, { type ColumnType, PERIOD_OPTIONS } from '@/components/ui/DataTable'
 import Tag from '@/components/shared/Tag'
 import Tooltip from '@/components/shared/Tooltip'
+import Sparkline from '@/components/shared/Sparkline'
 import BrandLogo from '@/components/shared/BrandLogo'
 
 const fmt = (v: number) => 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -195,6 +196,106 @@ const DrawerLiquidacaoDetalhes = ({ open, onClose, liq }: { open: boolean; onClo
           ))}
         </div>
       </div>
+    </Drawer>
+  )
+}
+
+/* Timeline de processamento Núclea — drawer detalhe do arquivo */
+const DrawerArquivoTimeline = ({ open, onClose, arq }: { open: boolean; onClose: () => void; arq: ArquivoRow | null }) => {
+  if (!arq) return null
+  type StepState = 'done' | 'current' | 'pending' | 'error'
+  type Step = { label: string; sub: string; state: StepState }
+  const steps: Step[] = arq.statusNuclea === 'Publicado'
+    ? [
+        { label:'Arquivo enviado',      sub:`Upload concluído — ${arq.enviado}`, state:'done' },
+        { label:'Validação de formato', sub:'Estrutura e colunas validadas',     state:'done' },
+        { label:'Processamento Núclea', sub:`${arq.transacoes} transações registradas`, state:'done' },
+        { label:'Publicação',           sub:'Recebíveis disponíveis para liquidação',   state:'done' },
+      ]
+    : arq.statusNuclea === 'Em processamento'
+    ? [
+        { label:'Arquivo enviado',      sub:`Upload concluído — ${arq.enviado}`, state:'done' },
+        { label:'Validação de formato', sub:'Estrutura e colunas validadas',     state:'done' },
+        { label:'Processamento Núclea', sub:'Em andamento — geralmente até 24h', state:'current' },
+        { label:'Publicação',           sub:'Recebíveis serão registrados após processamento', state:'pending' },
+      ]
+    : [
+        { label:'Arquivo enviado',      sub:`Upload concluído — ${arq.enviado}`, state:'done' },
+        { label:'Validação de formato', sub: arq.erro || 'Erro de validação',    state:'error' },
+        { label:'Processamento Núclea', sub:'Aguardando reenvio do arquivo',     state:'pending' },
+        { label:'Publicação',           sub:'Pendente',                          state:'pending' },
+      ]
+
+  const stateMeta: Record<StepState, { color: string; bg: string; icon: string }> = {
+    done:    { color:'#52c41a', bg:'#f6ffed', icon:'checkCircle' },
+    current: { color:'#1890FF', bg:'#e6f7ff', icon:'info' },
+    pending: { color:'rgba(0,0,0,0.25)', bg:'#fafafa', icon:'info' },
+    error:   { color:'#ff4d4f', bg:'#fff1f0', icon:'alertTriangle' },
+  }
+
+  return (
+    <Drawer open={open} onClose={onClose} title="Detalhes do arquivo Núclea" width={520}
+      footer={arq.statusNuclea === 'Reprovado' ? (
+        <button style={{ flex:1, border:'none', background:'#1890FF', color:'#fff', borderRadius:2, padding:'8px 0', fontSize:13, cursor:'pointer', fontWeight:500 }}>Reenviar arquivo</button>
+      ) : (
+        <button onClick={onClose} style={{ flex:1, border:'1px solid #d9d9d9', background:'#fff', borderRadius:2, padding:'8px 0', fontSize:13, cursor:'pointer', color:'rgba(0,0,0,0.65)' }}>Fechar</button>
+      )}>
+      {/* Cabeçalho do arquivo */}
+      <div style={{ background:'#fafafa', borderRadius:2, padding:'12px 14px', marginBottom:20 }}>
+        <div style={{ fontFamily:'Roboto Mono', fontSize:12, color:'rgba(0,0,0,0.85)', fontWeight:500, marginBottom:6 }}>{arq.arquivo}</div>
+        <div style={{ display:'flex', gap:14, fontSize:11, color:'rgba(0,0,0,0.55)' }}>
+          <span><strong>Adquirente:</strong> {arq.adq}</span>
+          <span><strong>Registradora:</strong> {arq.registradora}</span>
+          <span><strong>Transações:</strong> {arq.transacoes}</span>
+        </div>
+      </div>
+
+      <div style={{ fontSize:11, fontWeight:600, color:'rgba(0,0,0,0.45)', textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:16 }}>
+        Linha do tempo
+      </div>
+
+      {/* Steps verticais */}
+      <div style={{ position:'relative' }}>
+        {steps.map((s, i) => {
+          const meta = stateMeta[s.state]
+          const isLast = i === steps.length - 1
+          return (
+            <div key={i} style={{ display:'flex', gap:14, paddingBottom: isLast ? 0 : 16, position:'relative' }}>
+              {/* Bolinha + linha conectora */}
+              <div style={{ display:'flex', flexDirection:'column', alignItems:'center', flexShrink:0 }}>
+                <div style={{
+                  width:28, height:28, borderRadius:'50%',
+                  background: meta.bg, border:`2px solid ${meta.color}`,
+                  display:'flex', alignItems:'center', justifyContent:'center',
+                  color: meta.color, flexShrink:0,
+                  ...(s.state === 'current' ? { animation:'pulse 1.5s ease-in-out infinite' } : {}),
+                }}>
+                  <Icon name={meta.icon} size={14} color={meta.color} />
+                </div>
+                {!isLast && (
+                  <div style={{
+                    width:2, flex:1, marginTop:4, marginBottom:-12,
+                    background: s.state === 'done' ? '#52c41a' : '#f0f0f0',
+                    minHeight:24,
+                  }} />
+                )}
+              </div>
+              {/* Conteúdo */}
+              <div style={{ flex:1, paddingTop:3 }}>
+                <div style={{ fontSize:13, fontWeight:600, color: s.state === 'pending' ? 'rgba(0,0,0,0.35)' : 'rgba(0,0,0,0.85)' }}>{s.label}</div>
+                <div style={{ fontSize:11, color: s.state === 'error' ? '#ff4d4f' : 'rgba(0,0,0,0.55)', marginTop:2, lineHeight:'16px' }}>{s.sub}</div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {arq.statusNuclea === 'Reprovado' && (
+        <div style={{ marginTop:20, background:'#fff1f0', border:'1px solid #ffa39e', borderRadius:2, padding:'10px 14px', fontSize:12, color:'rgba(0,0,0,0.65)', display:'flex', gap:10, alignItems:'flex-start' }}>
+          <Icon name="alertTriangle" size={14} color="#ff4d4f" />
+          <span><strong>Como corrigir:</strong> verifique o erro acima, ajuste o CSV e reenvie. O lote anterior será descartado.</span>
+        </div>
+      )}
     </Drawer>
   )
 }
@@ -534,6 +635,7 @@ export default function FinancialPage() {
   const [drawerLiq, setDrawerLiq] = useState<LiqEvento | null>(null)
   const [drawerSim, setDrawerSim] = useState(false)
   const [drawerImport, setDrawerImport] = useState(false)
+  const [drawerArquivo, setDrawerArquivo] = useState<ArquivoRow | null>(null)
   const [dismissed, setDismissed] = useState<Set<string>>(new Set())
   const [liqStatusFilter, setLiqStatusFilter] = useState<string>('todos')
   const [liqViewMode, setLiqViewMode] = useState<'lote'|'parcela'>('lote')
@@ -553,13 +655,16 @@ export default function FinancialPage() {
     delta?: { value: string; positive?: boolean };
     /** Status que filtra a tabela ao clicar (Liquidações + Arquivos) */
     filterStatus?: string;
+    /** Série de valores (últimos 30 dias) para sparkline */
+    trend?: number[];
   }
 
   const KPI_FIN: Record<string, Array<KpiCard>> = {
     liquidacoes: [
       { label:'Liquidado no mês', value:'R$ 492.337,00', bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'Créditos confirmados pelos adquirentes',
         tip:'Total já liquidado pelos adquirentes este mês. Dinheiro creditado na conta do sub. Clique para filtrar a tabela.',
-        delta:{ value:'+8% vs mar/26', positive:true }, filterStatus:'Liquidado' },
+        delta:{ value:'+8% vs mar/26', positive:true }, filterStatus:'Liquidado',
+        trend:[420,440,415,460,438,470,455,490,478,492] },
       { label:'Em processamento', value:'R$ 232.703,00', bg:'#e6f7ff', border:'#91d5ff', color:'#1890FF', sub:'Aguardando publicação na Núclea',
         tip:'Recebíveis enviados para a Núclea aguardando confirmação de publicação. Após publicação, o adquirente liquida na conta do sub.',
         filterStatus:'Em processamento' },
@@ -570,12 +675,14 @@ export default function FinancialPage() {
         tip:'Crédito existente mas bloqueado por trava de antecipação (gravame). Vai liquidar normalmente, porém para o FIDC/banco que comprou o recebível, não para o sub.' },
       { label:'MDR pago no mês', value:'R$ 23.040,00', bg:'#fff1f0', border:'#ffa39e', color:'#ff4d4f', sub:'Taxa descontada pelos adquirentes',
         tip:'Total de MDR (Merchant Discount Rate) pago aos adquirentes este mês. É o custo de processamento.',
-        delta:{ value:'+5% vs mar/26', positive:false } },
+        delta:{ value:'+5% vs mar/26', positive:false },
+        trend:[19,20,18,21,20,22,21,22,23,23] },
     ],
     repasses: [
       { label:'Repassado no mês', value:'R$ 8.861.834,00', bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'Transferido às contas dos merchants',
         tip:'Total já transferido para as contas dos ECs (merchants) este mês.',
-        delta:{ value:'+12% vs mar/26', positive:true } },
+        delta:{ value:'+12% vs mar/26', positive:true },
+        trend:[7800,7900,8050,8100,8230,8400,8500,8650,8780,8862] },
       { label:'Pendente de repasse', value:'R$ 1.054.390,00', bg:'#fffbe6', border:'#ffe58f', color:'#faad14', sub:'Agendado para os próximos dias',
         tip:'Valor já liquidado pelos adquirentes que ainda será transferido aos ECs nos próximos dias.' },
       { label:'MDR retido (receita)', value:'R$ 291.309,00', bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'Spread cobrado dos merchants no mês',
@@ -607,20 +714,24 @@ export default function FinancialPage() {
         tip:'Taxa média cobrada dos merchants pelas antecipações. Compare com a taxa de mercado (~3% a.m.) para avaliar competitividade.' },
       { label:'Juros recebidos (receita)', value:'R$ 2.105,00', bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'Receita gerada pelas antecipações concedidas',
         tip:'Juros já cobrados dos ECs nas antecipações concluídas. Receita financeira do sub.',
-        delta:{ value:'+18% vs mar/26', positive:true } },
+        delta:{ value:'+18% vs mar/26', positive:true },
+        trend:[1.4,1.5,1.6,1.7,1.7,1.8,1.9,2.0,2.05,2.1] },
       { label:'Recebíveis livres (elegível)', value:'R$ 670.338,00', bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'Parcelas sem oneração — base para novas antecipações',
         tip:'Recebíveis futuros sem trava ou gravame. Base disponível para novas operações de antecipação.' },
     ],
     dre: [
       { label:'Margem operacional', value:'R$ 14.392,00', bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'32,6% sobre receita bruta',
         tip:'Receita bruta menos custos com adquirentes. Margem operacional do sub no período.',
-        delta:{ value:'+15% vs mar/26', positive:true } },
+        delta:{ value:'+15% vs mar/26', positive:true },
+        trend:[10,11,11.5,12,12.4,12.8,13.2,13.6,14,14.4] },
       { label:'Receita bruta', value:'R$ 44.164,00', bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'MDR cobrado + juros de antecipações',
         tip:'Soma da receita do mês: MDR cobrado dos ECs + juros das antecipações concedidas.',
-        delta:{ value:'+9% vs mar/26', positive:true } },
+        delta:{ value:'+9% vs mar/26', positive:true },
+        trend:[38,39,40,41,41.5,42,42.5,43,43.5,44.2] },
       { label:'Custo com adquirentes', value:'R$ 29.772,00', bg:'#fff1f0', border:'#ffa39e', color:'#ff4d4f', sub:'MDR pago + tarifas operacionais',
         tip:'Total pago aos adquirentes (MDR + tarifas). Custo direto da operação.',
-        delta:{ value:'+4% vs mar/26', positive:false } },
+        delta:{ value:'+4% vs mar/26', positive:false },
+        trend:[27,27.5,28,28.5,28.8,29,29.2,29.5,29.6,29.77] },
     ],
   }
 
@@ -686,7 +797,12 @@ export default function FinancialPage() {
                   </span>
                 )}
               </div>
-              <div style={{ fontSize:20, fontWeight:700, color:k.color, marginBottom:4 }}>{k.value}</div>
+              <div style={{ display:'flex', alignItems:'flex-end', justifyContent:'space-between', gap:8, marginBottom:4 }}>
+                <span style={{ fontSize:20, fontWeight:700, color:k.color, lineHeight:1.1 }}>{k.value}</span>
+                {k.trend && k.trend.length > 1 && (
+                  <Sparkline data={k.trend} color={k.color} width={64} height={20} />
+                )}
+              </div>
               <div style={{ display:'flex', alignItems:'center', gap:6, flexWrap:'wrap' }}>
                 <span style={{ fontSize:11, color:'rgba(0,0,0,0.45)' }}>{k.sub}</span>
                 {k.delta && (
@@ -1077,7 +1193,7 @@ export default function FinancialPage() {
             : <span style={{ color:'rgba(0,0,0,0.2)' }}>—</span> },
           { title:'Ações', key:'acoes', width:100, render: (_,r) => (
             <div style={{ display:'flex', gap:6 }}>
-              <button title="Ver detalhes" style={{ border:'none', background:'none', color:'rgba(0,0,0,0.35)', cursor:'pointer', padding:4, display:'flex', alignItems:'center', borderRadius:4 }} onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.color='#1890FF';(e.currentTarget as HTMLElement).style.background='#f5f5f5'}} onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.color='rgba(0,0,0,0.35)';(e.currentTarget as HTMLElement).style.background='none'}}>
+              <button onClick={()=>setDrawerArquivo(r)} title="Ver detalhes" style={{ border:'none', background:'none', color:'rgba(0,0,0,0.35)', cursor:'pointer', padding:4, display:'flex', alignItems:'center', borderRadius:4 }} onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.color='#1890FF';(e.currentTarget as HTMLElement).style.background='#f5f5f5'}} onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.color='rgba(0,0,0,0.35)';(e.currentTarget as HTMLElement).style.background='none'}}>
                 <Icon name="eye" size={14} color="currentColor" />
               </button>
               {r.statusNuclea === 'Reprovado' && (
@@ -1338,6 +1454,7 @@ export default function FinancialPage() {
       <DrawerLiquidacaoDetalhes open={!!drawerLiq} onClose={()=>setDrawerLiq(null)} liq={drawerLiq} />
       <DrawerSimulacaoAntecipacao open={drawerSim} onClose={()=>setDrawerSim(false)} />
       <DrawerImportarLiquidacao open={drawerImport} onClose={()=>setDrawerImport(false)} />
+      <DrawerArquivoTimeline open={!!drawerArquivo} onClose={()=>setDrawerArquivo(null)} arq={drawerArquivo} />
     </div>
   )
 }

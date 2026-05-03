@@ -565,15 +565,6 @@ export default function FinancialPage() {
       {/* ── LIQUIDAÇÕES TAB ── */}
       {tab==='liquidacoes' && (
         <div style={{ padding:24, display:'flex', flexDirection:'column', gap:16 }}>
-          {/* Banner Liquidação Centralizada */}
-          <div style={{ background:'#e6f7ff', border:'1px solid #91d5ff', borderRadius:2, padding:'10px 16px', display:'flex', gap:10, alignItems:'flex-start' }}>
-            <Icon name="info" size={15} color="#1890FF" />
-            <div style={{ flex:1, fontSize:12, color:'rgba(0,0,0,0.65)', lineHeight:'18px' }}>
-              <strong>Liquidação Centralizada via Núclea.</strong> Os adquirentes creditam no domicílio bancário do sub-adquirente após publicação na registradora.
-              Gravame ativo: <strong>R$ 35.000,00</strong> em créditos travados como garantia de antecipações.
-            </div>
-          </div>
-
           {/* Filtros de status */}
           <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
             {(['todos','Liquidado','Parcialmente liquidado','Em processamento','Previsto','Crédito bloqueado'] as const).map(s => (

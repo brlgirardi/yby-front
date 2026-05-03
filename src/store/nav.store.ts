@@ -4,7 +4,7 @@ import { persist } from 'zustand/middleware'
 export type Screen =
   | 'dashboard'
   | 'merchants'
-  | 'charges'
+  | 'transactions'
   | 'agenda'
   | 'financial'
   | 'pricing'

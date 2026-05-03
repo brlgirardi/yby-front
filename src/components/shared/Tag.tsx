@@ -2,6 +2,7 @@
 
 export type TagVariant =
   | 'Aprovado'
+  | 'Aprovada'
   | 'Pago'
   | 'Liquidado'
   | 'Quitado'
@@ -11,7 +12,11 @@ export type TagVariant =
   | 'A recuperar'
   | 'Previsto'
   | 'Recusado'
+  | 'Recusada'
   | 'Cancelado'
+  | 'Cancelada'
+  | 'Estorno'
+  | 'Estornada'
   | 'Em análise'
   | 'Ativo'
   | 'Suspenso'
@@ -26,6 +31,7 @@ type IconType = 'check' | 'info' | 'x' | 'minus' | 'alert'
 const STATUS_MAP: Record<string, { bg: string; color: string; border: string; icon: IconType }> = {
   // Sucesso — Polar Green
   Aprovado:     { bg: '#F6FFED', color: '#237804', border: '#D9F7BE', icon: 'check' },
+  Aprovada:     { bg: '#F6FFED', color: '#237804', border: '#D9F7BE', icon: 'check' },
   Pago:         { bg: '#F6FFED', color: '#237804', border: '#D9F7BE', icon: 'check' },
   Ativo:        { bg: '#F6FFED', color: '#237804', border: '#D9F7BE', icon: 'check' },
   Liquidado:    { bg: '#F6FFED', color: '#237804', border: '#D9F7BE', icon: 'check' },
@@ -41,11 +47,15 @@ const STATUS_MAP: Record<string, { bg: string; color: string; border: string; ic
 
   // Erro — Dust Red
   Recusado:     { bg: '#FFF1F0', color: '#820014', border: '#FFCCC7', icon: 'x'     },
+  Recusada:     { bg: '#FFF1F0', color: '#820014', border: '#FFCCC7', icon: 'x'     },
   Chargeback:   { bg: '#FFF1F0', color: '#820014', border: '#FFCCC7', icon: 'x'     },
   Erro:         { bg: '#FFF1F0', color: '#820014', border: '#FFCCC7', icon: 'x'     },
 
   // Neutro
   Cancelado:    { bg: '#F5F5F5', color: 'rgba(0,0,0,0.45)', border: '#D9D9D9', icon: 'minus' },
+  Cancelada:    { bg: '#F5F5F5', color: 'rgba(0,0,0,0.45)', border: '#D9D9D9', icon: 'minus' },
+  Estorno:      { bg: '#FFF7E6', color: '#874D00', border: '#FFD591', icon: 'alert' },
+  Estornada:    { bg: '#FFF7E6', color: '#874D00', border: '#FFD591', icon: 'alert' },
   Inativo:      { bg: '#F5F5F5', color: 'rgba(0,0,0,0.45)', border: '#D9D9D9', icon: 'minus' },
 
   // Info — DayBreak Blue

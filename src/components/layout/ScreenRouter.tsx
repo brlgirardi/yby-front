@@ -7,7 +7,7 @@ import { useNavStore, type Screen } from '@/store/nav.store'
 const SCREEN_ROUTES: Record<Screen, string> = {
   dashboard: '/dashboard',
   merchants: '/merchants',
-  charges: '/charges',
+  transactions: '/transactions',
   agenda: '/agenda',
   financial: '/financial',
   pricing: '/pricing',

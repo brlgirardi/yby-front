@@ -9,7 +9,7 @@ const NAV = [
   { key: 'dashboard', icon: 'dashboard', label: 'Dashboard', screen: 'dashboard' },
   { key: 'merchants', icon: 'users', label: 'Merchants', screen: 'merchants',
     sub: [{ label: 'Lista de merchants', screen: 'merchants' }, { label: 'Novo merchant', screen: 'merchants' }] },
-  { key: 'charges', icon: 'receipt', label: 'Cobranças', screen: 'charges' },
+  { key: 'transactions', icon: 'receipt', label: 'Transações', screen: 'transactions' },
   { key: 'agenda', icon: 'calendar', label: 'Agenda', screen: 'agenda' },
   { key: 'financial', icon: 'landmark', label: 'Financeiro', screen: 'financial',
     sub: [

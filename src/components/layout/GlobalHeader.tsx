@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react'
 import Icon from '@/components/shared/Icon'
+import Badge from '@/components/shared/Badge'
 import { useNavStore } from '@/store/nav.store'
 import ChangelogModal from './ChangelogModal'
 
@@ -123,10 +124,11 @@ export default function GlobalHeader() {
         </div>
 
         {/* Bell */}
-        <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', position: 'relative' }}>
-          <Icon name="bell" size={18} />
-          <span style={{ position: 'absolute', top: -4, right: -4, background: '#ff4d4f', borderRadius: 99, width: 14, height: 14, fontSize: 10, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>5</span>
-        </button>
+        <Badge count={5}>
+          <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center' }}>
+            <Icon name="bell" size={18} />
+          </button>
+        </Badge>
 
         {/* User */}
         <div

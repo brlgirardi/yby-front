@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Icon from '@/components/shared/Icon'
+import Badge from '@/components/shared/Badge'
 import { useNavStore, type Screen, type AgendaTab, type FinancialTab } from '@/store/nav.store'
 import { useRouter } from 'next/navigation'
 
@@ -70,13 +71,9 @@ export default function Sidebar() {
                     {(item as { badge?: { count: number; tone: 'error'|'warning' } }).badge && (() => {
                       const b = (item as { badge: { count: number; tone: 'error'|'warning' } }).badge
                       return (
-                        <span style={{
-                          fontSize:10, fontWeight:700,
-                          color:'#fff',
-                          background: b.tone === 'error' ? '#ff4d4f' : '#fa8c16',
-                          borderRadius:8, padding:'1px 6px', marginRight:4,
-                          minWidth:16, textAlign:'center',
-                        }}>{b.count}</span>
+                        <span style={{ marginRight:4, display:'inline-flex' }}>
+                          <Badge count={b.count} color={b.tone === 'error' ? '#FF4D4F' : '#FA8C16'} />
+                        </span>
                       )
                     })()}
                     {item.sub && <Icon name={isExp?'chevronUp':'chevronDown'} size={12} color="rgba(0,0,0,0.35)" />}
@@ -104,12 +101,9 @@ export default function Sidebar() {
                     {(s as { badge?: { count: number; tone: 'error'|'warning' } }).badge && (() => {
                       const b = (s as { badge: { count: number; tone: 'error'|'warning' } }).badge
                       return (
-                        <span style={{
-                          fontSize:10, fontWeight:700, color:'#fff',
-                          background: b.tone === 'error' ? '#ff4d4f' : '#fa8c16',
-                          borderRadius:8, padding:'1px 6px', marginRight:12,
-                          minWidth:16, textAlign:'center',
-                        }}>{b.count}</span>
+                        <span style={{ marginRight:12, display:'inline-flex' }}>
+                          <Badge count={b.count} color={b.tone === 'error' ? '#FF4D4F' : '#FA8C16'} />
+                        </span>
                       )
                     })()}
                   </div>

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Space, Typography } from 'antd'
-import { CaretDownOutlined, CaretUpOutlined, ClockCircleOutlined } from '@ant-design/icons'
+import { ChevronDown, ChevronUp, Clock } from 'lucide-react'
 import BrandLogo from '@/components/shared/BrandLogo'
 import type { CardBrand, CostBlueprintTable, Installment, PricingModel } from '@/services/types/pricing.types'
 import BrandSection from './BrandSection'
@@ -50,12 +50,12 @@ export default function AcquirerSection({
 
         <Space size={8} align="center">
           <Space size={4} align="center">
-            <ClockCircleOutlined style={{ fontSize: 12, color: '#888' }} />
+            <Clock size={12} color="#888" />
             <Text style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>
               Atualizado em {table ? formatDate(table.updated_at) : '—'}
             </Text>
           </Space>
-          {open ? <CaretUpOutlined style={{ fontSize: 16, color: '#666' }} /> : <CaretDownOutlined style={{ fontSize: 16, color: '#666' }} />}
+          {open ? <ChevronUp size={16} color="#666" /> : <ChevronDown size={16} color="#666" />}
         </Space>
       </div>
 

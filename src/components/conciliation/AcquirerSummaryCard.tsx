@@ -1,7 +1,7 @@
 'use client'
 
 import { Card, Col, Row } from 'antd'
-import { RightOutlined } from '@ant-design/icons'
+import { ChevronRight } from 'lucide-react'
 import BrandLogo from '@/components/shared/BrandLogo'
 import { formatCurrency } from '@/lib/conciliation/formatters'
 import type { BrandData } from '@/services/types/acquirerSummary.types'
@@ -73,7 +73,7 @@ export default function AcquirerSummaryCard({ brand, onClick }: AcquirerSummaryC
         </Col>
 
         <Col flex="32px" style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
-          {clickable && <RightOutlined style={{ color: 'rgba(0,0,0,0.45)' }} />}
+          {clickable && <ChevronRight size={14} color="rgba(0,0,0,0.45)" />}
         </Col>
       </Row>
     </Card>

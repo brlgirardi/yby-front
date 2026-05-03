@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Space, Switch, Typography } from 'antd'
-import { CaretDownOutlined, CaretUpOutlined } from '@ant-design/icons'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 import BrandLogo from '@/components/shared/BrandLogo'
 import { MCC_GROUPS, type MCC, type MCCGroup } from '@/lib/pricing/mccGroups'
 import type { CardBrand, Installment, PricingModel } from '@/services/types/pricing.types'
@@ -69,7 +69,7 @@ export default function BrandSection({
             />
             <Text style={{ fontSize: 12 }}>Custo único por bandeira</Text>
           </Space>
-          {open ? <CaretUpOutlined style={{ fontSize: 16, color: '#666' }} /> : <CaretDownOutlined style={{ fontSize: 16, color: '#666' }} />}
+          {open ? <ChevronUp size={16} color="#666" /> : <ChevronDown size={16} color="#666" />}
         </Space>
       </div>
 
@@ -133,7 +133,7 @@ function MccGroupBlock({ group, previousRows, installments }: MccGroupBlockProps
             <Text style={{ fontSize: 12, color: '#aaa' }}>MCCs: {mccSummary}</Text>
           </div>
         </div>
-        {open ? <CaretUpOutlined style={{ fontSize: 14, color: '#666' }} /> : <CaretDownOutlined style={{ fontSize: 14, color: '#666' }} />}
+        {open ? <ChevronUp size={14} color="#666" /> : <ChevronDown size={14} color="#666" />}
       </div>
 
       {open && (
@@ -189,7 +189,7 @@ function MccIndividualBlock({ mcc, previousRows, installments }: { mcc: MCC; pre
           <span style={{ fontWeight: 600 }}>{mcc.code}</span>
           <span style={{ color: '#888', marginLeft: 8 }}>— {mcc.description}</span>
         </Text>
-        {open ? <CaretUpOutlined style={{ fontSize: 14, color: '#666' }} /> : <CaretDownOutlined style={{ fontSize: 14, color: '#666' }} />}
+        {open ? <ChevronUp size={14} color="#666" /> : <ChevronDown size={14} color="#666" />}
       </div>
 
       {open && (

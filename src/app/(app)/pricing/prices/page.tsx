@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { App, Button, Spin, Typography } from 'antd'
-import { ArrowLeftOutlined, InboxOutlined } from '@ant-design/icons'
+import { ArrowLeft, Inbox } from 'lucide-react'
 import { useRouter, usePathname } from 'next/navigation'
 import PageHeader from '@/components/shared/PageHeader'
 import ChannelPriceSection, { CHANNELS } from '@/components/pricing/ChannelPriceSection'
@@ -62,7 +62,7 @@ function PricesPageInner() {
             <Button type="primary" loading={saving} onClick={handleSave} style={{ borderRadius: 0, background: '#1890FF', borderColor: '#1890FF' }}>Salvar</Button>
           </>
         ) : (
-          <Button type="text" icon={<ArrowLeftOutlined />} onClick={() => router.back()} />
+          <Button type="text" icon={<ArrowLeft size={16} />} onClick={() => router.back()} />
         )}
       />
 
@@ -75,7 +75,7 @@ function PricesPageInner() {
 
         {showEmpty && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 0' }}>
-            <InboxOutlined style={{ fontSize: 48, color: '#d9d9d9', marginBottom: 16 }} />
+            <Inbox size={48} color="#d9d9d9" style={{ marginBottom: 16 }} />
             <Text style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16 }}>
               Configure os custos primeiro para definir preços.
             </Text>

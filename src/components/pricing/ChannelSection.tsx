@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Space, Typography } from 'antd'
-import { CaretDownOutlined, CaretUpOutlined, CreditCardOutlined, ShoppingCartOutlined } from '@ant-design/icons'
+import { ChevronDown, ChevronUp, CreditCard, ShoppingCart } from 'lucide-react'
 import type { CardBrand, Channel, CostBlueprintTable, Installment, PricingModel } from '@/services/types/pricing.types'
 import AcquirerSection from './AcquirerSection'
 import type { CostRow } from './MethodTable'
@@ -23,7 +23,7 @@ export const CHANNELS: ChannelDef[] = [
     description: (
       <>Esse canal habilita transações em <strong>Maquininhas — POS</strong> e TEF — <strong>Transferência Eletrônica de Fundos</strong></>
     ),
-    icon: <CreditCardOutlined style={{ fontSize: 20, color: '#1677ff' }} />,
+    icon: <CreditCard size={20} color="#1677ff" />,
   },
   {
     id: 'cnp',
@@ -31,7 +31,7 @@ export const CHANNELS: ChannelDef[] = [
     description: (
       <>Esse canal habilita <strong>Link de pagamentos</strong> e <strong>Gateway para ecommerce</strong></>
     ),
-    icon: <ShoppingCartOutlined style={{ fontSize: 20, color: '#1677ff' }} />,
+    icon: <ShoppingCart size={20} color="#1677ff" />,
   },
 ]
 
@@ -84,7 +84,7 @@ export default function ChannelSection({
             </Text>
           </div>
         </Space>
-        {open ? <CaretUpOutlined style={{ fontSize: 16, color: '#999' }} /> : <CaretDownOutlined style={{ fontSize: 16, color: '#999' }} />}
+        {open ? <ChevronUp size={16} color="#999" /> : <ChevronDown size={16} color="#999" />}
       </div>
 
       {open && (

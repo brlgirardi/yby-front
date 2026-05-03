@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { Button, InputNumber, Radio, Select, Space, Switch, Table, Typography } from 'antd'
-import { DeleteOutlined, PlusOutlined } from '@ant-design/icons'
+import { Trash2, Plus } from 'lucide-react'
 import type { Installment, PricingModel } from '@/services/types/pricing.types'
 
 const { Text } = Typography
@@ -254,7 +254,7 @@ export default function MethodTable({
       render: (_: unknown, record: CostRow) => (
         <Button
           size="small" type="text"
-          icon={<DeleteOutlined style={{ color: rows.length <= 1 ? '#d9d9d9' : '#000' }} />}
+          icon={<Trash2 size={14} color={rows.length <= 1 ? '#d9d9d9' : '#000'} />}
           style={{ background: '#f5f5f5', border: 'none', width: 28, minWidth: 28, padding: 0 }}
           disabled={rows.length <= 1}
           onClick={() => onRowsChange(rows.filter(r => r.key !== record.key))}
@@ -291,7 +291,7 @@ export default function MethodTable({
 
       <div style={{ marginLeft: 12, display: 'flex', alignItems: 'center', gap: 16 }}>
         <Button
-          icon={<PlusOutlined />}
+          icon={<Plus size={14} />}
           style={{ borderRadius: 0, background: '#fff' }}
           onClick={handleAdd}
         >

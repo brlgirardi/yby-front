@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Space, Typography } from 'antd'
-import { CaretDownOutlined, CaretUpOutlined } from '@ant-design/icons'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 import type { CostItem, Installment, PriceBlueprintTable, PriceItem } from '@/services/types/pricing.types'
 import AcquirerPriceSection from './AcquirerPriceSection'
 import { CHANNELS, type ChannelDef } from './ChannelSection'
@@ -47,7 +47,7 @@ export default function ChannelPriceSection({
             </Text>
           </div>
         </Space>
-        {open ? <CaretUpOutlined style={{ fontSize: 16, color: '#999' }} /> : <CaretDownOutlined style={{ fontSize: 16, color: '#999' }} />}
+        {open ? <ChevronUp size={16} color="#999" /> : <ChevronDown size={16} color="#999" />}
       </div>
 
       {open && (

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, useRef } from 'react'
 import { App, Button, Modal, Spin, Typography } from 'antd'
-import { ArrowLeftOutlined, InboxOutlined, InfoCircleOutlined } from '@ant-design/icons'
+import { ArrowLeft, Inbox, Info as InfoIcon } from 'lucide-react'
 import { useRouter, usePathname } from 'next/navigation'
 import PageHeader from '@/components/shared/PageHeader'
 import ChannelSection, { CHANNELS } from '@/components/pricing/ChannelSection'
@@ -109,7 +109,7 @@ function CostsPageInner() {
             <Button type="primary" loading={saving} onClick={handleSave} style={{ borderRadius: 0, background: '#1890FF', borderColor: '#1890FF' }}>Salvar</Button>
           </>
         ) : (
-          <Button type="text" icon={<ArrowLeftOutlined />} onClick={() => router.back()} />
+          <Button type="text" icon={<ArrowLeft size={16} />} onClick={() => router.back()} />
         )}
       />
 
@@ -122,7 +122,7 @@ function CostsPageInner() {
 
         {showEmpty && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 0' }}>
-            <InboxOutlined style={{ fontSize: 48, color: '#d9d9d9', marginBottom: 16 }} />
+            <Inbox size={48} color="#d9d9d9" style={{ marginBottom: 16 }} />
             <Text style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16 }}>Nenhum custo configurado para este merchant.</Text>
             <Button type="primary" onClick={() => setConfiguring(true)} style={{ borderRadius: 0, background: '#1890FF', borderColor: '#1890FF' }}>
               Configurar custos
@@ -153,7 +153,7 @@ function CostsPageInner() {
         styles={{ body: { padding: '32px 24px 24px' } }}
       >
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-          <InfoCircleOutlined style={{ fontSize: 20, color: '#1677ff', flexShrink: 0, marginTop: 2 }} />
+          <InfoIcon size={20} color="#1677ff" style={{ flexShrink: 0, marginTop: 2 }} />
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <Text strong style={{ fontSize: 15 }}>Tabela sem informações</Text>
             <Text style={{ fontSize: 13, color: '#666' }}>

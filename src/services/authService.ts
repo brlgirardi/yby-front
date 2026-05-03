@@ -14,6 +14,9 @@ const MOCK_USER: User = {
   roles: ['admin', 'finance.read', 'reconciliation.read', 'pricing.read'],
 }
 
+/** ⚠️ MOCK ONLY — token fake usado apenas em modo demo (apiMode === 'mock').
+ *  NÃO é JWT válido. Em modo 'real', o token vem do POST /auth/login real
+ *  e fica em localStorage (auth-storage). Nenhum segredo aqui. */
 const MOCK_TOKEN = 'mock_jwt.eyJzdWIiOiJicnVub0B5YnkuY29tLmJyIiwicm9sZSI6ImFkbWluIn0.mock'
 
 export async function login(data: LoginRequest): Promise<LoginResponse> {

@@ -1,6 +1,6 @@
 'use client'
 
-import { CheckCircleOutlined, WarningOutlined } from '@ant-design/icons'
+import { CheckCircle2, AlertTriangle } from 'lucide-react'
 import { getReconciliationStatusLabel } from '@/lib/conciliation/statusUtils'
 
 export interface ConciliationBadgeProps {
@@ -20,7 +20,7 @@ export default function ConciliationBadge({ statusText, size = 'md' }: Conciliat
   const isReconciled = normalized === 'reconciled'
   const color = isReconciled ? '#237804' : '#874D00'
   const bg = isReconciled ? '#D9F7BE' : '#FFFFB8'
-  const Icon = isReconciled ? CheckCircleOutlined : WarningOutlined
+  const Icon = isReconciled ? CheckCircle2 : AlertTriangle
   const label = getReconciliationStatusLabel(statusText)
   const dim = size === 'md' ? { w: 128, h: 64 } : { w: 96, h: 48 }
 
@@ -44,7 +44,7 @@ export default function ConciliationBadge({ statusText, size = 'md' }: Conciliat
         textAlign: 'center',
       }}
     >
-      <Icon style={{ fontSize: 16, color }} />
+      <Icon size={16} color={color} />
       <span>{label}</span>
     </span>
   )

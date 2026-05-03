@@ -42,6 +42,29 @@ Acesse `http://localhost:3000`.
 
 ---
 
+## Modo demo vs API real
+
+O app tem **dois modos** controlados por env vars (ver `.env.example`):
+
+| Var | Default | Significado |
+|---|---|---|
+| `NEXT_PUBLIC_API_BASE_URL` | _vazio_ | URL base da API. Vazio → modo mock. |
+| `NEXT_PUBLIC_API_MODE` | `mock` | Força `mock` ou `real`. Sobrepõe a detecção automática. |
+| `NEXT_PUBLIC_READ_ONLY` | `true` | Bloqueia mutations (POST/PUT/DELETE) na camada de cliente. |
+
+**Modo mock (default)** — services em `src/services/*` retornam fixtures locais (`mockDelay` simula latência). Zero rede. Login aceita qualquer email + senha com 4+ caracteres. Banner amarelo no header avisa.
+
+**Modo real** — basta setar `NEXT_PUBLIC_API_BASE_URL=https://api.yby.com.br` e `NEXT_PUBLIC_API_MODE=real`. Os mesmos services chamam a API; o `apiClient.ts` injeta `Authorization: Bearer <token>` lendo do `auth-storage` localStorage.
+
+Endpoints reais espelhados do projeto Tupi `yby-ui`:
+- `POST /auth/login`
+- `GET /auth/me`
+- `GET /report/recon-summary`
+- `GET /report/recon-incoming-outgoing-by-group-code?consolidation_date_eq={date}`
+- `GET /report/recon-mismatch/{consolidationId}`
+
+---
+
 ## Storybook — Design System
 
 O Storybook é a **fonte de verdade do design system**. Todos os componentes compartilhados estão documentados lá com variantes, props e exemplos de uso.

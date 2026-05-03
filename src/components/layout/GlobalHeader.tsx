@@ -1,17 +1,35 @@
 'use client'
 
 import { useState, useRef, useCallback, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Icon from '@/components/shared/Icon'
 import Badge from '@/components/shared/Badge'
 import { useNavStore } from '@/store/nav.store'
+import { useAuthStore } from '@/store/auth.store'
+import { logout as apiLogout } from '@/services/authService'
 import ChangelogModal from './ChangelogModal'
 
 export default function GlobalHeader() {
+  const router = useRouter()
   const toggleSidebar = useNavStore((s) => s.toggleSidebar)
+  const user = useAuthStore((s) => s.user)
+  const clearAuth = useAuthStore((s) => s.clearAuth)
   const [searchOpen, setSearchOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [changelogOpen, setChangelogOpen] = useState(false)
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+  const userMenuRef = useRef<HTMLDivElement>(null)
+
+  const initials = (user?.name ?? 'Sub Adquirente')
+    .split(' ').filter(Boolean).slice(0, 2).map(p => p[0]?.toUpperCase()).join('')
+
+  const handleLogout = async () => {
+    setUserMenuOpen(false)
+    try { await apiLogout() } catch { /* ignore */ }
+    clearAuth()
+    router.replace('/login')
+  }
 
   const expand = () => {
     setSearchOpen(true)
@@ -31,10 +49,23 @@ export default function GlobalHeader() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && searchOpen) clear()
+      if (e.key === 'Escape' && userMenuOpen) setUserMenuOpen(false)
     }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
-  }, [searchOpen]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [searchOpen, userMenuOpen]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Click fora fecha o user menu
+  useEffect(() => {
+    if (!userMenuOpen) return
+    const onClick = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', onClick)
+    return () => document.removeEventListener('mousedown', onClick)
+  }, [userMenuOpen])
 
   return (
     <div style={{
@@ -131,13 +162,43 @@ export default function GlobalHeader() {
         </Badge>
 
         {/* User */}
-        <div
-          onClick={() => setChangelogOpen(true)}
-          style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}
-        >
-          <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#722ED1', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 11, fontWeight: 600 }}>SA</div>
-          <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.65)' }}>Sub Adquirente</span>
-          <Icon name="chevronDown" size={12} color="rgba(0,0,0,0.45)" />
+        <div ref={userMenuRef} style={{ position: 'relative' }}>
+          <div
+            onClick={() => setUserMenuOpen(o => !o)}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}
+          >
+            <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#722ED1', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 11, fontWeight: 600 }}>{initials || 'SA'}</div>
+            <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.65)' }}>{user?.name ?? 'Sub Adquirente'}</span>
+            <Icon name="chevronDown" size={12} color="rgba(0,0,0,0.45)" />
+          </div>
+
+          {userMenuOpen && (
+            <div style={{ position:'absolute', top:38, right:0, minWidth:220, background:'#fff', border:'1px solid #f0f0f0', borderRadius:2, boxShadow:'0 4px 12px rgba(0,0,0,0.12)', zIndex:120, padding:'6px 0' }}>
+              {user && (
+                <div style={{ padding:'8px 14px', borderBottom:'1px solid #f0f0f0' }}>
+                  <div style={{ fontSize:13, fontWeight:500, color:'rgba(0,0,0,0.85)' }}>{user.name}</div>
+                  <div style={{ fontSize:11, color:'rgba(0,0,0,0.45)' }}>{user.email}</div>
+                  {user.organization?.name && (
+                    <div style={{ fontSize:11, color:'rgba(0,0,0,0.45)', marginTop:2 }}>{user.organization.name}</div>
+                  )}
+                </div>
+              )}
+              <button onClick={() => { setUserMenuOpen(false); setChangelogOpen(true) }}
+                style={{ width:'100%', textAlign:'left', padding:'8px 14px', background:'none', border:'none', cursor:'pointer', fontSize:13, color:'rgba(0,0,0,0.85)', display:'flex', alignItems:'center', gap:8 }}
+                onMouseEnter={e=>(e.currentTarget as HTMLElement).style.background='#f5f5f5'}
+                onMouseLeave={e=>(e.currentTarget as HTMLElement).style.background='none'}>
+                <Icon name="info" size={14} color="rgba(0,0,0,0.45)" />
+                Novidades
+              </button>
+              <button onClick={handleLogout}
+                style={{ width:'100%', textAlign:'left', padding:'8px 14px', background:'none', border:'none', cursor:'pointer', fontSize:13, color:'rgba(0,0,0,0.85)', display:'flex', alignItems:'center', gap:8 }}
+                onMouseEnter={e=>(e.currentTarget as HTMLElement).style.background='#f5f5f5'}
+                onMouseLeave={e=>(e.currentTarget as HTMLElement).style.background='none'}>
+                <Icon name="logOut" size={14} color="rgba(0,0,0,0.45)" />
+                Sair
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

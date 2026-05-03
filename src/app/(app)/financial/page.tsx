@@ -6,6 +6,7 @@ import Icon from '@/components/shared/Icon'
 import { useNavStore } from '@/store/nav.store'
 import DataTable, { type ColumnType, PERIOD_OPTIONS } from '@/components/ui/DataTable'
 import Tag from '@/components/shared/Tag'
+import Tooltip from '@/components/shared/Tooltip'
 import BrandLogo from '@/components/shared/BrandLogo'
 
 const fmt = (v: number) => 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -544,40 +545,82 @@ export default function FinancialPage() {
   const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro']
   const dismiss = (id: string) => setDismissed(p => { const s = new Set(p); s.add(id); return s })
 
-  const KPI_FIN: Record<string, Array<{label:string;value:string;bg:string;border:string;color:string;sub:string}>> = {
+  type KpiCard = {
+    label: string; value: string; bg: string; border: string; color: string; sub: string;
+    /** Tooltip explicando o conceito (1s delay) */
+    tip?: string;
+    /** Delta vs período anterior, ex: "+12% vs mar/26" */
+    delta?: { value: string; positive?: boolean };
+    /** Status que filtra a tabela ao clicar (Liquidações + Arquivos) */
+    filterStatus?: string;
+  }
+
+  const KPI_FIN: Record<string, Array<KpiCard>> = {
     liquidacoes: [
-      { label:'Liquidado no mês', value:'R$ 492.337,00', bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'Créditos confirmados pelos adquirentes' },
-      { label:'Em processamento', value:'R$ 232.703,00', bg:'#e6f7ff', border:'#91d5ff', color:'#1890FF', sub:'Aguardando publicação na Núclea' },
-      { label:'Previsto (próx. vencimentos)', value:'R$ 111.920,00', bg:'#fffbe6', border:'#ffe58f', color:'#faad14', sub:'Parcelas a vencer — todos os adquirentes' },
-      { label:'Crédito travado (gravame)', value:'R$ 35.000,00', bg:'#fff7e6', border:'#ffd591', color:'#fa8c16', sub:'Bloqueado na Núclea — antecipação/oneração' },
-      { label:'MDR pago no mês', value:'R$ 23.040,00', bg:'#fff1f0', border:'#ffa39e', color:'#ff4d4f', sub:'Taxa descontada pelos adquirentes' },
+      { label:'Liquidado no mês', value:'R$ 492.337,00', bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'Créditos confirmados pelos adquirentes',
+        tip:'Total já liquidado pelos adquirentes este mês. Dinheiro creditado na conta do sub. Clique para filtrar a tabela.',
+        delta:{ value:'+8% vs mar/26', positive:true }, filterStatus:'Liquidado' },
+      { label:'Em processamento', value:'R$ 232.703,00', bg:'#e6f7ff', border:'#91d5ff', color:'#1890FF', sub:'Aguardando publicação na Núclea',
+        tip:'Recebíveis enviados para a Núclea aguardando confirmação de publicação. Após publicação, o adquirente liquida na conta do sub.',
+        filterStatus:'Em processamento' },
+      { label:'Previsto (próx. vencimentos)', value:'R$ 111.920,00', bg:'#fffbe6', border:'#ffe58f', color:'#faad14', sub:'Parcelas a vencer — todos os adquirentes',
+        tip:'Soma das parcelas com vencimento futuro confirmado pelos adquirentes. Indicador de fluxo de caixa próximo.',
+        filterStatus:'Previsto' },
+      { label:'Crédito travado (gravame)', value:'R$ 35.000,00', bg:'#fff7e6', border:'#ffd591', color:'#fa8c16', sub:'Bloqueado na Núclea — antecipação/oneração',
+        tip:'Crédito existente mas bloqueado por trava de antecipação (gravame). Vai liquidar normalmente, porém para o FIDC/banco que comprou o recebível, não para o sub.' },
+      { label:'MDR pago no mês', value:'R$ 23.040,00', bg:'#fff1f0', border:'#ffa39e', color:'#ff4d4f', sub:'Taxa descontada pelos adquirentes',
+        tip:'Total de MDR (Merchant Discount Rate) pago aos adquirentes este mês. É o custo de processamento.',
+        delta:{ value:'+5% vs mar/26', positive:false } },
     ],
     repasses: [
-      { label:'Repassado no mês', value:'R$ 8.861.834,00', bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'Transferido às contas dos merchants' },
-      { label:'Pendente de repasse', value:'R$ 1.054.390,00', bg:'#fffbe6', border:'#ffe58f', color:'#faad14', sub:'Agendado para os próximos dias' },
-      { label:'MDR retido (receita)', value:'R$ 291.309,00', bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'Spread cobrado dos merchants no mês' },
-      { label:'Antecipação recolhida', value:'R$ 85.000,00', bg:'#fff7e6', border:'#ffd591', color:'#fa8c16', sub:'Retido para abater antecipações concedidas' },
-      { label:'Reserva operacional', value:'R$ 43.200,00', bg:'#f5f5f5', border:'#d9d9d9', color:'rgba(0,0,0,0.65)', sub:'Rolling reserve — libera em 90 dias' },
+      { label:'Repassado no mês', value:'R$ 8.861.834,00', bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'Transferido às contas dos merchants',
+        tip:'Total já transferido para as contas dos ECs (merchants) este mês.',
+        delta:{ value:'+12% vs mar/26', positive:true } },
+      { label:'Pendente de repasse', value:'R$ 1.054.390,00', bg:'#fffbe6', border:'#ffe58f', color:'#faad14', sub:'Agendado para os próximos dias',
+        tip:'Valor já liquidado pelos adquirentes que ainda será transferido aos ECs nos próximos dias.' },
+      { label:'MDR retido (receita)', value:'R$ 291.309,00', bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'Spread cobrado dos merchants no mês',
+        tip:'Receita do sub vinda do spread de MDR (taxa cobrada do EC menos taxa paga ao adquirente).' },
+      { label:'Antecipação recolhida', value:'R$ 85.000,00', bg:'#fff7e6', border:'#ffd591', color:'#fa8c16', sub:'Retido para abater antecipações concedidas',
+        tip:'Valor descontado nos repasses aos ECs para recuperar antecipações que o sub concedeu anteriormente.' },
+      { label:'Reserva operacional', value:'R$ 43.200,00', bg:'#f5f5f5', border:'#d9d9d9', color:'rgba(0,0,0,0.65)', sub:'Rolling reserve — libera em 90 dias',
+        tip:'Reserva financeira (rolling reserve) retida temporariamente como garantia. Liberada em 90 dias.' },
     ],
     arquivos: [
-      { label:'Arquivos publicados', value:'2', bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'Aceitos e processados pela Núclea' },
-      { label:'Em processamento', value:'2', bg:'#e6f7ff', border:'#91d5ff', color:'#1890FF', sub:'Na fila da Núclea — aguardando retorno' },
-      { label:'Reprovados', value:'1', bg:'#fff1f0', border:'#ffa39e', color:'#ff4d4f', sub:'Rejeitados — reenvio necessário' },
-      { label:'Transações registradas', value:'488', bg:'#f5f5f5', border:'#d9d9d9', color:'rgba(0,0,0,0.85)', sub:'Total de transações nos arquivos publicados' },
+      { label:'Arquivos publicados', value:'2', bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'Aceitos e processados pela Núclea',
+        tip:'Arquivos CSV de captura aceitos e publicados pela Núclea (registradora). Recebíveis registrados.',
+        filterStatus:'Publicado' },
+      { label:'Em processamento', value:'2', bg:'#e6f7ff', border:'#91d5ff', color:'#1890FF', sub:'Na fila da Núclea — aguardando retorno',
+        tip:'Arquivos enviados aguardando processamento e validação da Núclea.',
+        filterStatus:'Em processamento' },
+      { label:'Reprovados', value:'1', bg:'#fff1f0', border:'#ffa39e', color:'#ff4d4f', sub:'Rejeitados — reenvio necessário',
+        tip:'Arquivos rejeitados pela Núclea por erro de formato/validação. Necessário corrigir e reenviar.',
+        filterStatus:'Reprovado' },
+      { label:'Transações registradas', value:'488', bg:'#f5f5f5', border:'#d9d9d9', color:'rgba(0,0,0,0.85)', sub:'Total de transações nos arquivos publicados',
+        tip:'Soma das transações contidas nos arquivos publicados na Núclea no período.' },
     ],
     antecipacoes: [
-      { label:'Capital adiantado (em aberto)', value:'R$ 140.000,00', bg:'#fff7e6', border:'#ffd591', color:'#fa8c16', sub:'Saldo devedor dos ECs com o sub — a recuperar via repasses' },
-      { label:'Antecipado no mês', value:'R$ 85.000,00', bg:'#e6f7ff', border:'#91d5ff', color:'#1890FF', sub:'3 operações em abril/26' },
-      { label:'Taxa média cobrada dos ECs', value:'2,50% a.m.', bg:'#f5f5f5', border:'#d9d9d9', color:'rgba(0,0,0,0.85)', sub:'Média ponderada das operações vigentes' },
-      { label:'Juros recebidos (receita)', value:'R$ 2.105,00', bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'Receita gerada pelas antecipações concedidas' },
-      { label:'Recebíveis livres (elegível)', value:'R$ 670.338,00', bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'Parcelas sem oneração — base para novas antecipações' },
+      { label:'Capital adiantado (em aberto)', value:'R$ 140.000,00', bg:'#e6f7ff', border:'#91d5ff', color:'#1890FF', sub:'Saldo devedor dos ECs — a recuperar via repasses',
+        tip:'Capital que o sub adiantou aos ECs e ainda não recuperou. Recuperação acontece nos próximos repasses (descontado do bruto a transferir).' },
+      { label:'Antecipado no mês', value:'R$ 85.000,00', bg:'#e6f7ff', border:'#91d5ff', color:'#1890FF', sub:'3 operações em abril/26',
+        tip:'Total de antecipações concedidas neste mês. Cada operação é creditada ao EC e gera saldo devedor.' },
+      { label:'Taxa média cobrada dos ECs', value:'2,50% a.m.', bg:'#f5f5f5', border:'#d9d9d9', color:'rgba(0,0,0,0.85)', sub:'Média ponderada das operações vigentes',
+        tip:'Taxa média cobrada dos merchants pelas antecipações. Compare com a taxa de mercado (~3% a.m.) para avaliar competitividade.' },
+      { label:'Juros recebidos (receita)', value:'R$ 2.105,00', bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'Receita gerada pelas antecipações concedidas',
+        tip:'Juros já cobrados dos ECs nas antecipações concluídas. Receita financeira do sub.',
+        delta:{ value:'+18% vs mar/26', positive:true } },
+      { label:'Recebíveis livres (elegível)', value:'R$ 670.338,00', bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'Parcelas sem oneração — base para novas antecipações',
+        tip:'Recebíveis futuros sem trava ou gravame. Base disponível para novas operações de antecipação.' },
     ],
     dre: [
-      { label:'Receita bruta (MDR + juros)', value:'R$ 44.164,00', bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'MDR cobrado + juros de antecipações' },
-      { label:'Custo com adquirentes', value:'R$ 29.772,00', bg:'#fff1f0', border:'#ffa39e', color:'#ff4d4f', sub:'MDR pago + tarifas operacionais' },
-      { label:'Margem líquida', value:'R$ 14.392,00', bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'32,6% de margem sobre receita' },
-      { label:'Float do sub', value:'R$ 78.328,00', bg:'#e6f7ff', border:'#91d5ff', color:'#1890FF', sub:'Saldo em trânsito na conta' },
-      { label:'Capital comprometido', value:'R$ 140.000,00', bg:'#fff7e6', border:'#ffd591', color:'#fa8c16', sub:'Antecipações concedidas em aberto' },
+      { label:'Margem operacional', value:'R$ 14.392,00', bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'32,6% sobre receita bruta',
+        tip:'Receita bruta menos custos com adquirentes. Margem operacional do sub no período.',
+        delta:{ value:'+15% vs mar/26', positive:true } },
+      { label:'Receita bruta', value:'R$ 44.164,00', bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'MDR cobrado + juros de antecipações',
+        tip:'Soma da receita do mês: MDR cobrado dos ECs + juros das antecipações concedidas.',
+        delta:{ value:'+9% vs mar/26', positive:true } },
+      { label:'Custo com adquirentes', value:'R$ 29.772,00', bg:'#fff1f0', border:'#ffa39e', color:'#ff4d4f', sub:'MDR pago + tarifas operacionais',
+        tip:'Total pago aos adquirentes (MDR + tarifas). Custo direto da operação.',
+        delta:{ value:'+4% vs mar/26', positive:false } },
     ],
   }
 
@@ -612,13 +655,56 @@ export default function FinancialPage() {
 
       {/* KPI cards */}
       <div style={{ padding:'16px 24px 0', display:'flex', gap:16 }}>
-        {currentKpis.map((k,i) => (
-          <div key={i} style={{ flex:1, background:k.bg, border:`1px solid ${k.border}`, borderRadius:2, padding:'14px 18px' }}>
-            <div style={{ fontSize:12, color:'rgba(0,0,0,0.65)', fontWeight:500, marginBottom:6 }}>{k.label}</div>
-            <div style={{ fontSize:20, fontWeight:700, color:k.color, marginBottom:4 }}>{k.value}</div>
-            <div style={{ fontSize:11, color:'rgba(0,0,0,0.45)' }}>{k.sub}</div>
-          </div>
-        ))}
+        {currentKpis.map((k,i) => {
+          const clickable = !!k.filterStatus && tab === 'liquidacoes'
+          const isActive = clickable && liqStatusFilter === k.filterStatus
+          const card = (
+            <div
+              onClick={() => {
+                if (!clickable) return
+                setLiqStatusFilter(isActive ? 'todos' : (k.filterStatus as string))
+              }}
+              style={{
+                width:'100%',
+                background:k.bg, border:`${isActive?2:1}px solid ${isActive?k.color:k.border}`,
+                borderRadius:2, padding: isActive ? '13px 17px' : '14px 18px',
+                cursor: clickable ? 'pointer' : 'default',
+                transition:'all 0.15s',
+                position:'relative',
+                boxSizing:'border-box',
+              }}
+              onMouseEnter={e => { if (clickable && !isActive) (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = 'none' }}
+            >
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:6, gap:8 }}>
+                <span style={{ fontSize:12, color:'rgba(0,0,0,0.65)', fontWeight:500 }}>{k.label}</span>
+                {clickable && (
+                  <span style={{ fontSize:10, color:k.color, fontWeight:500, opacity:0.7, whiteSpace:'nowrap' }}>
+                    {isActive ? 'Filtrado ✓' : 'Filtrar'}
+                  </span>
+                )}
+              </div>
+              <div style={{ fontSize:20, fontWeight:700, color:k.color, marginBottom:4 }}>{k.value}</div>
+              <div style={{ display:'flex', alignItems:'center', gap:6, flexWrap:'wrap' }}>
+                <span style={{ fontSize:11, color:'rgba(0,0,0,0.45)' }}>{k.sub}</span>
+                {k.delta && (
+                  <span style={{
+                    fontSize:10, fontWeight:600,
+                    color: k.delta.positive ? '#52c41a' : '#ff4d4f',
+                    background: k.delta.positive ? '#f6ffed' : '#fff1f0',
+                    border: `1px solid ${k.delta.positive ? '#b7eb8f' : '#ffa39e'}`,
+                    borderRadius:2, padding:'1px 5px',
+                  }}>
+                    {k.delta.positive ? '↑' : '↓'} {k.delta.value}
+                  </span>
+                )}
+              </div>
+            </div>
+          )
+          return k.tip
+            ? <Tooltip key={i} text={k.tip} delay={1000} bare style={{ flex:1, display:'flex' }}>{card}</Tooltip>
+            : <div key={i} style={{ flex:1, display:'flex' }}>{card}</div>
+        })}
       </div>
 
       {/* ── EXTRATO TAB ── */}
@@ -642,6 +728,11 @@ export default function FinancialPage() {
               'Em processamento': { bg:'#e6f7ff', color:'#1890FF', border:'#91d5ff' },
               'Reprovado':        { bg:'#fff1f0', color:'#ff4d4f', border:'#ffa39e' },
             }
+            const STATUS_NUCLEA_TIPS: Record<string,string> = {
+              'Publicado':        'Recebível registrado e publicado pela Núclea. Pronto para liquidação pelo adquirente.',
+              'Em processamento': 'Arquivo de captura enviado para a Núclea. Aguardando validação e publicação (geralmente até 24h).',
+              'Reprovado':        'Núclea rejeitou o registro do recebível por inconsistência no arquivo. Necessário corrigir e reenviar em Financeiro → Arquivos.',
+            }
             const evCols: ColumnType<LiqEvento>[] = [
               { title:'Lote', dataIndex:'loteId', key:'loteId', width:130, render: v => <span style={{ fontFamily:'Roboto Mono', fontSize:11, color:'#1890FF' }}>{v}</span> },
               { title:'Data', dataIndex:'data', key:'data', width:110, render: v => <span style={{ color:'rgba(0,0,0,0.65)', whiteSpace:'nowrap' }}>{v}</span> },
@@ -652,12 +743,18 @@ export default function FinancialPage() {
               { title:'MDR pago', dataIndex:'desc', key:'desc', render: v => <span style={{ color:'#ff4d4f' }}>{fmt(v)}</span> },
               { title:'Antecipação debitada', dataIndex:'antecip', key:'antecip', render: v => <span style={{ color:v>0?'#fa8c16':'rgba(0,0,0,0.2)' }}>{v>0?fmt(v):'—'}</span> },
               { title:'Crédito travado', dataIndex:'travado', key:'travado', render: v => v>0
-                ? <span style={{ color:'#722ED1', fontWeight:500 }}>{fmt(v)}</span>
+                ? <Tooltip text="Crédito bloqueado na Núclea por trava de antecipação (gravame). O dinheiro vai liquidar normalmente, mas para o FIDC/banco que comprou o recebível, não para o sub." delay={1000} bare>
+                    <span style={{ color:'#722ED1', fontWeight:500, borderBottom:'1px dotted #722ED1', cursor:'help' }}>{fmt(v)}</span>
+                  </Tooltip>
                 : <span style={{ color:'rgba(0,0,0,0.2)' }}>—</span> },
               { title:'Líquido a receber', dataIndex:'cred', key:'cred', render: v => <span style={{ fontWeight:600, color:'#52c41a' }}>{fmt(v)}</span> },
               { title:'Núclea', dataIndex:'statusNuclea', key:'statusNuclea', width:130, render: v => {
                 const s = STATUS_NUCLEA_STYLE[v] || STATUS_NUCLEA_STYLE['Em processamento']
-                return <span style={{ fontSize:11, background:s.bg, color:s.color, border:`1px solid ${s.border}`, borderRadius:2, padding:'1px 6px', fontWeight:500, whiteSpace:'nowrap' }}>{v}</span>
+                const tip = STATUS_NUCLEA_TIPS[v] || ''
+                const badge = <span style={{ fontSize:11, background:s.bg, color:s.color, border:`1px solid ${s.border}`, borderRadius:2, padding:'1px 6px', fontWeight:500, whiteSpace:'nowrap', cursor: tip ? 'help' : 'default' }}>{v}</span>
+                return tip
+                  ? <Tooltip text={tip} delay={1000} bare>{badge}</Tooltip>
+                  : badge
               }},
               { title:'Status', dataIndex:'status', key:'status', width:160, render: v => <Tag status={v} /> },
               { title:'', key:'acao', width:56, render: (_,r) => (
@@ -958,6 +1055,12 @@ export default function FinancialPage() {
           'Em processamento': { bg:'#e6f7ff', color:'#1890FF', border:'#91d5ff' },
           'Reprovado':        { bg:'#fff1f0', color:'#ff4d4f', border:'#ffa39e' },
         }
+        const STATUS_NUCLEA_TIPS: Record<string,string> = {
+          'Publicado':        'Arquivo aceito pela Núclea. Recebíveis registrados com sucesso.',
+          'Em processamento': 'Aguardando validação da Núclea (geralmente até 24h).',
+          'Reprovado':        'Arquivo rejeitado por erro de formato ou validação. Veja o erro e reenvie.',
+        }
+        const noReprovados = ARQUIVOS_DATA.filter(a => a.statusNuclea === 'Reprovado').length === 0
         const cols: ColumnType<ArquivoRow>[] = [
           { title:'Arquivo', dataIndex:'arquivo', key:'arquivo', render: v => <span style={{ fontFamily:'Roboto Mono', fontSize:11, color:'rgba(0,0,0,0.65)' }}>{v}</span> },
           { title:'Enviado em', dataIndex:'enviado', key:'enviado', width:110, render: v => <span style={{ color:'rgba(0,0,0,0.55)' }}>{v}</span> },
@@ -966,7 +1069,9 @@ export default function FinancialPage() {
           { title:'Transações', dataIndex:'transacoes', key:'transacoes', width:100, render: v => <span style={{ color:'rgba(0,0,0,0.65)' }}>{v}</span> },
           { title:'Status Núclea', dataIndex:'statusNuclea', key:'statusNuclea', width:150, render: v => {
             const s = STATUS_NUCLEA_STYLE[v] || STATUS_NUCLEA_STYLE['Em processamento']
-            return <span style={{ fontSize:11, background:s.bg, color:s.color, border:`1px solid ${s.border}`, borderRadius:2, padding:'2px 8px', fontWeight:600 }}>{v}</span>
+            const tip = STATUS_NUCLEA_TIPS[v] || ''
+            const badge = <span style={{ fontSize:11, background:s.bg, color:s.color, border:`1px solid ${s.border}`, borderRadius:2, padding:'2px 8px', fontWeight:600, cursor: tip ? 'help' : 'default' }}>{v}</span>
+            return tip ? <Tooltip text={tip} delay={1000} bare>{badge}</Tooltip> : badge
           }},
           { title:'Erro', dataIndex:'erro', key:'erro', render: v => v
             ? <span style={{ fontSize:11, color:'#ff4d4f' }}>{v}</span>
@@ -986,6 +1091,14 @@ export default function FinancialPage() {
         ]
         return (
           <div style={{ padding:24, display:'flex', flexDirection:'column', gap:16 }}>
+            {noReprovados && (
+              <div style={{ background:'#f6ffed', border:'1px solid #b7eb8f', borderRadius:2, padding:'10px 16px', display:'flex', gap:10, alignItems:'center' }}>
+                <Icon name="checkCircle" size={16} color="#52c41a" />
+                <span style={{ fontSize:13, color:'#237804', fontWeight:500 }}>
+                  Tudo certo na Núclea — nenhum arquivo reprovado no período.
+                </span>
+              </div>
+            )}
             <DataTable<ArquivoRow>
               title="Fila de processamento — Núclea"
               columns={cols}
@@ -1099,6 +1212,39 @@ export default function FinancialPage() {
       {/* ── DRE OPERACIONAL TAB ── */}
       {tab==='dre' && (
         <div style={{ padding:24, display:'flex', flexDirection:'column', gap:16 }}>
+          {/* Bloco "Posição de caixa" — separado da DRE (é balanço, não resultado) */}
+          <div style={{ background:'#fff', border:'1px solid rgba(0,0,0,0.06)', borderRadius:2 }}>
+            <div style={{ padding:'12px 20px', borderBottom:'1px solid #f0f0f0', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+              <div>
+                <div style={{ fontSize:13, fontWeight:600, color:'rgba(0,0,0,0.85)' }}>Posição de caixa</div>
+                <div style={{ fontSize:11, color:'rgba(0,0,0,0.45)', marginTop:2 }}>Saldos de balanço — não compõem a DRE do período</div>
+              </div>
+            </div>
+            <div style={{ padding:'14px 20px', display:'flex', gap:24 }}>
+              <Tooltip text="Saldo financeiro em trânsito — já recebido dos adquirentes e ainda não repassado aos ECs. Posição de balanço (não é resultado)." delay={1000} bare style={{ flex:1, display:'flex' }}>
+                <div style={{ flex:1, padding:'10px 14px', background:'#e6f7ff', border:'1px solid #91d5ff', borderRadius:2, cursor:'help' }}>
+                  <div style={{ fontSize:11, color:'rgba(0,0,0,0.65)', fontWeight:500, marginBottom:4 }}>Float do sub</div>
+                  <div style={{ fontSize:18, fontWeight:700, color:'#1890FF' }}>R$ 78.328,00</div>
+                  <div style={{ fontSize:11, color:'rgba(0,0,0,0.45)' }}>Saldo em trânsito na conta</div>
+                </div>
+              </Tooltip>
+              <Tooltip text="Capital adiantado aos ECs ainda não recuperado nos repasses futuros. Posição de balanço." delay={1000} bare style={{ flex:1, display:'flex' }}>
+                <div style={{ flex:1, padding:'10px 14px', background:'#e6f7ff', border:'1px solid #91d5ff', borderRadius:2, cursor:'help' }}>
+                  <div style={{ fontSize:11, color:'rgba(0,0,0,0.65)', fontWeight:500, marginBottom:4 }}>Capital comprometido</div>
+                  <div style={{ fontSize:18, fontWeight:700, color:'#1890FF' }}>R$ 140.000,00</div>
+                  <div style={{ fontSize:11, color:'rgba(0,0,0,0.45)' }}>Antecipações em aberto</div>
+                </div>
+              </Tooltip>
+              <Tooltip text="Posição líquida = Float - Capital comprometido. Se negativa, capital está alocado em antecipações (estratégia de receita)." delay={1000} bare style={{ flex:1, display:'flex' }}>
+                <div style={{ flex:1, padding:'10px 14px', background:'#fff7e6', border:'1px solid #ffd591', borderRadius:2, cursor:'help' }}>
+                  <div style={{ fontSize:11, color:'rgba(0,0,0,0.65)', fontWeight:500, marginBottom:4 }}>Posição líquida</div>
+                  <div style={{ fontSize:18, fontWeight:700, color:'#fa8c16' }}>−R$ 61.672,00</div>
+                  <div style={{ fontSize:11, color:'rgba(0,0,0,0.45)' }}>Capital alocado em antecipações</div>
+                </div>
+              </Tooltip>
+            </div>
+          </div>
+
           <div style={{ display:'flex', gap:16 }}>
             {/* DRE principal */}
             <div style={{ flex:2, background:'#fff', border:'1px solid rgba(0,0,0,0.06)', borderRadius:2, overflow:'hidden' }}>
@@ -1127,10 +1273,6 @@ export default function FinancialPage() {
                   { label:'(−) MDR pago aos adquirentes',                    v:`(${fmt(29772)})`, indent:1, color:'#ff4d4f' },
                   { label:'(−) Tarifas operacionais',                        v:`(${fmt(0)})`,     indent:1, color:'rgba(0,0,0,0.35)' },
                   { label:'(=) Margem operacional líquida',                  v:fmt(14392),       indent:0, weight:700, color:'#52c41a', border:true },
-                  { label:'CAPITAL',                                          v:'',               section:true },
-                  { label:'(−) Antecipações concedidas a ECs (em aberto)',   v:`(${fmt(140000)})`, indent:1, color:'#fa8c16' },
-                  { label:'(+) Float (saldo em trânsito na conta)',           v:fmt(78328),       indent:1, color:'#1890FF' },
-                  { label:'(=) Posição líquida de caixa',                    v:`(${fmt(61672)})`, indent:0, weight:700, color:'#fa8c16', border:true },
                 ].map((r, i) => r.section
                   ? <div key={i} style={{ fontSize:10, fontWeight:700, color:'rgba(0,0,0,0.35)', letterSpacing:'0.8px', textTransform:'uppercase', padding:'12px 0 4px' }}>{r.label}</div>
                   : (

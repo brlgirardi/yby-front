@@ -10,9 +10,11 @@ type TooltipProps = {
   delay?: number
   /** When true, omits the inline "?" help icon and just wraps the children. */
   bare?: boolean
+  /** Extra style for the wrapper span (useful to pass flex:1, width, etc.) */
+  style?: React.CSSProperties
 }
 
-export default function Tooltip({ text, children, delay = 0, bare = false }: TooltipProps) {
+export default function Tooltip({ text, children, delay = 0, bare = false, style }: TooltipProps) {
   const [show, setShow] = useState(false)
   const [pos, setPos] = useState<{ left: number; top: number } | null>(null)
   const wrapperRef = useRef<HTMLSpanElement | null>(null)
@@ -78,7 +80,7 @@ export default function Tooltip({ text, children, delay = 0, bare = false }: Too
     <>
       <span
         ref={wrapperRef}
-        style={{ position:'relative', display:'inline-flex', alignItems:'center', gap: bare ? 0 : 4 }}
+        style={{ position:'relative', display:'inline-flex', alignItems:'center', gap: bare ? 0 : 4, ...style }}
         onMouseEnter={onEnter}
         onMouseLeave={onLeave}
       >

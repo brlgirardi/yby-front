@@ -7,6 +7,7 @@ import BrandLogo from '@/components/shared/BrandLogo'
 import { useNavStore } from '@/store/nav.store'
 import DataTable, { type ColumnType, PERIOD_OPTIONS } from '@/components/ui/DataTable'
 import Tag from '@/components/shared/Tag'
+import Tooltip from '@/components/shared/Tooltip'
 
 const fmt = (v: number) => 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
@@ -59,26 +60,6 @@ const PARCELAS_DATA = [
 ]
 
 
-const Tooltip = ({ text, children }: { text: string; children: React.ReactNode }) => {
-  const [show, setShow] = useState(false)
-  return (
-    <span style={{ position:'relative', display:'inline-flex', alignItems:'center', gap:4 }}
-      onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)}>
-      {children}
-      <span style={{ cursor:'help', color:'rgba(0,0,0,0.35)', display:'inline-flex', alignItems:'center' }}>
-        <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-        </svg>
-      </span>
-      {show && (
-        <div style={{ position:'absolute', left:'50%', bottom:'calc(100% + 6px)', transform:'translateX(-50%)', background:'rgba(0,0,0,0.85)', color:'#fff', fontSize:11, lineHeight:'16px', padding:'6px 10px', borderRadius:4, width:220, zIndex:9999, pointerEvents:'none', whiteSpace:'normal', boxShadow:'0 2px 8px rgba(0,0,0,0.2)' }}>
-          {text}
-          <div style={{ position:'absolute', bottom:-4, left:'50%', transform:'translateX(-50%)', width:8, height:8, background:'rgba(0,0,0,0.85)', rotate:'45deg' }} />
-        </div>
-      )}
-    </span>
-  )
-}
 
 const CAL_VALUES: Record<string, number[]> = {
   bruto:      [0,48000,0,48000,48000,0,48000,0,48000,48000,0,48000,0,48000,48000,0,48000,0,48000,48000,0,48000,52000,45000,0,0,50000,47000,53000,41000],
@@ -156,13 +137,21 @@ export default function AgendaPage() {
   const totalLiquido  = kpiData.reduce((s,r)=>s+r.liquido,0)
   const pipelineFuturo = 1247350.00
 
-  const KPI_BY_TAB: Record<string, Array<{label:string;value:string;bg:string;border:string;color:string;sub:string;badge?:string|null}>> = {
+  type KpiAg = { label:string; value:string; bg:string; border:string; color:string; sub:string; badge?:string|null; tip?: string; delta?: { value: string; positive?: boolean } }
+  const KPI_BY_TAB: Record<string, Array<KpiAg>> = {
     calendario: [
-      { label:'Total a receber dos adquirentes', value:fmt(totalBruto), bg:'#e6f7ff', border:'#91d5ff', color:'#1890FF', sub:`${kpiData.length} parcelas · abr/2026` },
-      { label:'Antecipação Tomada', value:fmt(totalAntecip), bg:'#fff7e6', border:'#ffd591', color:'#fa8c16', sub:'Saldo devedor ao adquirente' },
-      { label:'Deduções & Custos', value:fmt(totalComissao), bg:'#fff1f0', border:'#ffa39e', color:'#ff4d4f', sub:'MDR + chargebacks + outros' },
-      { label:'Líquido a Receber', value:fmt(totalLiquido), bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'Estimativa de crédito em conta' },
-      { label:'Recebíveis futuros (90 dias)', value:fmt(pipelineFuturo), bg:'#fffbe6', border:'#ffe58f', color:'#faad14', sub:'Parcelas previstas — todos os adquirentes' },
+      { label:'Total a receber dos adquirentes', value:fmt(totalBruto), bg:'#e6f7ff', border:'#91d5ff', color:'#1890FF', sub:`${kpiData.length} parcelas · abr/2026`,
+        tip:'Soma de todas as parcelas que os adquirentes vão liquidar para o sub no período. Antes de qualquer dedução.',
+        delta:{ value:'+10% vs mar/26', positive:true } },
+      { label:'Antecipação Tomada', value:fmt(totalAntecip), bg:'#fff7e6', border:'#ffd591', color:'#fa8c16', sub:'Saldo devedor ao adquirente',
+        tip:'Operações de antecipação que o sub tomou junto ao adquirente. Esse saldo é deduzido na liquidação das parcelas vinculadas.' },
+      { label:'Deduções & Custos', value:fmt(totalComissao), bg:'#fff1f0', border:'#ffa39e', color:'#ff4d4f', sub:'MDR + chargebacks + outros',
+        tip:'Custos descontados pelos adquirentes na liquidação: MDR, chargebacks, tarifas operacionais.',
+        delta:{ value:'+3% vs mar/26', positive:false } },
+      { label:'Líquido a Receber', value:fmt(totalLiquido), bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'Estimativa de crédito em conta',
+        tip:'Bruto - Antecipação tomada - Deduções. Estimativa do que o sub recebe efetivamente em conta.' },
+      { label:'Recebíveis futuros (90 dias)', value:fmt(pipelineFuturo), bg:'#fffbe6', border:'#ffe58f', color:'#faad14', sub:'Parcelas previstas — todos os adquirentes',
+        tip:'Pipeline de recebíveis para os próximos 90 dias (vendas parceladas já capturadas). Indicador de fluxo de caixa futuro.' },
     ],
   }
   const currentKpis = KPI_BY_TAB[tab] || KPI_BY_TAB.calendario
@@ -247,16 +236,34 @@ export default function AgendaPage() {
 
       {/* KPI cards */}
       <div style={{ padding:'16px 24px 0', display:'flex', gap:16 }}>
-        {currentKpis.map((k,i) => (
-          <div key={i} style={{ flex:1, background:k.bg, border:`1px solid ${k.border}`, borderRadius:2, padding:'14px 18px' }}>
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6 }}>
-              <span style={{ fontSize:12, color:'rgba(0,0,0,0.65)', fontWeight:500 }}>{k.label}</span>
-              {k.badge && <span style={{ fontSize:10, background:'#fff7e6', color:'#fa8c16', border:'1px solid #ffd591', borderRadius:2, padding:'0 5px', fontWeight:600 }}>{k.badge}</span>}
+        {currentKpis.map((k,i) => {
+          const card = (
+            <div style={{ width:'100%', background:k.bg, border:`1px solid ${k.border}`, borderRadius:2, padding:'14px 18px', boxSizing:'border-box', cursor: k.tip ? 'help' : 'default' }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6 }}>
+                <span style={{ fontSize:12, color:'rgba(0,0,0,0.65)', fontWeight:500 }}>{k.label}</span>
+                {k.badge && <span style={{ fontSize:10, background:'#fff7e6', color:'#fa8c16', border:'1px solid #ffd591', borderRadius:2, padding:'0 5px', fontWeight:600 }}>{k.badge}</span>}
+              </div>
+              <div style={{ fontSize:20, fontWeight:700, color:k.color, marginBottom:4 }}>{k.value}</div>
+              <div style={{ display:'flex', alignItems:'center', gap:6, flexWrap:'wrap' }}>
+                <span style={{ fontSize:11, color:'rgba(0,0,0,0.45)' }}>{k.sub}</span>
+                {k.delta && (
+                  <span style={{
+                    fontSize:10, fontWeight:600,
+                    color: k.delta.positive ? '#52c41a' : '#ff4d4f',
+                    background: k.delta.positive ? '#f6ffed' : '#fff1f0',
+                    border: `1px solid ${k.delta.positive ? '#b7eb8f' : '#ffa39e'}`,
+                    borderRadius:2, padding:'1px 5px',
+                  }}>
+                    {k.delta.positive ? '↑' : '↓'} {k.delta.value}
+                  </span>
+                )}
+              </div>
             </div>
-            <div style={{ fontSize:20, fontWeight:700, color:k.color, marginBottom:4 }}>{k.value}</div>
-            <div style={{ fontSize:11, color:'rgba(0,0,0,0.45)' }}>{k.sub}</div>
-          </div>
-        ))}
+          )
+          return k.tip
+            ? <Tooltip key={i} text={k.tip} delay={1000} bare style={{ flex:1, display:'flex' }}>{card}</Tooltip>
+            : <div key={i} style={{ flex:1, display:'flex' }}>{card}</div>
+        })}
       </div>
 
       {/* Nota de leitura — dispensável */}

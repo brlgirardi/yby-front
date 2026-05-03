@@ -25,18 +25,76 @@ const LIQCEN_ADQS = [
   { adq:'Getnet', registradora:'CIP',  domicilio:'Banco Inter · Ag 0001 / CC 12345-6', status:'Pendente', vol:124050 },
 ]
 
-const LIQ_EVENTOS = [
-  { data:'10/04/2026', adq:'Adiq',   bandeira:'Visa',   bruto:198400, desc:5952,  antecip:0,     travado:0,      cred:192448, conta:'CC 12345-6', registradora:'Núclea', statusNuclea:'Publicado',        status:'Liquidado'              },
-  { data:'10/04/2026', adq:'Adiq',   bandeira:'Master', bruto:134200, desc:4026,  antecip:60000, travado:0,      cred:70174,  conta:'CC 12345-6', registradora:'Núclea', statusNuclea:'Publicado',        status:'Parcialmente liquidado'  },
-  { data:'11/04/2026', adq:'Rede',   bandeira:'Visa',   bruto:87500,  desc:2625,  antecip:0,     travado:0,      cred:84875,  conta:'CC 12345-6', registradora:'Núclea', statusNuclea:'Publicado',        status:'Liquidado'              },
-  { data:'11/04/2026', adq:'Rede',   bandeira:'Elo',    bruto:72000,  desc:2160,  antecip:30000, travado:15000,  cred:24840,  conta:'CC 12345-6', registradora:'Núclea', statusNuclea:'Publicado',        status:'Parcialmente liquidado'  },
-  { data:'12/04/2026', adq:'Cielo',  bandeira:'Visa',   bruto:156700, desc:4701,  antecip:0,     travado:0,      cred:151999, conta:'CC 12345-6', registradora:'Núclea', statusNuclea:'Em processamento', status:'Em processamento'        },
-  { data:'13/04/2026', adq:'Getnet', bandeira:'Master', bruto:83200,  desc:2496,  antecip:0,     travado:0,      cred:80704,  conta:'CC 12345-6', registradora:'Núclea', statusNuclea:'Em processamento', status:'Em processamento'        },
-  { data:'25/04/2026', adq:'Adiq',   bandeira:'Visa',   bruto:82000,  desc:2460,  antecip:0,     travado:20000,  cred:59540,  conta:'CC 12345-6', registradora:'Núclea', statusNuclea:'Publicado',        status:'Previsto'               },
-  { data:'25/04/2026', adq:'Rede',   bandeira:'Master', bruto:54000,  desc:1620,  antecip:0,     travado:0,      cred:52380,  conta:'CC 12345-6', registradora:'Núclea', statusNuclea:'Publicado',        status:'Previsto'               },
-]
+type Parcela = {
+  nsu: string
+  ec: string
+  parcela: string         // "1/1", "3/12"
+  valor: number
+  mdr: number
+  antecip: number
+  travado: number
+  liquido: number
+  status: string
+}
 
-type LiqEvento = typeof LIQ_EVENTOS[0]
+type LiqEvento = {
+  loteId: string
+  data: string
+  adq: string
+  bandeira: string
+  bruto: number
+  desc: number
+  antecip: number
+  travado: number
+  cred: number
+  conta: string
+  registradora: string
+  statusNuclea: string
+  status: string
+  parcelas: Parcela[]
+}
+
+// Helper: gera parcelas mock que somam aos totais do lote
+const gen = (loteId: string, ec: string, count: number, totalBruto: number, totalMdr: number, totalAntecip: number, totalTravado: number, status: string): Parcela[] => {
+  const parcelas: Parcela[] = []
+  let restBruto = totalBruto, restMdr = totalMdr, restAntecip = totalAntecip, restTravado = totalTravado
+  for (let i = 0; i < count; i++) {
+    const last = i === count - 1
+    const valor    = last ? restBruto    : Math.round(totalBruto / count)
+    const mdr      = last ? restMdr      : Math.round(totalMdr / count)
+    const antecip  = last ? restAntecip  : Math.round(totalAntecip / count)
+    const travado  = last ? restTravado  : Math.round(totalTravado / count)
+    restBruto -= valor; restMdr -= mdr; restAntecip -= antecip; restTravado -= travado
+    parcelas.push({
+      nsu: `${loteId}-${String(i+1).padStart(3,'0')}`,
+      ec,
+      parcela: `${(i % 12) + 1}/${count <= 12 ? count : 12}`,
+      valor, mdr, antecip, travado,
+      liquido: valor - mdr - antecip - travado,
+      status,
+    })
+  }
+  return parcelas
+}
+
+const LIQ_EVENTOS: LiqEvento[] = [
+  { loteId:'L-2604-001', data:'10/04/2026', adq:'Adiq',   bandeira:'Visa',   bruto:198400, desc:5952,  antecip:0,     travado:0,      cred:192448, conta:'CC 12345-6', registradora:'Núclea', statusNuclea:'Publicado',        status:'Liquidado',
+    parcelas: gen('L-2604-001','Mercado Livre', 8, 198400, 5952, 0, 0, 'Liquidado') },
+  { loteId:'L-2604-002', data:'10/04/2026', adq:'Adiq',   bandeira:'Master', bruto:134200, desc:4026,  antecip:60000, travado:0,      cred:70174,  conta:'CC 12345-6', registradora:'Núclea', statusNuclea:'Publicado',        status:'Parcialmente liquidado',
+    parcelas: gen('L-2604-002','Mercado Livre', 6, 134200, 4026, 60000, 0, 'Liquidado') },
+  { loteId:'L-2604-003', data:'11/04/2026', adq:'Rede',   bandeira:'Visa',   bruto:87500,  desc:2625,  antecip:0,     travado:0,      cred:84875,  conta:'CC 12345-6', registradora:'Núclea', statusNuclea:'Publicado',        status:'Liquidado',
+    parcelas: gen('L-2604-003','Amazon Brasil', 5, 87500, 2625, 0, 0, 'Liquidado') },
+  { loteId:'L-2604-004', data:'11/04/2026', adq:'Rede',   bandeira:'Elo',    bruto:72000,  desc:2160,  antecip:30000, travado:15000,  cred:24840,  conta:'CC 12345-6', registradora:'Núclea', statusNuclea:'Publicado',        status:'Parcialmente liquidado',
+    parcelas: gen('L-2604-004','Amazon Brasil', 4, 72000, 2160, 30000, 15000, 'Liquidado') },
+  { loteId:'L-2604-005', data:'12/04/2026', adq:'Cielo',  bandeira:'Visa',   bruto:156700, desc:4701,  antecip:0,     travado:0,      cred:151999, conta:'CC 12345-6', registradora:'Núclea', statusNuclea:'Em processamento', status:'Em processamento',
+    parcelas: gen('L-2604-005','Americanas',    7, 156700, 4701, 0, 0, 'Em processamento') },
+  { loteId:'L-2604-006', data:'13/04/2026', adq:'Getnet', bandeira:'Master', bruto:83200,  desc:2496,  antecip:0,     travado:0,      cred:80704,  conta:'CC 12345-6', registradora:'Núclea', statusNuclea:'Em processamento', status:'Em processamento',
+    parcelas: gen('L-2604-006','Magazine Luiza',4, 83200, 2496, 0, 0, 'Em processamento') },
+  { loteId:'L-2604-007', data:'25/04/2026', adq:'Adiq',   bandeira:'Visa',   bruto:82000,  desc:2460,  antecip:0,     travado:20000,  cred:59540,  conta:'CC 12345-6', registradora:'Núclea', statusNuclea:'Publicado',        status:'Previsto',
+    parcelas: gen('L-2604-007','iFood',         3, 82000, 2460, 0, 20000, 'Previsto') },
+  { loteId:'L-2604-008', data:'25/04/2026', adq:'Rede',   bandeira:'Master', bruto:54000,  desc:1620,  antecip:0,     travado:0,      cred:52380,  conta:'CC 12345-6', registradora:'Núclea', statusNuclea:'Publicado',        status:'Previsto',
+    parcelas: gen('L-2604-008','Shopee',        3, 54000, 1620, 0, 0, 'Previsto') },
+]
 
 const ARQUIVOS_DATA = [
   { arquivo:'captura_adiq_20260410.csv', enviado:'10/04 08:32', adq:'Adiq',   registradora:'Núclea', transacoes:142, statusNuclea:'Publicado',        erro:'' },
@@ -477,6 +535,8 @@ export default function FinancialPage() {
   const [drawerImport, setDrawerImport] = useState(false)
   const [dismissed, setDismissed] = useState<Set<string>>(new Set())
   const [liqStatusFilter, setLiqStatusFilter] = useState<string>('todos')
+  const [liqViewMode, setLiqViewMode] = useState<'lote'|'parcela'>('lote')
+  const [repViewMode, setRepViewMode] = useState<'lote'|'parcela'>('lote')
   const [dreMonth, setDreMonth] = useState(3)
   const [dreYear,  setDreYear]  = useState(2026)
   const prevDreMonth = () => { if (dreMonth === 0) { setDreMonth(11); setDreYear(y => y-1) } else setDreMonth(m => m-1) }
@@ -583,9 +643,11 @@ export default function FinancialPage() {
               'Reprovado':        { bg:'#fff1f0', color:'#ff4d4f', border:'#ffa39e' },
             }
             const evCols: ColumnType<LiqEvento>[] = [
+              { title:'Lote', dataIndex:'loteId', key:'loteId', width:130, render: v => <span style={{ fontFamily:'Roboto Mono', fontSize:11, color:'#1890FF' }}>{v}</span> },
               { title:'Data', dataIndex:'data', key:'data', width:110, render: v => <span style={{ color:'rgba(0,0,0,0.65)', whiteSpace:'nowrap' }}>{v}</span> },
               { title:'Adquirente', dataIndex:'adq', key:'adq', width:120, render: v => <BrandLogo brand={v} size={20} showLabel /> },
               { title:'Bandeira', dataIndex:'bandeira', key:'bandeira', width:110, render: v => <BrandLogo brand={v} size={20} showLabel /> },
+              { title:'Parcelas', key:'qtd', width:90, render: (_,r) => <span style={{ color:'rgba(0,0,0,0.65)' }}>{r.parcelas.length}</span> },
               { title:'Crédito bruto', dataIndex:'bruto', key:'bruto', render: v => <span style={{ color:'rgba(0,0,0,0.85)' }}>{fmt(v)}</span> },
               { title:'MDR pago', dataIndex:'desc', key:'desc', render: v => <span style={{ color:'#ff4d4f' }}>{fmt(v)}</span> },
               { title:'Antecipação debitada', dataIndex:'antecip', key:'antecip', render: v => <span style={{ color:v>0?'#fa8c16':'rgba(0,0,0,0.2)' }}>{v>0?fmt(v):'—'}</span> },
@@ -593,7 +655,6 @@ export default function FinancialPage() {
                 ? <span style={{ color:'#722ED1', fontWeight:500 }}>{fmt(v)}</span>
                 : <span style={{ color:'rgba(0,0,0,0.2)' }}>—</span> },
               { title:'Líquido a receber', dataIndex:'cred', key:'cred', render: v => <span style={{ fontWeight:600, color:'#52c41a' }}>{fmt(v)}</span> },
-              { title:'Conta creditada', dataIndex:'conta', key:'conta', render: v => <span style={{ color:'rgba(0,0,0,0.45)', fontFamily:'Roboto Mono', fontSize:11 }}>{v}</span> },
               { title:'Núclea', dataIndex:'statusNuclea', key:'statusNuclea', width:130, render: v => {
                 const s = STATUS_NUCLEA_STYLE[v] || STATUS_NUCLEA_STYLE['Em processamento']
                 return <span style={{ fontSize:11, background:s.bg, color:s.color, border:`1px solid ${s.border}`, borderRadius:2, padding:'1px 6px', fontWeight:500, whiteSpace:'nowrap' }}>{v}</span>
@@ -605,19 +666,107 @@ export default function FinancialPage() {
                 </button>
               ) },
             ]
+
+            // Visão "Por parcela" — achata
+            type ParcelaFlat = Parcela & { loteId: string; data: string; adq: string; bandeira: string; statusNuclea: string }
+            const flatParcelas: ParcelaFlat[] = filtered.flatMap(l =>
+              l.parcelas.map(p => ({ ...p, loteId: l.loteId, data: l.data, adq: l.adq, bandeira: l.bandeira, statusNuclea: l.statusNuclea }))
+            )
+            const parcelaCols: ColumnType<ParcelaFlat>[] = [
+              { title:'Lote', dataIndex:'loteId', key:'loteId', width:130, render: v => <span style={{ fontFamily:'Roboto Mono', fontSize:11, color:'#1890FF' }}>{v}</span> },
+              { title:'NSU', dataIndex:'nsu', key:'nsu', width:140, render: v => <span style={{ fontFamily:'Roboto Mono', fontSize:11, color:'rgba(0,0,0,0.65)' }}>{v}</span> },
+              { title:'Data', dataIndex:'data', key:'data', width:110, render: v => <span style={{ color:'rgba(0,0,0,0.65)', whiteSpace:'nowrap' }}>{v}</span> },
+              { title:'Adquirente', dataIndex:'adq', key:'adq', width:120, render: v => <BrandLogo brand={v} size={20} showLabel /> },
+              { title:'Bandeira', dataIndex:'bandeira', key:'bandeira', width:110, render: v => <BrandLogo brand={v} size={20} showLabel /> },
+              { title:'EC', dataIndex:'ec', key:'ec', width:140, render: v => <span style={{ color:'rgba(0,0,0,0.85)', fontWeight:500 }}>{v}</span> },
+              { title:'Parcela', dataIndex:'parcela', key:'parcela', width:80, render: v => <span style={{ fontFamily:'Roboto Mono', fontSize:11 }}>{v}</span> },
+              { title:'Valor', dataIndex:'valor', key:'valor', render: v => <span style={{ color:'rgba(0,0,0,0.85)' }}>{fmt(v)}</span> },
+              { title:'MDR', dataIndex:'mdr', key:'mdr', render: v => <span style={{ color:'#ff4d4f' }}>{fmt(v)}</span> },
+              { title:'Antecip.', dataIndex:'antecip', key:'antecip', render: v => <span style={{ color:v>0?'#fa8c16':'rgba(0,0,0,0.2)' }}>{v>0?fmt(v):'—'}</span> },
+              { title:'Travado', dataIndex:'travado', key:'travado', render: v => v>0
+                ? <span style={{ color:'#722ED1', fontWeight:500 }}>{fmt(v)}</span>
+                : <span style={{ color:'rgba(0,0,0,0.2)' }}>—</span> },
+              { title:'Líquido', dataIndex:'liquido', key:'liquido', render: v => <span style={{ fontWeight:600, color:'#52c41a' }}>{fmt(v)}</span> },
+              { title:'Status', dataIndex:'status', key:'status', width:140, render: v => <Tag status={v} /> },
+            ]
+
+            const ViewToggle = (
+              <div style={{ display:'inline-flex', border:'1px solid #d9d9d9', borderRadius:2, overflow:'hidden' }}>
+                {([['lote','Por lote'],['parcela','Por parcela']] as const).map(([key,label]) => (
+                  <button key={key} onClick={()=>setLiqViewMode(key)}
+                    style={{ border:'none', padding:'5px 14px', fontSize:13, cursor:'pointer',
+                      background: liqViewMode===key ? '#1890FF' : '#fff',
+                      color: liqViewMode===key ? '#fff' : 'rgba(0,0,0,0.65)',
+                      fontWeight: liqViewMode===key ? 500 : 400 }}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )
+
+            // Render expandido — parcelas dentro do lote
+            const expandedRowRender = (record: LiqEvento) => (
+              <div style={{ padding:'8px 0 8px 24px', background:'#fafafa' }}>
+                <div style={{ fontSize:11, fontWeight:600, color:'rgba(0,0,0,0.45)', textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:8 }}>
+                  Parcelas que compõem o lote {record.loteId} ({record.parcelas.length})
+                </div>
+                <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12, background:'#fff', border:'1px solid #f0f0f0' }}>
+                  <thead>
+                    <tr style={{ background:'#fafafa' }}>
+                      {['NSU','EC','Parcela','Valor','MDR','Antecip.','Travado','Líquido','Status'].map(h => (
+                        <th key={h} style={{ padding:'8px 12px', textAlign:'left', fontWeight:500, color:'rgba(0,0,0,0.65)', borderBottom:'1px solid #f0f0f0', fontSize:11, textTransform:'uppercase', letterSpacing:'0.4px' }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {record.parcelas.map((p,i) => (
+                      <tr key={i} style={{ borderBottom:'1px solid #f5f5f5' }}>
+                        <td style={{ padding:'8px 12px', fontFamily:'Roboto Mono', fontSize:11, color:'rgba(0,0,0,0.55)' }}>{p.nsu}</td>
+                        <td style={{ padding:'8px 12px', fontWeight:500, color:'rgba(0,0,0,0.85)' }}>{p.ec}</td>
+                        <td style={{ padding:'8px 12px', fontFamily:'Roboto Mono', fontSize:11 }}>{p.parcela}</td>
+                        <td style={{ padding:'8px 12px', color:'rgba(0,0,0,0.85)' }}>{fmt(p.valor)}</td>
+                        <td style={{ padding:'8px 12px', color:'#ff4d4f' }}>{fmt(p.mdr)}</td>
+                        <td style={{ padding:'8px 12px', color:p.antecip>0?'#fa8c16':'rgba(0,0,0,0.2)' }}>{p.antecip>0?fmt(p.antecip):'—'}</td>
+                        <td style={{ padding:'8px 12px', color:p.travado>0?'#722ED1':'rgba(0,0,0,0.2)', fontWeight:p.travado>0?500:400 }}>{p.travado>0?fmt(p.travado):'—'}</td>
+                        <td style={{ padding:'8px 12px', fontWeight:600, color:'#52c41a' }}>{fmt(p.liquido)}</td>
+                        <td style={{ padding:'8px 12px' }}><Tag status={p.status} /></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )
+
             return (
               <>
-                <DataTable<LiqEvento>
-                  title="Recebimentos dos adquirentes — Abril 2026"
-                  columns={evCols}
-                  dataSource={filtered}
-                  rowKey={(_,i)=>String(i)}
-                  onExport={()=>{}}
-                  periodOptions={PERIOD_OPTIONS}
-                  defaultPeriod="mes"
-                />
+                {liqViewMode === 'lote' ? (
+                  <DataTable<LiqEvento>
+                    title="Recebimentos dos adquirentes — Abril 2026"
+                    titleExtra={ViewToggle}
+                    columns={evCols}
+                    dataSource={filtered}
+                    rowKey="loteId"
+                    onExport={()=>{}}
+                    periodOptions={PERIOD_OPTIONS}
+                    defaultPeriod="mes"
+                    expandable={{ expandedRowRender, rowExpandable: r => r.parcelas.length > 0 }}
+                  />
+                ) : (
+                  <DataTable<ParcelaFlat>
+                    title="Parcelas dos lotes — Abril 2026"
+                    titleExtra={ViewToggle}
+                    columns={parcelaCols}
+                    dataSource={flatParcelas}
+                    rowKey={r => `${r.loteId}-${r.nsu}`}
+                    onExport={()=>{}}
+                    periodOptions={PERIOD_OPTIONS}
+                    defaultPeriod="mes"
+                  />
+                )}
                 <div style={{ padding:'12px 16px', background:'#f6ffed', border:'1px solid #b7eb8f', borderRadius:2, display:'flex', gap:32, justifyContent:'flex-end', alignItems:'center' }}>
-                  <span style={{ fontSize:13, fontWeight:600, color:'#52c41a', flex:1 }}>TOTAL — {filtered.length} eventos</span>
+                  <span style={{ fontSize:13, fontWeight:600, color:'#52c41a', flex:1 }}>
+                    TOTAL — {liqViewMode==='lote' ? `${filtered.length} lotes` : `${flatParcelas.length} parcelas`}
+                  </span>
                   {[
                     {l:'Bruto', v:fmt(filtered.reduce((s,r)=>s+r.bruto,0)), c:'rgba(0,0,0,0.85)'},
                     {l:'MDR pago', v:fmt(filtered.reduce((s,r)=>s+r.desc,0)), c:'#ff4d4f'},
@@ -639,20 +788,54 @@ export default function FinancialPage() {
 
       {/* ── REPASSES PARA ECS TAB ── */}
       {tab==='repasses' && (()=>{
-        const PAGAMENTOS_DATA = [
-          { name:'Mercado Livre',   cnpj:'03.007.331/0001-41', data:'10/04/2026', bruto:3450200, taxa:103506, antecipRecolhida:0,     rep:3346694, conta:'AG 0001 / CC 12345-6', status:'Repassado' },
-          { name:'Amazon Brasil',   cnpj:'15.436.940/0001-03', data:'10/04/2026', bruto:2180700, taxa:65421,  antecipRecolhida:28000, rep:2087279, conta:'AG 0001 / CC 23456-7', status:'Repassado' },
-          { name:'Americanas S.A.', cnpj:'00.776.574/0001-56', data:'11/04/2026', bruto:1240500, taxa:37215,  antecipRecolhida:45000, rep:1158285, conta:'AG 0001 / CC 34567-8', status:'Repassado' },
-          { name:'Magazine Luiza',  cnpj:'47.960.950/0001-21', data:'12/04/2026', bruto:987200,  taxa:29616,  antecipRecolhida:0,     rep:957584,  conta:'AG 0001 / CC 45678-9', status:'Repassado' },
-          { name:'iFood Ltda',      cnpj:'14.380.200/0001-21', data:'25/04/2026', bruto:654900,  taxa:19647,  antecipRecolhida:12000, rep:623253,  conta:'AG 0002 / CC 56789-0', status:'Pendente'  },
-          { name:'Shopee Brasil',   cnpj:'35.060.991/0001-56', data:'25/04/2026', bruto:432100,  taxa:12963,  antecipRecolhida:0,     rep:419137,  conta:'AG 0002 / CC 67890-1', status:'Pendente'  },
-          { name:'Rappi Brasil',    cnpj:'28.665.021/0001-89', data:'13/04/2026', bruto:765400,  taxa:22962,  antecipRecolhida:0,     rep:742438,  conta:'AG 0001 / CC 78901-2', status:'Repassado' },
+        type RepTx = { nsu: string; data: string; adq: string; bandeira: string; parcela: string; valor: number; mdr: number; antecip: number; liquido: number }
+        type PRow = { repId: string; name: string; cnpj: string; data: string; bruto: number; taxa: number; antecipRecolhida: number; rep: number; conta: string; status: string; transacoes: RepTx[] }
+
+        const genTx = (count: number, totalBruto: number, totalMdr: number, totalAntecip: number, adqs: string[], bandeiras: string[]): RepTx[] => {
+          const txs: RepTx[] = []
+          let restB = totalBruto, restM = totalMdr, restA = totalAntecip
+          for (let i = 0; i < count; i++) {
+            const last = i === count - 1
+            const valor = last ? restB : Math.round(totalBruto / count)
+            const mdr = last ? restM : Math.round(totalMdr / count)
+            const antecip = last ? restA : Math.round(totalAntecip / count)
+            restB -= valor; restM -= mdr; restA -= antecip
+            txs.push({
+              nsu: `TX-${String(100000 + Math.floor(Math.random()*900000))}`,
+              data: '2x/04/2026',
+              adq: adqs[i % adqs.length],
+              bandeira: bandeiras[i % bandeiras.length],
+              parcela: `${(i % 12) + 1}/12`,
+              valor, mdr, antecip,
+              liquido: valor - mdr - antecip,
+            })
+          }
+          return txs
+        }
+
+        const PAGAMENTOS_DATA: PRow[] = [
+          { repId:'R-2604-001', name:'Mercado Livre',   cnpj:'03.007.331/0001-41', data:'10/04/2026', bruto:3450200, taxa:103506, antecipRecolhida:0,     rep:3346694, conta:'AG 0001 / CC 12345-6', status:'Repassado',
+            transacoes: genTx(12, 3450200, 103506, 0, ['Adiq','Rede'], ['Visa','Master']) },
+          { repId:'R-2604-002', name:'Amazon Brasil',   cnpj:'15.436.940/0001-03', data:'10/04/2026', bruto:2180700, taxa:65421,  antecipRecolhida:28000, rep:2087279, conta:'AG 0001 / CC 23456-7', status:'Repassado',
+            transacoes: genTx(10, 2180700, 65421, 28000, ['Cielo','Adiq'], ['Visa','Elo']) },
+          { repId:'R-2604-003', name:'Americanas S.A.', cnpj:'00.776.574/0001-56', data:'11/04/2026', bruto:1240500, taxa:37215,  antecipRecolhida:45000, rep:1158285, conta:'AG 0001 / CC 34567-8', status:'Repassado',
+            transacoes: genTx(8, 1240500, 37215, 45000, ['Rede','Getnet'], ['Master','Visa']) },
+          { repId:'R-2604-004', name:'Magazine Luiza',  cnpj:'47.960.950/0001-21', data:'12/04/2026', bruto:987200,  taxa:29616,  antecipRecolhida:0,     rep:957584,  conta:'AG 0001 / CC 45678-9', status:'Repassado',
+            transacoes: genTx(7, 987200, 29616, 0, ['Adiq'], ['Visa','Elo']) },
+          { repId:'R-2604-005', name:'iFood Ltda',      cnpj:'14.380.200/0001-21', data:'25/04/2026', bruto:654900,  taxa:19647,  antecipRecolhida:12000, rep:623253,  conta:'AG 0002 / CC 56789-0', status:'Pendente',
+            transacoes: genTx(5, 654900, 19647, 12000, ['Cielo'], ['Master']) },
+          { repId:'R-2604-006', name:'Shopee Brasil',   cnpj:'35.060.991/0001-56', data:'25/04/2026', bruto:432100,  taxa:12963,  antecipRecolhida:0,     rep:419137,  conta:'AG 0002 / CC 67890-1', status:'Pendente',
+            transacoes: genTx(4, 432100, 12963, 0, ['Rede','Cielo'], ['Visa']) },
+          { repId:'R-2604-007', name:'Rappi Brasil',    cnpj:'28.665.021/0001-89', data:'13/04/2026', bruto:765400,  taxa:22962,  antecipRecolhida:0,     rep:742438,  conta:'AG 0001 / CC 78901-2', status:'Repassado',
+            transacoes: genTx(6, 765400, 22962, 0, ['Adiq'], ['Master','Visa']) },
         ]
-        type PRow = typeof PAGAMENTOS_DATA[0]
+
         const cols: ColumnType<PRow>[] = [
+          { title:'Repasse', dataIndex:'repId', key:'repId', width:130, render: v => <span style={{ fontFamily:'Roboto Mono', fontSize:11, color:'#1890FF' }}>{v}</span> },
           { title:'Merchant (EC)', dataIndex:'name', key:'name', render: v => <span style={{ fontWeight:500, color:'rgba(0,0,0,0.85)' }}>{v}</span> },
           { title:'CNPJ', dataIndex:'cnpj', key:'cnpj', render: v => <span style={{ fontFamily:'Roboto Mono', fontSize:11, color:'rgba(0,0,0,0.45)' }}>{v}</span> },
           { title:'Data repasse', dataIndex:'data', key:'data', width:110 },
+          { title:'Transações', key:'qtd', width:100, render: (_,r) => <span style={{ color:'rgba(0,0,0,0.65)' }}>{r.transacoes.length}</span> },
           { title:'Bruto vendas', dataIndex:'bruto', key:'bruto', render: v => <span style={{ color:'rgba(0,0,0,0.85)' }}>{fmt(v)}</span> },
           { title:'MDR retido', dataIndex:'taxa', key:'taxa', render: v => <span style={{ color:'#ff4d4f' }}>{fmt(v)}</span> },
           { title:'Antecip. recolhida', dataIndex:'antecipRecolhida', key:'antecipRecolhida', render: v => v>0
@@ -662,6 +845,71 @@ export default function FinancialPage() {
           { title:'Conta destino', dataIndex:'conta', key:'conta', render: v => <span style={{ fontFamily:'Roboto Mono', fontSize:11, color:'rgba(0,0,0,0.45)' }}>{v}</span> },
           { title:'Status', dataIndex:'status', key:'status', width:100, render: v => <Tag status={v} /> },
         ]
+
+        type TxFlat = RepTx & { repId: string; name: string; cnpj: string; data: string }
+        const flatTx: TxFlat[] = PAGAMENTOS_DATA.flatMap(r =>
+          r.transacoes.map(t => ({ ...t, repId: r.repId, name: r.name, cnpj: r.cnpj, data: r.data }))
+        )
+        const txCols: ColumnType<TxFlat>[] = [
+          { title:'Repasse', dataIndex:'repId', key:'repId', width:130, render: v => <span style={{ fontFamily:'Roboto Mono', fontSize:11, color:'#1890FF' }}>{v}</span> },
+          { title:'NSU', dataIndex:'nsu', key:'nsu', width:130, render: v => <span style={{ fontFamily:'Roboto Mono', fontSize:11, color:'rgba(0,0,0,0.65)' }}>{v}</span> },
+          { title:'Merchant (EC)', dataIndex:'name', key:'name', render: v => <span style={{ fontWeight:500, color:'rgba(0,0,0,0.85)' }}>{v}</span> },
+          { title:'Adquirente', dataIndex:'adq', key:'adq', width:120, render: v => <BrandLogo brand={v} size={20} showLabel /> },
+          { title:'Bandeira', dataIndex:'bandeira', key:'bandeira', width:110, render: v => <BrandLogo brand={v} size={20} showLabel /> },
+          { title:'Parcela', dataIndex:'parcela', key:'parcela', width:80, render: v => <span style={{ fontFamily:'Roboto Mono', fontSize:11 }}>{v}</span> },
+          { title:'Valor', dataIndex:'valor', key:'valor', render: v => <span style={{ color:'rgba(0,0,0,0.85)' }}>{fmt(v)}</span> },
+          { title:'MDR', dataIndex:'mdr', key:'mdr', render: v => <span style={{ color:'#ff4d4f' }}>{fmt(v)}</span> },
+          { title:'Antecip.', dataIndex:'antecip', key:'antecip', render: v => v>0
+            ? <span style={{ color:'#fa8c16', fontWeight:500 }}>{fmt(v)}</span>
+            : <span style={{ color:'rgba(0,0,0,0.2)' }}>—</span> },
+          { title:'Líquido', dataIndex:'liquido', key:'liquido', render: v => <span style={{ fontWeight:600, color:'#52c41a' }}>{fmt(v)}</span> },
+        ]
+
+        const ViewToggle = (
+          <div style={{ display:'inline-flex', border:'1px solid #d9d9d9', borderRadius:2, overflow:'hidden' }}>
+            {([['lote','Por repasse'],['parcela','Por transação']] as const).map(([key,label]) => (
+              <button key={key} onClick={()=>setRepViewMode(key)}
+                style={{ border:'none', padding:'5px 14px', fontSize:13, cursor:'pointer',
+                  background: repViewMode===key ? '#1890FF' : '#fff',
+                  color: repViewMode===key ? '#fff' : 'rgba(0,0,0,0.65)',
+                  fontWeight: repViewMode===key ? 500 : 400 }}>
+                {label}
+              </button>
+            ))}
+          </div>
+        )
+
+        const expandedRowRender = (record: PRow) => (
+          <div style={{ padding:'8px 0 8px 24px', background:'#fafafa' }}>
+            <div style={{ fontSize:11, fontWeight:600, color:'rgba(0,0,0,0.45)', textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:8 }}>
+              Transações que compõem o repasse {record.repId} ({record.transacoes.length})
+            </div>
+            <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12, background:'#fff', border:'1px solid #f0f0f0' }}>
+              <thead>
+                <tr style={{ background:'#fafafa' }}>
+                  {['NSU','Adquirente','Bandeira','Parcela','Valor','MDR','Antecip.','Líquido'].map(h => (
+                    <th key={h} style={{ padding:'8px 12px', textAlign:'left', fontWeight:500, color:'rgba(0,0,0,0.65)', borderBottom:'1px solid #f0f0f0', fontSize:11, textTransform:'uppercase', letterSpacing:'0.4px' }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {record.transacoes.map((t,i) => (
+                  <tr key={i} style={{ borderBottom:'1px solid #f5f5f5' }}>
+                    <td style={{ padding:'8px 12px', fontFamily:'Roboto Mono', fontSize:11, color:'rgba(0,0,0,0.55)' }}>{t.nsu}</td>
+                    <td style={{ padding:'8px 12px' }}><BrandLogo brand={t.adq} size={18} showLabel /></td>
+                    <td style={{ padding:'8px 12px' }}><BrandLogo brand={t.bandeira} size={18} showLabel /></td>
+                    <td style={{ padding:'8px 12px', fontFamily:'Roboto Mono', fontSize:11 }}>{t.parcela}</td>
+                    <td style={{ padding:'8px 12px', color:'rgba(0,0,0,0.85)' }}>{fmt(t.valor)}</td>
+                    <td style={{ padding:'8px 12px', color:'#ff4d4f' }}>{fmt(t.mdr)}</td>
+                    <td style={{ padding:'8px 12px', color:t.antecip>0?'#fa8c16':'rgba(0,0,0,0.2)' }}>{t.antecip>0?fmt(t.antecip):'—'}</td>
+                    <td style={{ padding:'8px 12px', fontWeight:600, color:'#52c41a' }}>{fmt(t.liquido)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )
+
         return (
           <div style={{ padding:24, display:'flex', flexDirection:'column', gap:16 }}>
             <div style={{ background:'#fff', border:'1px solid rgba(0,0,0,0.06)', borderRadius:2, padding:'10px 20px', display:'flex', gap:20, alignItems:'center', alignSelf:'flex-start' }}>
@@ -675,15 +923,30 @@ export default function FinancialPage() {
                 <div style={{ fontSize:14, fontWeight:600, color:'rgba(0,0,0,0.65)' }}>3% · libera em 90d</div>
               </div>
             </div>
-            <DataTable<PRow>
-              title="Repasses a merchants — Abril 2026"
-              columns={cols}
-              dataSource={PAGAMENTOS_DATA}
-              rowKey={(_,i)=>String(i)}
-              onExport={()=>{}}
-              periodOptions={PERIOD_OPTIONS}
-              defaultPeriod="mes"
-            />
+            {repViewMode === 'lote' ? (
+              <DataTable<PRow>
+                title="Repasses a merchants — Abril 2026"
+                titleExtra={ViewToggle}
+                columns={cols}
+                dataSource={PAGAMENTOS_DATA}
+                rowKey="repId"
+                onExport={()=>{}}
+                periodOptions={PERIOD_OPTIONS}
+                defaultPeriod="mes"
+                expandable={{ expandedRowRender, rowExpandable: r => r.transacoes.length > 0 }}
+              />
+            ) : (
+              <DataTable<TxFlat>
+                title="Transações dos repasses — Abril 2026"
+                titleExtra={ViewToggle}
+                columns={txCols}
+                dataSource={flatTx}
+                rowKey={r => `${r.repId}-${r.nsu}`}
+                onExport={()=>{}}
+                periodOptions={PERIOD_OPTIONS}
+                defaultPeriod="mes"
+              />
+            )}
           </div>
         )
       })()}

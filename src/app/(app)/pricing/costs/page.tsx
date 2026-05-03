@@ -1,13 +1,17 @@
 'use client'
 
-import { useMemo, useState } from 'react'
-import PageHeader from '@/components/shared/PageHeader'
-import KpiCard from '@/components/ui/KpiCard'
-import AcquirerCostCard from '@/components/pricing/AcquirerCostCard'
-import { usePricingData, getAcquirerDisplayName } from '@/hooks/pricing/usePricingData'
-import type { Channel } from '@/services/types/pricing.types'
-import { CHANNEL_LABELS } from '@/services/types/pricing.types'
+import { useEffect, useMemo, useState, useRef } from 'react'
+import { App, Button, Modal, Spin, Typography } from 'antd'
+import { ArrowLeftOutlined, InboxOutlined, InfoCircleOutlined } from '@ant-design/icons'
 import { useRouter, usePathname } from 'next/navigation'
+import PageHeader from '@/components/shared/PageHeader'
+import ChannelSection, { CHANNELS } from '@/components/pricing/ChannelSection'
+import { ACQUIRER_NAMES, getAcquirerDisplayName } from '@/hooks/pricing/usePricingData'
+import { getCostBlueprintTables, getInstallments } from '@/services/pricingService'
+import type { CardBrand, CostBlueprintTable, Installment, PricingModel } from '@/services/types/pricing.types'
+import type { CostRow } from '@/components/pricing/MethodTable'
+
+const { Text } = Typography
 
 const PRICING_TABS = [
   { key: 'costs', label: 'Custos', href: '/pricing/costs' },
@@ -15,33 +19,83 @@ const PRICING_TABS = [
   { key: 'interchange', label: 'Matriz de Intercâmbio', href: '/pricing/interchange' },
 ]
 
-export default function CostsPage() {
+function CostsPageInner() {
   const router = useRouter()
   const pathname = usePathname() || ''
-  const { installments, costTables, costItems, loading, error } = usePricingData()
+  const { message } = App.useApp()
 
-  const [channelFilter, setChannelFilter] = useState<Channel | 'all'>('all')
-  const [acquirerFilter, setAcquirerFilter] = useState<string>('all')
+  const [tables, setTables] = useState<CostBlueprintTable[]>([])
+  const [installments, setInstallments] = useState<Installment[]>([])
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [configuring, setConfiguring] = useState(false)
+  const [saveEmptyModalOpen, setSaveEmptyModalOpen] = useState(false)
 
-  const filteredTables = useMemo(() => {
-    return costTables.filter(t => {
-      if (channelFilter !== 'all' && t.channel !== channelFilter) return false
-      if (acquirerFilter !== 'all' && t.acquirer_id !== acquirerFilter) return false
-      return true
-    })
-  }, [costTables, channelFilter, acquirerFilter])
+  const brandDataRef = useRef<Record<string, boolean>>({})
+  const brandRowsRef = useRef<Record<string, { pricingType: PricingModel; rows: CostRow[]; acquirerId: string; brand: CardBrand }>>({})
 
-  const acquirers = Array.from(new Set(costTables.map(t => t.acquirer_id)))
-  const totalActive = costTables.filter(t => t.is_active).length
-  const avgRate = costItems.length
-    ? costItems.reduce((a, c) => a + c.rate, 0) / costItems.length
-    : 0
-  const totalConfigs = costItems.length
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    Promise.all([getCostBlueprintTables(), getInstallments()])
+      .then(([t, i]) => {
+        if (cancelled) return
+        setTables(t)
+        setInstallments(i)
+      })
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
+  }, [])
+
+  const acquirerIds = useMemo(() => {
+    return tables.length > 0
+      ? Array.from(new Set(tables.map(t => t.acquirer_id)))
+      : ['adiq']
+  }, [tables])
+
+  const acquirerNames = useMemo(() => {
+    const map: Record<string, string> = { ...ACQUIRER_NAMES }
+    acquirerIds.forEach(id => { map[id] = getAcquirerDisplayName(id) })
+    return map
+  }, [acquirerIds])
+
+  const handleHasData = (brand: string, hasData: boolean) => {
+    brandDataRef.current[brand] = hasData
+  }
+
+  const handleDataChange = (brand: CardBrand, acquirerId: string, pricingType: PricingModel, rows: CostRow[]) => {
+    brandRowsRef.current[`${acquirerId}-${brand}`] = { pricingType, rows, acquirerId, brand }
+  }
+
+  const handleSave = async () => {
+    const hasAnyData = Object.values(brandDataRef.current).some(Boolean)
+    if (!hasAnyData) {
+      setSaveEmptyModalOpen(true)
+      return
+    }
+    await doSave()
+  }
+
+  const doSave = async () => {
+    setSaving(true)
+    try {
+      // Read-only/demo: a chamada real seria createBlueprint(items) via BFF
+      await new Promise(r => setTimeout(r, 600))
+      message.success('Custos salvos (modo demo — nada gravado).')
+    } catch {
+      message.error('Erro ao salvar')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const showEmpty = !loading && tables.length === 0 && !configuring
+  const showConfig = !loading && (tables.length > 0 || configuring)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <PageHeader
-        title="Custos do sub-adquirente"
+        title="Custo por Adquirente"
         breadcrumb="Configuração / Pricing"
         tabs={PRICING_TABS.map(t => ({ key: t.key, label: t.label }))}
         activeTab={pathname.endsWith('/costs') ? 'costs' : pathname.endsWith('/prices') ? 'prices' : 'interchange'}
@@ -49,98 +103,82 @@ export default function CostsPage() {
           const tab = PRICING_TABS.find(t => t.key === key)
           if (tab) router.push(tab.href)
         }}
+        extra={showConfig ? (
+          <>
+            <Button onClick={() => configuring ? setConfiguring(false) : router.back()} style={{ borderRadius: 0 }}>Cancelar</Button>
+            <Button type="primary" loading={saving} onClick={handleSave} style={{ borderRadius: 0, background: '#1890FF', borderColor: '#1890FF' }}>Salvar</Button>
+          </>
+        ) : (
+          <Button type="text" icon={<ArrowLeftOutlined />} onClick={() => router.back()} />
+        )}
       />
 
-      <div style={{ flex: 1, overflow: 'auto', background: '#F2F4F8', padding: '16px 24px' }}>
-        <div style={{ background: '#E6F7FF', border: '1px solid #91D5FF', borderRadius: 2, padding: '10px 14px', marginBottom: 16, fontSize: 12, color: 'rgba(0,0,0,0.85)' }}>
-          <strong>Cost Blueprint:</strong> tabelas de custos cobrados pelos adquirentes do sub. Cada
-          linha (Cost Item) representa uma combinação de bandeira × produto × parcelamento. O modelo
-          pode ser <strong>MDR</strong> (taxa única) ou <strong>Interchange+</strong> (custo +
-          spread). Estes custos alimentam a tabela de preços vendidos aos ECs.
-        </div>
-
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 16 }}>
-          <KpiCard
-            label="Tabelas ativas"
-            value={`${totalActive}/${costTables.length}`}
-            subLabel="Cost Blueprint Tables"
-            variant="info"
-            tooltip="Quantidade de tabelas de custo ativas vs total."
-            loading={loading}
-            style={{ flex: 1, minWidth: 180 }}
-          />
-          <KpiCard
-            label="Adquirentes"
-            value={String(acquirers.length)}
-            subLabel={acquirers.map(a => getAcquirerDisplayName(a)).join(', ')}
-            variant="neutral"
-            tooltip="Adquirentes com custos configurados."
-            loading={loading}
-            style={{ flex: 1, minWidth: 180 }}
-          />
-          <KpiCard
-            label="Total de itens"
-            value={String(totalConfigs)}
-            subLabel="Cost Items"
-            variant="info"
-            tooltip="Total de linhas de custo entre todas as bandeiras × produtos × parcelamentos."
-            loading={loading}
-            style={{ flex: 1, minWidth: 180 }}
-          />
-          <KpiCard
-            label="Taxa média"
-            value={`${avgRate.toFixed(2).replace('.', ',')}%`}
-            subLabel="custo médio"
-            variant="success"
-            tooltip="Média aritmética simples das taxas de custo (não ponderada por volume)."
-            loading={loading}
-            style={{ flex: 1, minWidth: 180 }}
-          />
-        </div>
-
-        <div style={{ background: '#fff', border: '1px solid #f0f0f0', borderRadius: 2, padding: '10px 14px', marginBottom: 16, display: 'flex', flexWrap: 'wrap', gap: 14, alignItems: 'center' }}>
-          <label style={lbl}>Canal:
-            <select value={channelFilter} onChange={e => setChannelFilter(e.target.value as Channel | 'all')} style={sel}>
-              <option value="all">Todos</option>
-              <option value="cp">{CHANNEL_LABELS.cp}</option>
-              <option value="cnp">{CHANNEL_LABELS.cnp}</option>
-            </select>
-          </label>
-          <label style={lbl}>Adquirente:
-            <select value={acquirerFilter} onChange={e => setAcquirerFilter(e.target.value)} style={sel}>
-              <option value="all">Todos</option>
-              {acquirers.map(a => <option key={a} value={a}>{getAcquirerDisplayName(a)}</option>)}
-            </select>
-          </label>
-          <span style={{ marginLeft: 'auto', fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>
-            {filteredTables.length} de {costTables.length} tabelas
-          </span>
-        </div>
-
-        {error && <div style={{ padding: 12, background: '#FFF1F0', color: '#820014', fontSize: 13, marginBottom: 16 }}>Erro: {error}</div>}
-        {loading && <div style={{ padding: 40, textAlign: 'center', fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>Carregando custos…</div>}
-
-        {filteredTables.map(t => (
-          <AcquirerCostCard
-            key={t.id}
-            acquirerId={t.acquirer_id}
-            acquirerName={getAcquirerDisplayName(t.acquirer_id)}
-            channel={t.channel}
-            isActive={t.is_active}
-            costItems={costItems.filter(c => c.acquirer_id === t.acquirer_id)}
-            installments={installments}
-          />
-        ))}
-
-        {!loading && filteredTables.length === 0 && (
-          <div style={{ padding: 40, textAlign: 'center', fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>
-            Nenhuma tabela de custo corresponde aos filtros.
+      <div style={{ flex: 1, overflow: 'auto', background: '#fff', padding: 24 }}>
+        {loading && (
+          <div style={{ textAlign: 'center', padding: 48 }}>
+            <Spin size="large" />
           </div>
         )}
+
+        {showEmpty && (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 0' }}>
+            <InboxOutlined style={{ fontSize: 48, color: '#d9d9d9', marginBottom: 16 }} />
+            <Text style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 16 }}>Nenhum custo configurado para este merchant.</Text>
+            <Button type="primary" onClick={() => setConfiguring(true)} style={{ borderRadius: 0, background: '#1890FF', borderColor: '#1890FF' }}>
+              Configurar custos
+            </Button>
+          </div>
+        )}
+
+        {showConfig && CHANNELS.map(channel => (
+          <ChannelSection
+            key={channel.id}
+            channel={channel}
+            tables={tables}
+            acquirerIds={acquirerIds}
+            acquirerNames={acquirerNames}
+            installments={installments}
+            onHasData={handleHasData}
+            onDataChange={handleDataChange}
+          />
+        ))}
       </div>
+
+      <Modal
+        open={saveEmptyModalOpen}
+        onCancel={() => setSaveEmptyModalOpen(false)}
+        footer={null}
+        closable={false}
+        width={400}
+        styles={{ body: { padding: '32px 24px 24px' } }}
+      >
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+          <InfoCircleOutlined style={{ fontSize: 20, color: '#1677ff', flexShrink: 0, marginTop: 2 }} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <Text strong style={{ fontSize: 15 }}>Tabela sem informações</Text>
+            <Text style={{ fontSize: 13, color: '#666' }}>
+              Sua tabela não possui valores de custos. Deseja salvar assim mesmo?
+            </Text>
+            <Text style={{ fontSize: 13, color: '#666' }}>
+              Sem esses dados, a Reconciliação não será possível.
+            </Text>
+          </div>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 24 }}>
+          <Button onClick={() => { setSaveEmptyModalOpen(false); doSave() }} style={{ borderRadius: 0 }}>Salvar</Button>
+          <Button type="primary" style={{ borderRadius: 0, background: '#1890FF', borderColor: '#1890FF' }} onClick={() => setSaveEmptyModalOpen(false)}>
+            Cancelar
+          </Button>
+        </div>
+      </Modal>
     </div>
   )
 }
 
-const lbl: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'rgba(0,0,0,0.65)' }
-const sel: React.CSSProperties = { border: '1px solid #d9d9d9', borderRadius: 2, padding: '4px 8px', fontSize: 12, fontFamily: 'Roboto', background: '#fff', maxWidth: 220 }
+export default function CostsPage() {
+  return (
+    <App>
+      <CostsPageInner />
+    </App>
+  )
+}

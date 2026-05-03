@@ -4,6 +4,7 @@ import { useState } from 'react'
 import PageHeader from '@/components/shared/PageHeader'
 import Icon from '@/components/shared/Icon'
 import { useNavStore } from '@/store/nav.store'
+import { usePrefsStore } from '@/store/prefs.store'
 import DataTable, { type ColumnType, PERIOD_OPTIONS } from '@/components/ui/DataTable'
 import Tag from '@/components/shared/Tag'
 import Tooltip from '@/components/shared/Tooltip'
@@ -638,8 +639,7 @@ export default function FinancialPage() {
   const [drawerArquivo, setDrawerArquivo] = useState<ArquivoRow | null>(null)
   const [dismissed, setDismissed] = useState<Set<string>>(new Set())
   const [liqStatusFilter, setLiqStatusFilter] = useState<string>('todos')
-  const [liqViewMode, setLiqViewMode] = useState<'lote'|'parcela'>('lote')
-  const [repViewMode, setRepViewMode] = useState<'lote'|'parcela'>('lote')
+  const { liqViewMode, setLiqViewMode, repViewMode, setRepViewMode } = usePrefsStore()
   const [dreMonth, setDreMonth] = useState(3)
   const [dreYear,  setDreYear]  = useState(2026)
   const prevDreMonth = () => { if (dreMonth === 0) { setDreMonth(11); setDreYear(y => y-1) } else setDreMonth(m => m-1) }
@@ -765,7 +765,7 @@ export default function FinancialPage() {
       />
 
       {/* KPI cards */}
-      <div style={{ padding:'16px 24px 0', display:'flex', gap:16 }}>
+      <div style={{ padding:'16px 24px 0', display:'flex', gap:16, alignItems:'stretch' }}>
         {currentKpis.map((k,i) => {
           const clickable = !!k.filterStatus && tab === 'liquidacoes'
           const isActive = clickable && liqStatusFilter === k.filterStatus
@@ -776,7 +776,7 @@ export default function FinancialPage() {
                 setLiqStatusFilter(isActive ? 'todos' : (k.filterStatus as string))
               }}
               style={{
-                width:'100%',
+                width:'100%', height:'100%',
                 background:k.bg, border:`${isActive?2:1}px solid ${isActive?k.color:k.border}`,
                 borderRadius:2, padding: isActive ? '13px 17px' : '14px 18px',
                 cursor: clickable ? 'pointer' : 'default',
@@ -784,7 +784,7 @@ export default function FinancialPage() {
                 position:'relative',
                 boxSizing:'border-box',
                 display:'flex', flexDirection:'column', justifyContent:'space-between',
-                minHeight:120,
+                minHeight:140,
               }}
               onMouseEnter={e => { if (clickable && !isActive) (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)' }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = 'none' }}
@@ -817,8 +817,8 @@ export default function FinancialPage() {
             </div>
           )
           return k.tip
-            ? <Tooltip key={i} text={k.tip} delay={1000} bare style={{ flex:1, display:'flex' }}>{card}</Tooltip>
-            : <div key={i} style={{ flex:1, display:'flex' }}>{card}</div>
+            ? <Tooltip key={i} text={k.tip} delay={1000} bare style={{ flex:1, display:'flex', alignSelf:'stretch' }}>{card}</Tooltip>
+            : <div key={i} style={{ flex:1, display:'flex', alignSelf:'stretch' }}>{card}</div>
         })}
       </div>
 
@@ -1368,14 +1368,33 @@ export default function FinancialPage() {
                   <div style={{ fontSize:14, fontWeight:600, color:'rgba(0,0,0,0.85)' }}>DRE Operacional — {MONTHS[dreMonth]} {dreYear}</div>
                   <div style={{ fontSize:12, color:'rgba(0,0,0,0.45)', marginTop:2 }}>Resultado econômico do sub-adquirente no período</div>
                 </div>
-                <div style={{ display:'flex', alignItems:'center', gap:4 }}>
-                  <button onClick={prevDreMonth} style={{ background:'none', border:'1px solid #d9d9d9', borderRadius:2, cursor:'pointer', width:28, height:28, display:'flex', alignItems:'center', justifyContent:'center', color:'rgba(0,0,0,0.45)' }}>
-                    <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-                  </button>
-                  <span style={{ fontSize:13, fontWeight:500, color:'rgba(0,0,0,0.85)', minWidth:100, textAlign:'center' }}>{MONTHS[dreMonth]} {dreYear}</span>
-                  <button onClick={nextDreMonth} style={{ background:'none', border:'1px solid #d9d9d9', borderRadius:2, cursor:'pointer', width:28, height:28, display:'flex', alignItems:'center', justifyContent:'center', color:'rgba(0,0,0,0.45)' }}>
-                    <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-                  </button>
+                <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                  {/* Presets rápidos */}
+                  <div style={{ display:'inline-flex', border:'1px solid #d9d9d9', borderRadius:2, overflow:'hidden' }}>
+                    {([
+                      { key:'atual', label:'Mês atual',    onClick:()=>{ setDreMonth(3); setDreYear(2026) }, isActive: dreMonth===3 && dreYear===2026 },
+                      { key:'ant',   label:'Mês anterior', onClick:()=>{ setDreMonth(2); setDreYear(2026) }, isActive: dreMonth===2 && dreYear===2026 },
+                      { key:'ytd',   label:'YTD',          onClick:()=>{ setDreMonth(0); setDreYear(2026) }, isActive: dreMonth===0 && dreYear===2026 },
+                    ]).map(p => (
+                      <button key={p.key} onClick={p.onClick}
+                        style={{ border:'none', padding:'4px 10px', fontSize:12, cursor:'pointer',
+                          background: p.isActive ? '#1890FF' : '#fff',
+                          color: p.isActive ? '#fff' : 'rgba(0,0,0,0.65)',
+                          fontWeight: p.isActive ? 500 : 400 }}>
+                        {p.label}
+                      </button>
+                    ))}
+                  </div>
+                  {/* Nav mês a mês */}
+                  <div style={{ display:'flex', alignItems:'center', gap:4 }}>
+                    <button onClick={prevDreMonth} style={{ background:'none', border:'1px solid #d9d9d9', borderRadius:2, cursor:'pointer', width:28, height:28, display:'flex', alignItems:'center', justifyContent:'center', color:'rgba(0,0,0,0.45)' }}>
+                      <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                    </button>
+                    <span style={{ fontSize:13, fontWeight:500, color:'rgba(0,0,0,0.85)', minWidth:100, textAlign:'center' }}>{MONTHS[dreMonth]} {dreYear}</span>
+                    <button onClick={nextDreMonth} style={{ background:'none', border:'1px solid #d9d9d9', borderRadius:2, cursor:'pointer', width:28, height:28, display:'flex', alignItems:'center', justifyContent:'center', color:'rgba(0,0,0,0.45)' }}>
+                      <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                    </button>
+                  </div>
                 </div>
               </div>
               <div style={{ padding:'16px 24px' }}>

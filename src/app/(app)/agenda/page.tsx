@@ -235,10 +235,10 @@ export default function AgendaPage() {
       />
 
       {/* KPI cards */}
-      <div style={{ padding:'16px 24px 0', display:'flex', gap:16 }}>
+      <div style={{ padding:'16px 24px 0', display:'flex', gap:16, alignItems:'stretch' }}>
         {currentKpis.map((k,i) => {
           const card = (
-            <div style={{ width:'100%', background:k.bg, border:`1px solid ${k.border}`, borderRadius:2, padding:'14px 18px', boxSizing:'border-box', cursor: k.tip ? 'help' : 'default', display:'flex', flexDirection:'column', justifyContent:'space-between', minHeight:120 }}>
+            <div style={{ width:'100%', height:'100%', background:k.bg, border:`1px solid ${k.border}`, borderRadius:2, padding:'14px 18px', boxSizing:'border-box', cursor: k.tip ? 'help' : 'default', display:'flex', flexDirection:'column', justifyContent:'space-between', minHeight:140 }}>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6 }}>
                 <span style={{ fontSize:12, color:'rgba(0,0,0,0.65)', fontWeight:500 }}>{k.label}</span>
                 {k.badge && <span style={{ fontSize:10, background:'#fff7e6', color:'#fa8c16', border:'1px solid #ffd591', borderRadius:2, padding:'0 5px', fontWeight:600 }}>{k.badge}</span>}
@@ -258,8 +258,8 @@ export default function AgendaPage() {
             </div>
           )
           return k.tip
-            ? <Tooltip key={i} text={k.tip} delay={1000} bare style={{ flex:1, display:'flex' }}>{card}</Tooltip>
-            : <div key={i} style={{ flex:1, display:'flex' }}>{card}</div>
+            ? <Tooltip key={i} text={k.tip} delay={1000} bare style={{ flex:1, display:'flex', alignSelf:'stretch' }}>{card}</Tooltip>
+            : <div key={i} style={{ flex:1, display:'flex', alignSelf:'stretch' }}>{card}</div>
         })}
       </div>
 

@@ -45,6 +45,7 @@ export default function ReconciliationPage() {
           <BrandDetail
             brand={selectedBrand}
             date={date}
+            onDateChange={setDate}
             onBack={handleBack}
           />
         )}

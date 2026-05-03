@@ -1,12 +1,14 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import KpiCard from '@/components/ui/KpiCard'
 import Icon from '@/components/shared/Icon'
 import AcquirerSummaryCard from './AcquirerSummaryCard'
+import DateScroller from './DateScroller'
 import { useAcquirerSummary } from '@/hooks/conciliation/useAcquirerSummary'
 import { useConciliationFilters, applyConciliationFilters, STATUS_OPTIONS, BRAND_OPTIONS } from '@/hooks/conciliation/useConciliationFilters'
 import { formatCurrencyShort } from '@/lib/conciliation/formatters'
+import { exportOverviewToCSV } from '@/lib/conciliation/csvExport'
 import type { BrandData } from '@/services/types/acquirerSummary.types'
 
 export interface ConciliationOverviewProps {
@@ -33,19 +35,23 @@ export default function ConciliationOverview({ date, onDateChange, onBrandClick 
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16, padding: '16px 24px' }}>
-      {/* Date selector + KPIs */}
+      {/* Date scroller + actions */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <label style={{ fontSize: 13, color: 'rgba(0,0,0,0.65)' }}>Data de consolidação</label>
-        <input
-          type="date"
-          value={date}
-          onChange={e => onDateChange(e.target.value)}
+        <div style={{ flex: 1, maxWidth: 760 }}>
+          <DateScroller value={date} onChange={onDateChange} />
+        </div>
+        <button
+          onClick={() => exportOverviewToCSV(brands, date)}
+          disabled={!brands.length}
           style={{
-            border: '1px solid #d9d9d9', borderRadius: 2, padding: '4px 10px',
-            fontSize: 13, fontFamily: 'Roboto', color: 'rgba(0,0,0,0.85)',
-            outline: 'none', background: '#fff',
-          }}
-        />
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            background: '#fff', border: '1px solid #d9d9d9', borderRadius: 2,
+            padding: '6px 12px', fontSize: 12, color: 'rgba(0,0,0,0.85)',
+            cursor: brands.length ? 'pointer' : 'not-allowed',
+            opacity: brands.length ? 1 : 0.5, fontFamily: 'Roboto',
+          }}>
+          <Icon name="download" size={12} /> Exportar CSV
+        </button>
       </div>
 
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'stretch' }}>

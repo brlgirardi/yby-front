@@ -1,221 +1,194 @@
 'use client'
 
-import { useMemo } from 'react'
-import BrandLogo from '@/components/shared/BrandLogo'
-import Tag from '@/components/shared/Tag'
-import Tooltip from '@/components/shared/Tooltip'
+import { useMemo, useState } from 'react'
 import Icon from '@/components/shared/Icon'
-import KpiCard from '@/components/ui/KpiCard'
-import { useAcquirerMismatch } from '@/hooks/conciliation/useAcquirerMismatch'
-import { formatCurrency, formatCurrencyShort, normalizeNilValue } from '@/lib/conciliation/formatters'
-import { toTagStatus } from '@/lib/conciliation/statusUtils'
+import { useInterchangeList } from '@/hooks/conciliation/useInterchangeList'
+import { exportInterchangeListToCSV } from '@/lib/conciliation/csvExport'
+import { isFullyReconciled } from '@/lib/conciliation/statusUtils'
 import type { BrandData } from '@/services/types/acquirerSummary.types'
-import type { DivergentTransactionData } from '@/services/types/brandDetail.types'
+import type { InterchangeRecord } from '@/services/types/brandDetail.types'
+import BrandSummaryCard from './BrandSummaryCard'
+import DateScroller from './DateScroller'
+import InterchangeDetailModal from './InterchangeDetailModal'
+import InterchangeDropdownTable from './InterchangeDropdownTable'
 
 export interface BrandDetailProps {
   brand: BrandData
   date: string
+  onDateChange: (date: string) => void
   onBack: () => void
 }
 
-interface PairedRow {
-  capture: DivergentTransactionData | null
-  outgoing: DivergentTransactionData | null
-}
-
 /**
- * Tela de detalhe de uma conciliação por bandeira (drill-down).
- * Mostra as transações divergentes pareadas: o que está em capture mas não em
- * outgoing (ou vice-versa) e os valores conflitantes (NSU, BIN, IRD, ITC).
+ * Tela de detalhe por bandeira — após o usuário clicar num AcquirerSummaryCard.
+ *
+ * Estrutura (espelha LGR-264-recon-acquirer):
+ *  - Header: voltar, logo, useConfigId
+ *  - DateScroller: navegar dias sem voltar pro Overview
+ *  - BrandSummaryCard: resumo capture × outgoing
+ *  - Filtros (busca + status) + Exportar CSV
+ *  - Lista de IRDs divergentes (collapse) + conciliados (collapse)
+ *  - Click em IRD → Drawer com transações detalhadas
  */
-export default function BrandDetail({ brand, date, onBack }: BrandDetailProps) {
-  const { data, loading, error } = useAcquirerMismatch(date, brand.useConfigId)
+export default function BrandDetail({ brand, date, onDateChange, onBack }: BrandDetailProps) {
+  const { records, loading, error } = useInterchangeList(brand.useConfigId, date)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'divergent' | 'conciliated'>('all')
+  const [selectedRecord, setSelectedRecord] = useState<InterchangeRecord | null>(null)
+  const [openDivergent, setOpenDivergent] = useState(true)
+  const [openConciliated, setOpenConciliated] = useState(true)
 
-  // Pareia capture × outgoing por terminal_id + amount + transaction_date
-  const paired: PairedRow[] = useMemo(() => {
-    if (!data) return []
-    const allCaptures: DivergentTransactionData[] = []
-    const allOutgoing: DivergentTransactionData[] = []
-    for (const pair of data.divergent_transactions) {
-      for (const item of pair) {
-        if (item.type === 'capture') allCaptures.push(...item.data)
-        else allOutgoing.push(...item.data)
-      }
-    }
-    const rows: PairedRow[] = []
-    const usedOutgoing = new Set<number>()
-    for (const c of allCaptures) {
-      const idx = allOutgoing.findIndex((o, i) =>
-        !usedOutgoing.has(i) &&
-        o.terminal_id === c.terminal_id &&
-        o.amount === c.amount &&
-        o.transaction_date === c.transaction_date,
-      )
-      if (idx >= 0) {
-        usedOutgoing.add(idx)
-        rows.push({ capture: c, outgoing: allOutgoing[idx] })
-      } else {
-        rows.push({ capture: c, outgoing: null })
-      }
-    }
-    allOutgoing.forEach((o, i) => {
-      if (!usedOutgoing.has(i)) rows.push({ capture: null, outgoing: o })
+  const filtered = useMemo(() => {
+    return records.filter(r => {
+      if (searchTerm && !r.interchangeCode.toLowerCase().includes(searchTerm.toLowerCase())) return false
+      const fully = isFullyReconciled(r.conciliationRate)
+      if (statusFilter === 'divergent' && fully) return false
+      if (statusFilter === 'conciliated' && !fully) return false
+      return true
     })
-    return rows
-  }, [data])
+  }, [records, searchTerm, statusFilter])
+
+  const divergent = filtered.filter(r => !isFullyReconciled(r.conciliationRate))
+  const conciliated = filtered.filter(r => isFullyReconciled(r.conciliationRate))
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16, padding: '16px 24px' }}>
-      {/* Header com Voltar + identificação */}
+      {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <button onClick={onBack} aria-label="Voltar"
           style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(0,0,0,0.65)', display: 'flex', alignItems: 'center', padding: '4px 8px 4px 0' }}>
           <Icon name="arrowLeft" size={16} />
         </button>
-        <BrandLogo brand={brand.name} size={28} />
         <span style={{ fontSize: 16, fontWeight: 600, color: 'rgba(0,0,0,0.85)', textTransform: 'capitalize' }}>
           {brand.name}
         </span>
         <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>•</span>
-        <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.65)' }}>{date}</span>
-        <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>•</span>
-        <Tooltip text={`Use config ID: ${brand.useConfigId}\nConsolidation ID: ${brand.consolidationId}`} bare>
-          <span style={{ fontFamily: 'Roboto Mono', fontSize: 11, color: 'rgba(0,0,0,0.45)', borderBottom: '1px dotted rgba(0,0,0,0.25)' }}>
-            {brand.useConfigId}
+        <span style={{ fontFamily: 'Roboto Mono', fontSize: 11, color: 'rgba(0,0,0,0.45)' }}>{brand.useConfigId}</span>
+        <button
+          onClick={() => exportInterchangeListToCSV(records, brand.name, date)}
+          disabled={!records.length}
+          style={{
+            marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6,
+            background: '#fff', border: '1px solid #d9d9d9', borderRadius: 2,
+            padding: '5px 10px', fontSize: 12, color: 'rgba(0,0,0,0.85)',
+            cursor: records.length ? 'pointer' : 'not-allowed',
+            opacity: records.length ? 1 : 0.5, fontFamily: 'Roboto',
+          }}>
+          <Icon name="download" size={12} /> Exportar CSV
+        </button>
+      </div>
+
+      {/* DateScroller */}
+      <DateScroller value={date} onChange={onDateChange} />
+
+      {/* BrandSummaryCard */}
+      <BrandSummaryCard brand={brand} />
+
+      {/* Filtros */}
+      <div style={{ background: '#fff', border: '1px solid #f0f0f0', borderRadius: 2, padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+        <div style={{ position: 'relative', flex: '1 1 240px', maxWidth: 320 }}>
+          <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', display: 'flex' }}>
+            <Icon name="search" size={14} color="rgba(0,0,0,0.45)" />
           </span>
-        </Tooltip>
-        <div style={{ marginLeft: 'auto' }}>
-          <Tag status={toTagStatus(brand.status ?? '')} />
+          <input
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            placeholder="Buscar IRD..."
+            style={{ width: '100%', border: '1px solid #d9d9d9', borderRadius: 2, padding: '5px 10px 5px 30px', fontSize: 13, outline: 'none', fontFamily: 'Roboto' }}
+          />
         </div>
+        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'rgba(0,0,0,0.65)' }}>
+          Status:
+          <select value={statusFilter} onChange={e => setStatusFilter(e.target.value as 'all' | 'divergent' | 'conciliated')}
+            style={{ border: '1px solid #d9d9d9', borderRadius: 2, padding: '4px 8px', fontSize: 12, fontFamily: 'Roboto', background: '#fff' }}>
+            <option value="all">Todos</option>
+            <option value="divergent">Divergentes</option>
+            <option value="conciliated">Conciliados</option>
+          </select>
+        </label>
+        <span style={{ marginLeft: 'auto', fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>
+          {filtered.length} IRDs
+        </span>
       </div>
 
-      {/* KPIs comparando capture × outgoing */}
-      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-        <KpiCard
-          label="Transações (capture)"
-          value={brand.transactions.sourceA.toLocaleString('pt-BR')}
-          subLabel="origem A"
-          variant="info"
-          tooltip="Quantidade de transações registradas pelo sub no fluxo de captura."
-          style={{ flex: 1, minWidth: 180 }}
-        />
-        <KpiCard
-          label="Transações (outgoing)"
-          value={brand.transactions.sourceB.toLocaleString('pt-BR')}
-          subLabel="origem B"
-          variant={brand.transactions.sourceA === brand.transactions.sourceB ? 'info' : 'error'}
-          tooltip="Quantidade de transações liquidadas pela registradora (Núclea/CIP/CERC)."
-          style={{ flex: 1, minWidth: 180 }}
-        />
-        <KpiCard
-          label="Volume capture"
-          value={formatCurrencyShort(brand.tpv.sourceA)}
-          subLabel={formatCurrency(brand.tpv.sourceA)}
-          variant="info"
-          tooltip="TPV bruto registrado no capture."
-          style={{ flex: 1, minWidth: 180 }}
-        />
-        <KpiCard
-          label="Volume outgoing"
-          value={formatCurrencyShort(brand.tpv.sourceB)}
-          subLabel={formatCurrency(brand.tpv.sourceB)}
-          variant={brand.tpv.sourceA === brand.tpv.sourceB ? 'info' : 'error'}
-          tooltip="TPV bruto liquidado pela registradora."
-          style={{ flex: 1, minWidth: 180 }}
-        />
-      </div>
+      {error && <div style={{ padding: 12, background: '#FFF1F0', border: '1px solid #FFCCC7', borderRadius: 2, color: '#820014', fontSize: 13 }}>Erro: {error}</div>}
+      {loading && <div style={{ padding: 30, textAlign: 'center', fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>Carregando IRDs…</div>}
 
-      {/* Tabela de transações divergentes */}
-      <div style={{ background: '#fff', border: '1px solid #f0f0f0', borderRadius: 2, overflow: 'hidden' }}>
-        <div style={{ padding: '12px 16px', borderBottom: '1px solid #f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: 'rgba(0,0,0,0.85)' }}>Transações divergentes</div>
-            <div style={{ fontSize: 11, color: 'rgba(0,0,0,0.45)', marginTop: 2 }}>
-              Pareadas por terminal + valor + data. Linhas com {' '}
-              <span style={{ color: '#FF4D4F', fontWeight: 500 }}>destaque vermelho</span> indicam ausência em uma das origens.
-            </div>
-          </div>
-          <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{paired.length} linhas</span>
+      {/* Divergentes */}
+      {!loading && divergent.length > 0 && (
+        <Section
+          title="Divergências"
+          count={divergent.length}
+          tone="warning"
+          open={openDivergent}
+          onToggle={() => setOpenDivergent(o => !o)}
+        >
+          <InterchangeDropdownTable
+            records={divergent}
+            variant="divergent"
+            onRowClick={r => setSelectedRecord(r)}
+          />
+        </Section>
+      )}
+
+      {/* Conciliados */}
+      {!loading && conciliated.length > 0 && (
+        <Section
+          title="Conciliados"
+          count={conciliated.length}
+          tone="success"
+          open={openConciliated}
+          onToggle={() => setOpenConciliated(o => !o)}
+        >
+          <InterchangeDropdownTable
+            records={conciliated}
+            variant="conciliated"
+            onRowClick={r => setSelectedRecord(r)}
+          />
+        </Section>
+      )}
+
+      {!loading && filtered.length === 0 && (
+        <div style={{ padding: 40, textAlign: 'center', fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>
+          Nenhum IRD encontrado para os filtros aplicados.
         </div>
+      )}
 
-        {loading && (
-          <div style={{ padding: 40, textAlign: 'center', fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>Carregando…</div>
-        )}
-        {error && (
-          <div style={{ padding: '12px 16px', background: '#FFF1F0', color: '#820014', fontSize: 13 }}>{error}</div>
-        )}
-        {!loading && paired.length === 0 && (
-          <div style={{ padding: 40, textAlign: 'center', fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>
-            Nenhuma divergência. Capture e outgoing batem 100%.
-          </div>
-        )}
-
-        {paired.length > 0 && (
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
-              <thead>
-                <tr style={{ background: '#fafafa', borderBottom: '1px solid #f0f0f0' }}>
-                  <th style={th}>Terminal</th>
-                  <th style={th}>Data</th>
-                  <th style={th}>Valor</th>
-                  <th style={th}>BIN</th>
-                  <th style={{ ...th, color: '#1890FF' }}>IRD capture</th>
-                  <th style={{ ...th, color: '#FA8C16' }}>IRD outgoing</th>
-                  <th style={{ ...th, textAlign: 'right' }}>ITC calculado</th>
-                  <th style={{ ...th, textAlign: 'center' }}>Origem</th>
-                </tr>
-              </thead>
-              <tbody>
-                {paired.map((row, i) => {
-                  const data = row.capture ?? row.outgoing
-                  if (!data) return null
-                  const captureIrd = normalizeNilValue(row.capture?.calculated_ird ?? null)
-                  const outgoingIrd = normalizeNilValue(row.outgoing?.outgoing_ird ?? null)
-                  const onlyIn = !row.capture ? 'outgoing' : !row.outgoing ? 'capture' : 'ambos'
-                  return (
-                    <tr key={i} style={{ borderBottom: '1px solid #f5f5f5' }}>
-                      <td style={td}><span style={{ fontFamily: 'Roboto Mono' }}>{data.terminal_id}</span></td>
-                      <td style={td}>{new Date(data.transaction_date).toLocaleString('pt-BR')}</td>
-                      <td style={td}>{formatCurrency(Number(data.amount))}</td>
-                      <td style={td}><span style={{ fontFamily: 'Roboto Mono' }}>{data.bin}</span></td>
-                      <td style={{ ...td, color: captureIrd ? '#1890FF' : '#FF4D4F', fontWeight: captureIrd ? 400 : 600 }}>
-                        {captureIrd ?? '— ausente'}
-                      </td>
-                      <td style={{ ...td, color: outgoingIrd ? '#FA8C16' : '#FF4D4F', fontWeight: outgoingIrd ? 400 : 600 }}>
-                        {outgoingIrd ?? '— ausente'}
-                      </td>
-                      <td style={{ ...td, textAlign: 'right' }}>
-                        {row.capture?.calculated_itc && row.capture.calculated_itc !== '<nil>'
-                          ? formatCurrency(Number(row.capture.calculated_itc)) : '—'}
-                      </td>
-                      <td style={{ ...td, textAlign: 'center' }}>
-                        {onlyIn === 'ambos'
-                          ? <Tag status="Divergência" />
-                          : onlyIn === 'capture'
-                            ? <Tag status="Mismatch" label="Só captura" />
-                            : <Tag status="Mismatch" label="Só outgoing" />}
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+      <InterchangeDetailModal
+        open={!!selectedRecord}
+        record={selectedRecord}
+        onClose={() => setSelectedRecord(null)}
+      />
     </div>
   )
 }
 
-const th: React.CSSProperties = {
-  textAlign: 'left',
-  padding: '10px 14px',
-  fontSize: 11,
-  fontWeight: 500,
-  color: 'rgba(0,0,0,0.65)',
+interface SectionProps {
+  title: string
+  count: number
+  tone: 'success' | 'warning'
+  open: boolean
+  onToggle: () => void
+  children: React.ReactNode
 }
 
-const td: React.CSSProperties = {
-  padding: '10px 14px',
-  color: 'rgba(0,0,0,0.85)',
+function Section({ title, count, tone, open, onToggle, children }: SectionProps) {
+  const accent = tone === 'success' ? '#237804' : '#874D00'
+  return (
+    <div style={{ background: '#fff', border: '1px solid #f0f0f0', borderRadius: 2, overflow: 'hidden' }}>
+      <button onClick={onToggle}
+        style={{
+          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '12px 16px', background: '#fff', border: 'none', cursor: 'pointer',
+          fontFamily: 'Roboto', textAlign: 'left',
+        }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 13, fontWeight: 600, color: 'rgba(0,0,0,0.85)' }}>{title}</span>
+          <span style={{ fontSize: 11, color: accent, fontWeight: 600 }}>{count} {count === 1 ? 'IRD' : 'IRDs'}</span>
+        </div>
+        <Icon name={open ? 'chevronUp' : 'chevronDown'} size={14} color="rgba(0,0,0,0.45)" />
+      </button>
+      {open && <div style={{ borderTop: '1px solid #f0f0f0', padding: '14px 16px', background: '#fafafa' }}>{children}</div>}
+    </div>
+  )
 }

@@ -32,3 +32,12 @@ export const isFullyReconciled = (rate: number | string | null | undefined): boo
   const n = typeof rate === 'number' ? rate : Number(String(rate).replace('%', '').replace(',', '.'))
   return Number.isFinite(n) && n >= 100
 }
+
+/** Normaliza um rate (string "99.34%" ou number 99.34) para number. */
+export function normalizeConciliationRate(rate?: number | string | null): number {
+  if (rate === null || rate === undefined) return 0
+  if (typeof rate === 'number') return Number.isFinite(rate) ? rate : 0
+  const trimmed = String(rate).trim().replace('%', '').replace(',', '.')
+  const n = Number(trimmed)
+  return Number.isFinite(n) ? n : 0
+}

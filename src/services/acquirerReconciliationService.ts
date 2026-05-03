@@ -12,7 +12,12 @@ import type {
   AcquirerSummaryResponse,
   BrandData,
 } from './types/acquirerSummary.types'
-import type { AcquirerMismatchCaptureOutgoingResponse } from './types/brandDetail.types'
+import type {
+  AcquirerIncomingOutgoingByGroupCodeResponse,
+  AcquirerIncomingOutgoingGroup,
+  AcquirerMismatchCaptureOutgoingResponse,
+  AcquirerMismatchResponse,
+} from './types/brandDetail.types'
 
 const MOCK_DATE = '2026-04-24'
 
@@ -133,5 +138,156 @@ export async function fetchAcquirerMismatch(
   return request<AcquirerMismatchCaptureOutgoingResponse>(
     '/public/report/recon/acquirer/mismatch/capture-outgoing',
     { params: { consolidation_date_eq: date, use_config_id_eq: useConfigId } },
+  )
+}
+
+/* ────────────────────────────────────────────────────────────────────── *
+ *  Endpoint Tupi: /public/report/recon/acquirer/incoming-outgoing-by-group-code
+ *  Lista os grupos (IRDs) consolidados para o par {use_config_id, date}.
+ * ────────────────────────────────────────────────────────────────────── */
+
+const buildGroup = (
+  consolidationId: string,
+  ird: string,
+  brand: string,
+  countA: number,
+  countB: number,
+  tpvA: number,
+  tpvB: number,
+  itcA: number,
+  itcB: number,
+): AcquirerIncomingOutgoingGroup => ({
+  consolidation_id: consolidationId,
+  group_code: ird,
+  metadata: {
+    brand,
+    source_a: { transaction_count: countA, tpv: tpvA, itc: itcA },
+    source_b: { transaction_count: countB, tpv: tpvB, itc: itcB },
+  },
+})
+
+const MOCK_INCOMING_OUTGOING: Record<string, AcquirerIncomingOutgoingGroup[]> = {
+  cfg_visa_credit: [
+    buildGroup('cons_001_g1', 'A', 'visa',  680, 680, 158420.10, 158420.10, 3168.40, 3168.40),
+    buildGroup('cons_001_g2', 'B', 'visa',  410, 410, 102330.00, 102330.00, 2046.60, 2046.60),
+    buildGroup('cons_001_g3', 'C', 'visa',  150, 150,  24680.40,  24680.40,  493.61,  493.61),
+  ],
+  cfg_mastercard_credit: [
+    buildGroup('cons_002_g1', 'A', 'mastercard', 612, 608, 138420.00, 137950.00, 3183.66, 3172.85),
+    buildGroup('cons_002_g2', 'B', 'mastercard', 198, 198,  44820.00,  44820.00, 1031.86, 1031.86),
+    buildGroup('cons_002_g3', 'C', 'mastercard',  82,  78,  15080.00,  15080.00,  346.84,  344.84),
+  ],
+  cfg_elo_debit: [
+    buildGroup('cons_003_g1', 'A', 'elo', 280, 280, 52400.00, 52400.00, 628.80, 628.80),
+    buildGroup('cons_003_g2', 'B', 'elo', 132, 130, 24020.00, 23800.00, 287.92, 285.60),
+  ],
+  cfg_amex_credit: [
+    buildGroup('cons_004_g1', 'A', 'amex', 124, 124, 42180.00, 42180.00, 1265.40, 1265.40),
+  ],
+}
+
+export async function fetchAcquirerIncomingOutgoingByGroupCode(
+  date: string,
+  useConfigId: string,
+): Promise<AcquirerIncomingOutgoingByGroupCodeResponse> {
+  if (apiMode === 'mock') {
+    await mockDelay()
+    const groups = MOCK_INCOMING_OUTGOING[useConfigId] ?? []
+    return [{ id: `${useConfigId}_${date}`, date, groups }]
+  }
+  return request<AcquirerIncomingOutgoingByGroupCodeResponse>(
+    '/public/report/recon/acquirer/incoming-outgoing-by-group-code',
+    { params: { consolidation_date_eq: date, use_config_id_eq: useConfigId } },
+  )
+}
+
+/* ────────────────────────────────────────────────────────────────────── *
+ *  Endpoint Tupi: /public/report/recon/acquirer/mismatch/{consolidationId}
+ *  Detalhe transação-a-transação para um IRD específico.
+ * ────────────────────────────────────────────────────────────────────── */
+
+const tx = (
+  nsu: string,
+  terminal: string,
+  amount: number,
+  itc: number,
+): { nsu: string; terminal_id: string; amount: string; calculated_itc: string } => ({
+  nsu,
+  terminal_id: terminal,
+  amount: amount.toFixed(2),
+  calculated_itc: itc.toFixed(2),
+})
+
+const MOCK_MISMATCH_BY_CONSOLIDATION: Record<string, AcquirerMismatchResponse> = {
+  cons_002_g1: {
+    group_code: 'A',
+    source_a: { transaction_count: 612, tpv: 138420.00, itc: 3183.66 },
+    source_b: { transaction_count: 608, tpv: 137950.00, itc: 3172.85 },
+    consolidation_rate: '99.34%',
+    details_transactions: {
+      divergent_transactions: [
+        tx('NSU-001241', 'POS-A-9821',  450.00,  10.35),
+        tx('NSU-001242', 'POS-A-9821',  120.50,   2.77),
+        tx('NSU-001243', 'POS-B-1130',  329.50,   7.58),
+        tx('NSU-001244', 'POS-B-1130', 4280.00,  98.44),
+      ],
+      conciliated_transactions: [
+        tx('NSU-001100', 'POS-A-9821',  240.00,   5.52),
+        tx('NSU-001101', 'POS-A-9821',  189.50,   4.36),
+        tx('NSU-001102', 'POS-A-9821',  670.00,  15.41),
+      ],
+    },
+  },
+  cons_002_g3: {
+    group_code: 'C',
+    source_a: { transaction_count: 82, tpv: 15080.00, itc: 346.84 },
+    source_b: { transaction_count: 78, tpv: 15080.00, itc: 344.84 },
+    consolidation_rate: '95.12%',
+    details_transactions: {
+      divergent_transactions: [
+        tx('NSU-002001', 'POS-A-9821', 480.00, 11.04),
+        tx('NSU-002002', 'POS-A-9821', 210.00,  4.83),
+      ],
+      conciliated_transactions: [
+        tx('NSU-002100', 'POS-A-9821', 320.00, 7.36),
+        tx('NSU-002101', 'POS-A-9821', 110.00, 2.53),
+      ],
+    },
+  },
+  cons_003_g2: {
+    group_code: 'B',
+    source_a: { transaction_count: 132, tpv: 24020.00, itc: 287.92 },
+    source_b: { transaction_count: 130, tpv: 23800.00, itc: 285.60 },
+    consolidation_rate: '98.92%',
+    details_transactions: {
+      divergent_transactions: [
+        tx('NSU-003001', 'POS-A-9821', 140.00, 1.68),
+        tx('NSU-003002', 'POS-B-1130',  80.00, 0.96),
+      ],
+      conciliated_transactions: [
+        tx('NSU-003100', 'POS-A-9821', 220.00, 2.64),
+      ],
+    },
+  },
+}
+
+export async function fetchAcquirerMismatchByConsolidationId(
+  consolidationId: string,
+): Promise<AcquirerMismatchResponse> {
+  if (apiMode === 'mock') {
+    await mockDelay()
+    const found = MOCK_MISMATCH_BY_CONSOLIDATION[consolidationId]
+    if (found) return found
+    // fallback: 100% conciliado, sem divergentes
+    return {
+      group_code: '—',
+      source_a: { transaction_count: 0, tpv: 0, itc: 0 },
+      source_b: { transaction_count: 0, tpv: 0, itc: 0 },
+      consolidation_rate: '100.00%',
+      details_transactions: { divergent_transactions: [], conciliated_transactions: [] },
+    }
+  }
+  return request<AcquirerMismatchResponse>(
+    `/public/report/recon/acquirer/mismatch/${consolidationId}`,
   )
 }

@@ -75,6 +75,8 @@ export interface PriceBlueprintTable {
   acquirer_id: string
   is_active: boolean
   channel?: Channel
+  /** Nome editável da tabela (Tupi: "Tabela 1", "Tabela 2", "Varejão Premium"...). */
+  name?: string
   created_at: string
   updated_at: string
 }

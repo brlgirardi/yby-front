@@ -101,21 +101,47 @@ const MOCK_COST_BLUEPRINT_ITEMS: CostBlueprintItem[] = MOCK_COST_ITEMS
   .filter(c => c.acquirer_id === 'adiq')
   .map((c, i) => ({ id: `cbi_${i}`, cost_blueprint_table_id: 'tbl_cost_adiq_cp', cost_item_id: c.id, created_at: NOW, updated_at: NOW }))
 
-// Price = cost + margin (margem padrão de 1.0pp para mocks)
-const MOCK_PRICE_ITEMS: PriceItem[] = MOCK_COST_ITEMS.map((c, i) => ({
-  id: `price_${i}`,
-  cost_items_id: c.id,
-  margin: c.product_type === 'debit' ? 0.50 : c.product_type === 'pre_paid' ? 0.40 : 1.00,
-  rate: c.rate + (c.product_type === 'debit' ? 0.50 : c.product_type === 'pre_paid' ? 0.40 : 1.00),
-  fee: c.fee,
-  created_at: NOW, updated_at: NOW,
-}))
+/* ─── Múltiplas tabelas de preço (Tupi feat/pricing) ─────────────────────── *
+ * Cada PriceBlueprintTable representa uma "tabela de preços" nomeada
+ * (Padrão / Varejão Premium / ECs Pequenos). Cada tabela tem margens
+ * diferentes para os mesmos cost items — sub aplica diferentes preços
+ * para diferentes ECs.
+ * ──────────────────────────────────────────────────────────────────────── */
 
 const MOCK_PRICE_TABLES: PriceBlueprintTable[] = [
-  { id: 'tbl_price_adiq_cp',    merchant_id: MERCHANT_ID, acquirer_id: 'adiq',   is_active: true, channel: 'cp',  created_at: NOW, updated_at: NOW },
-  { id: 'tbl_price_adiq_cnp',   merchant_id: MERCHANT_ID, acquirer_id: 'adiq',   is_active: true, channel: 'cnp', created_at: NOW, updated_at: NOW },
-  { id: 'tbl_price_getnet_cp',  merchant_id: MERCHANT_ID, acquirer_id: 'getnet', is_active: true, channel: 'cp',  created_at: NOW, updated_at: NOW },
+  { id: 'tbl_price_padrao',  merchant_id: MERCHANT_ID, acquirer_id: 'all', is_active: true, name: 'Tabela Padrão',     created_at: NOW, updated_at: NOW },
+  { id: 'tbl_price_varejao', merchant_id: MERCHANT_ID, acquirer_id: 'all', is_active: true, name: 'Varejão Premium',   created_at: NOW, updated_at: NOW },
+  { id: 'tbl_price_pequeno', merchant_id: MERCHANT_ID, acquirer_id: 'all', is_active: true, name: 'ECs Pequenos',      created_at: NOW, updated_at: NOW },
 ]
+
+// Margem por tabela (multiplica margem base por fator)
+const TABLE_MARGIN_FACTOR: Record<string, number> = {
+  tbl_price_padrao:  1.0,   // margem base
+  tbl_price_varejao: 0.7,   // margem reduzida (volume alto, mais competitivo)
+  tbl_price_pequeno: 1.4,   // margem maior (volume baixo, paga mais)
+}
+
+const baseMargin = (productType: string) =>
+  productType === 'debit' ? 0.50 : productType === 'pre_paid' ? 0.40 : 1.00
+
+/** Gera PriceItems para uma tabela específica usando o factor da tabela. */
+function buildPriceItemsForTable(tableId: string): PriceItem[] {
+  const factor = TABLE_MARGIN_FACTOR[tableId] ?? 1.0
+  return MOCK_COST_ITEMS.map((c, i) => {
+    const m = +(baseMargin(c.product_type) * factor).toFixed(2)
+    return {
+      id: `price_${tableId}_${i}`,
+      cost_items_id: c.id,
+      margin: m,
+      rate: +(c.rate + m).toFixed(2),
+      fee: c.fee,
+      created_at: NOW, updated_at: NOW,
+    }
+  })
+}
+
+// Compat: PriceItems "default" = primeira tabela
+const MOCK_PRICE_ITEMS: PriceItem[] = buildPriceItemsForTable(MOCK_PRICE_TABLES[0].id)
 
 /* ────────────────────────────────────────────────────────────────────── *
  * Endpoints
@@ -148,11 +174,14 @@ export async function getCostBlueprintItems(params: { cost_blueprint_table_id: s
   return request<CostBlueprintItem[]>(`${BASE}/cost-blueprint-items`, { params })
 }
 
-export async function getPriceItems(params?: { cost_items_id?: string }): Promise<PriceItem[]> {
+export async function getPriceItems(params?: { cost_items_id?: string; price_blueprint_table_id?: string }): Promise<PriceItem[]> {
   if (apiMode === 'mock') {
     await mockDelay()
-    if (params?.cost_items_id) return MOCK_PRICE_ITEMS.filter(p => p.cost_items_id === params.cost_items_id)
-    return MOCK_PRICE_ITEMS
+    const all = params?.price_blueprint_table_id
+      ? buildPriceItemsForTable(params.price_blueprint_table_id)
+      : MOCK_PRICE_ITEMS
+    if (params?.cost_items_id) return all.filter(p => p.cost_items_id === params.cost_items_id)
+    return all
   }
   return request<PriceItem[]>(`${BASE}/price-items`, { params })
 }

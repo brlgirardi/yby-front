@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import BrandLogo from '@/components/shared/BrandLogo'
 import Icon from '@/components/shared/Icon'
+import Loading from '@/components/shared/Loading'
 import Tag from '@/components/shared/Tag'
 import { fetchInterchangeRates } from '@/services/interchangeRateService'
 import type { InterchangeRateBrandSummary, InterchangeRateRecord } from '@/services/types/interchangeRate.types'
@@ -83,7 +84,7 @@ export default function InterchangeRateCard({ brand }: InterchangeRateCardProps)
       {/* Expanded content */}
       {expanded && (
         <div style={{ borderTop: '1px solid #f0f0f0', background: '#fafafa', padding: '14px 20px' }}>
-          {loading && <div style={{ padding: 30, textAlign: 'center', color: 'rgba(0,0,0,0.45)', fontSize: 13 }}>Carregando taxas…</div>}
+          {loading && <Loading message="Carregando taxas…" paddingY={30} />}
 
           {!loading && productTypes.length > 0 && (
             <div style={{ display: 'flex', gap: 0, marginBottom: 12 }}>

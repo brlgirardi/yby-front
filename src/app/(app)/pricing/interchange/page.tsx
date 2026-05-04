@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import PageHeader from '@/components/shared/PageHeader'
 import Icon from '@/components/shared/Icon'
+import Loading from '@/components/shared/Loading'
 import InterchangeRateCard from '@/components/interchange/InterchangeRateCard'
 import {
   CARD_BRANDS_OPTIONS,
@@ -69,7 +70,7 @@ export default function PricingPage() {
           </span>
         </div>
 
-        {loading && <div style={{ padding: 40, textAlign: 'center', color: 'rgba(0,0,0,0.45)', fontSize: 13 }}>Carregando matriz…</div>}
+        {loading && <Loading message="Carregando matriz…" />}
         {!loading && filtered.map(b => <InterchangeRateCard key={b.id} brand={b} />)}
         {!loading && filtered.length === 0 && (
           <div style={{ padding: 40, textAlign: 'center', color: 'rgba(0,0,0,0.45)', fontSize: 13 }}>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Loading from '@/components/shared/Loading'
 import { formatCurrency } from '@/lib/conciliation/formatters'
 import type { TransactionDetail } from '@/services/types/brandDetail.types'
 
@@ -27,7 +28,7 @@ export default function TransactionsTable({
   const isConciliated = variant === 'conciliated'
   const bg = isConciliated ? '#F6FFED' : '#FFFBE6'
 
-  if (loading) return <div style={{ padding: 20, textAlign: 'center', fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>Carregando…</div>
+  if (loading) return <Loading paddingY={20} />
   if (transactions.length === 0) return <div style={{ padding: 20, textAlign: 'center', fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>Sem transações.</div>
 
   const totalPages = Math.ceil(transactions.length / pageSize)

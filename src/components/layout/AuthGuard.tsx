@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuthStore } from '@/store/auth.store'
+import Loading from '@/components/shared/Loading'
 
 /**
  * Guarda client-side para rotas em (app)/*. O token vive em localStorage
@@ -30,7 +31,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   if (!hydrated || !accessToken) {
     return (
       <div style={{ width:'100vw', height:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'#F2F4F8' }}>
-        <div style={{ fontSize:13, color:'rgba(0,0,0,0.45)' }}>Carregando…</div>
+        <Loading size="large" />
       </div>
     )
   }

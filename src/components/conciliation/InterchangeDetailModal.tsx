@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Drawer } from 'antd'
 import Icon from '@/components/shared/Icon'
+import Loading from '@/components/shared/Loading'
 import Tag from '@/components/shared/Tag'
 import { formatCurrency } from '@/lib/conciliation/formatters'
 import { useInterchangeDetail } from '@/hooks/conciliation/useInterchangeDetail'
@@ -54,11 +55,7 @@ export default function InterchangeDetailModal({ open, record, onClose }: Interc
       closable
       styles={{ body: { padding: '20px 24px', background: '#F7F8FA' } }}
     >
-      {loading && (
-        <div style={{ padding: 40, textAlign: 'center', color: 'rgba(0,0,0,0.45)', fontSize: 13 }}>
-          Carregando transações…
-        </div>
-      )}
+      {loading && <Loading message="Carregando transações…" />}
 
       {error && (
         <div style={{ padding: 12, background: '#FFF1F0', border: '1px solid #FFCCC7', borderRadius: 2, color: '#820014', fontSize: 13 }}>

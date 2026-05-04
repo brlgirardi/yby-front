@@ -758,7 +758,7 @@ export default function FinancialPage() {
       <PageHeader
         title={FINANCIAL_TABS.find(t => t.key === tab)?.label ?? 'Financeiro'}
         breadcrumb={`Sub-adquirente / Financeiro / ${FINANCIAL_TABS.find(t => t.key === tab)?.label ?? ''}`}
-        onBack={() => {}}
+        onBack={null}
         extra={
           tab === 'liquidacoes' ? (
             <button onClick={()=>setDrawerImport(true)} style={{ border:'none', background:'#1890FF', color:'#fff', borderRadius:2, height:32, padding:'5px 16px', fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:6, fontWeight:500 }}>

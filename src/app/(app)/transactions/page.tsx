@@ -197,7 +197,7 @@ export default function TransactionsPage() {
       <PageHeader
         title="Transações"
         breadcrumb="Sub-adquirente / Transações"
-        onBack={() => {}}
+        onBack={null}
       />
 
       <div style={{ padding:'16px 24px 0', display:'flex', gap:16 }}>

@@ -226,7 +226,7 @@ export default function AgendaPage() {
       <PageHeader
         title="Agenda de Recebíveis"
         breadcrumb="Sub-adquirente / Agenda / Recebíveis"
-        onBack={() => {}}
+        onBack={null}
         extra={
           <button onClick={() => setDrawerImportAgenda(true)} style={{ border:'none', background:'#1890FF', color:'#fff', borderRadius:2, height:32, padding:'5px 16px', fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', gap:6, fontWeight:500 }}>
             <Icon name="download" size={14} color="#fff" /> Importar CSV

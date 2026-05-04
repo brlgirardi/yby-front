@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { App, Button, Typography } from 'antd'
-import { ArrowLeft, Inbox, Sparkles } from 'lucide-react'
+import { Inbox, Sparkles } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import PageHeader from '@/components/shared/PageHeader'
 import ChannelPriceSection, { CHANNELS } from '@/components/pricing/ChannelPriceSection'
@@ -68,19 +68,11 @@ function PricesPageInner() {
         breadcrumb="Configuração / Pricing / Preços"
         extra={!loading ? (
           <>
-            <Button
-              icon={<Sparkles size={14} />}
-              onClick={handleSimulate}
-              style={{ borderRadius: 0 }}
-            >
-              Simulação
-            </Button>
-            <Button onClick={() => router.back()} style={{ borderRadius: 0 }}>Cancelar</Button>
-            <Button type="primary" loading={saving} onClick={handleSave} style={{ borderRadius: 0, background: '#1890FF', borderColor: '#1890FF' }}>Salvar</Button>
+            <Button icon={<Sparkles size={14} />} onClick={handleSimulate}>Simulação</Button>
+            <Button onClick={() => router.back()}>Cancelar</Button>
+            <Button type="primary" loading={saving} onClick={handleSave}>Salvar</Button>
           </>
-        ) : (
-          <Button type="text" icon={<ArrowLeft size={16} />} onClick={() => router.back()} />
-        )}
+        ) : null}
       />
 
       {/* Linha 2 do header: abas de tabelas */}

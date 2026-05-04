@@ -66,7 +66,7 @@ export default function UsersPage() {
       <PageHeader
         title="Usuários"
         breadcrumb="Sub-adquirente / Usuários"
-        onBack={() => {}}
+        onBack={null}
         extra={<Button variant="primary" size="sm" icon="plus">Novo usuário</Button>}
       />
       <div style={{ padding:24 }}>

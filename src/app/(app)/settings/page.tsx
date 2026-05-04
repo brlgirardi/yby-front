@@ -66,7 +66,7 @@ export default function SettingsPage() {
       <PageHeader
         title="Configurações"
         breadcrumb="Sub-adquirente / Configurações"
-        onBack={() => {}}
+        onBack={null}
         extra={
           <Button variant="primary" size="sm" onClick={handleSave}>
             {saved ? '✓ Salvo' : 'Salvar alterações'}

@@ -97,7 +97,7 @@ export default function MerchantsPage() {
 
   return (
     <div style={{ flex:1, overflow:'auto', display:'flex', flexDirection:'column' }}>
-      <PageHeader title="Lista de Merchants" breadcrumb="Sub-adquirente / Merchants" onBack={() => {}} extra={
+      <PageHeader title="Lista de Merchants" breadcrumb="Sub-adquirente / Merchants" onBack={null} extra={
         <button style={{ border:'none', background:'#1890FF', color:'#fff', borderRadius:2, padding:'6px 16px', fontSize:14, cursor:'pointer', display:'flex', alignItems:'center', gap:6 }}>
           <Icon name="plus" size={14} color="#fff" /> Novo Merchant
         </button>

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, useRef } from 'react'
 import { App, Button, Modal, Typography } from 'antd'
-import { ArrowLeft, Inbox, Info as InfoIcon } from 'lucide-react'
+import { Inbox, Info as InfoIcon } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import PageHeader from '@/components/shared/PageHeader'
 import ChannelSection, { CHANNELS } from '@/components/pricing/ChannelSection'
@@ -93,12 +93,10 @@ function CostsPageInner() {
         breadcrumb="Configuração / Pricing / Custos"
         extra={showConfig ? (
           <>
-            <Button onClick={() => configuring ? setConfiguring(false) : router.back()} style={{ borderRadius: 0 }}>Cancelar</Button>
-            <Button type="primary" loading={saving} onClick={handleSave} style={{ borderRadius: 0, background: '#1890FF', borderColor: '#1890FF' }}>Salvar</Button>
+            <Button onClick={() => configuring ? setConfiguring(false) : router.back()}>Cancelar</Button>
+            <Button type="primary" loading={saving} onClick={handleSave}>Salvar</Button>
           </>
-        ) : (
-          <Button type="text" icon={<ArrowLeft size={16} />} onClick={() => router.back()} />
-        )}
+        ) : null}
       />
 
       <div style={{ flex: 1, overflow: 'auto', background: '#F2F4F8', padding: 24 }}>

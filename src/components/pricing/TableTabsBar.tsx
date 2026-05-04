@@ -61,7 +61,7 @@ export default function TableTabsBar({
 
   return (
     <>
-      <div role="tablist" aria-label="Tabelas de preço" style={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
+      <div role="tablist" aria-label="Tabelas de preço" style={{ display: 'flex', alignItems: 'flex-end', gap: 0, flexWrap: 'wrap' }}>
         {tabs.map(tab => {
           const isActive = tab.id === activeId
           const isOnly = tabs.length <= 1
@@ -75,9 +75,11 @@ export default function TableTabsBar({
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                padding: '6px 12px',
+                padding: '10px 16px',
                 background: '#fff',
                 borderBottom: isActive ? '2px solid #1890FF' : '2px solid transparent',
+                // marginBottom negativo "cola" o underline na borda inferior do wrapper externo (1px)
+                marginBottom: -1,
                 cursor: 'pointer',
                 userSelect: 'none',
                 fontFamily: 'Roboto',
@@ -145,7 +147,10 @@ export default function TableTabsBar({
             aria-label={addLabel}
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 4,
-              padding: '6px 10px', background: 'none', border: 'none', cursor: 'pointer',
+              padding: '10px 14px', marginBottom: -1,
+              background: 'none', border: 'none',
+              borderBottom: '2px solid transparent',
+              cursor: 'pointer',
               color: '#1890FF', fontSize: 13, fontFamily: 'Roboto',
             }}
             onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(24,144,255,0.08)'}

@@ -99,7 +99,7 @@ export default function DashboardPage() {
           <button style={{ border:'1px solid #d9d9d9', background:'#fff', borderRadius:2, padding:'6px 14px', fontSize:14, cursor:'pointer', display:'flex', alignItems:'center', gap:6, color:'rgba(0,0,0,0.65)' }}>Todos os MCCs <Icon name="chevronDown" size={12} color="rgba(0,0,0,0.45)" /></button>
           <button style={{ border:'1px solid #d9d9d9', background:'#fff', borderRadius:2, padding:'6px 14px', fontSize:14, cursor:'pointer', display:'flex', alignItems:'center', gap:6, color:'rgba(0,0,0,0.65)' }}><Icon name="calendar" size={14} color="rgba(0,0,0,0.45)" /> Abril 2026 <Icon name="chevronDown" size={12} color="rgba(0,0,0,0.45)" /></button>
         </div>
-      } onBack={() => {}} />
+      } onBack={null} />
 
       <div style={{ padding:24, display:'flex', flexDirection:'column', gap:24 }}>
         <div style={{ display:'flex', gap:24 }}>

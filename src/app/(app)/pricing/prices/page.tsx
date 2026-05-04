@@ -1,10 +1,11 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { App, Button, Typography } from 'antd'
-import { Inbox, Sparkles } from 'lucide-react'
+import { App, Button } from 'antd'
+import { Sparkles } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import PageHeader from '@/components/shared/PageHeader'
+import EmptyState from '@/components/shared/EmptyState'
 import ChannelPriceSection, { CHANNELS } from '@/components/pricing/ChannelPriceSection'
 import PricingSkeleton from '@/components/pricing/PricingSkeleton'
 import TableTabsBar from '@/components/pricing/TableTabsBar'
@@ -12,8 +13,6 @@ import { ACQUIRER_NAMES, getAcquirerDisplayName, usePricingData } from '@/hooks/
 import { usePriceTableTabs } from '@/hooks/pricing/usePriceTableTabs'
 import { getPriceItems } from '@/services/pricingService'
 import type { PriceItem } from '@/services/types/pricing.types'
-
-const { Text } = Typography
 
 function PricesPageInner() {
   const router = useRouter()
@@ -93,19 +92,13 @@ function PricesPageInner() {
         {loading && <PricingSkeleton variant="prices" />}
 
         {showEmpty && (
-          <div role="status" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 0', maxWidth: 460, margin: '0 auto', textAlign: 'center' }}>
-            <Inbox size={48} color="#d9d9d9" style={{ marginBottom: 16 }} aria-hidden="true" />
-            <Text strong style={{ fontSize: 15, color: 'rgba(0,0,0,0.85)', marginBottom: 6, display: 'block' }}>
-              Defina os custos antes de configurar preços
-            </Text>
-            <Text style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 20, fontSize: 13, display: 'block' }}>
-              Os preços vendidos aos ECs são derivados dos custos pagos aos adquirentes (custo + sua
-              margem em pontos percentuais). Sem custos configurados, não há base para calcular preços.
-            </Text>
-            <Button type="primary" onClick={() => router.push('/pricing/costs')}>
-              Ir para Custos
-            </Button>
-          </div>
+          <EmptyState
+            title="Defina os custos antes de configurar preços"
+            description={
+              <>Os preços vendidos aos ECs são derivados dos custos pagos aos adquirentes (custo + sua margem em pontos percentuais). Sem custos configurados, não há base para calcular preços.</>
+            }
+            action={{ label: 'Ir para Custos', onClick: () => router.push('/pricing/costs') }}
+          />
         )}
 
         {!loading && !showEmpty && (

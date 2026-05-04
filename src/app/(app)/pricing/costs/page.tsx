@@ -2,9 +2,10 @@
 
 import { useEffect, useMemo, useState, useRef } from 'react'
 import { App, Button, Modal, Typography } from 'antd'
-import { Inbox, Info as InfoIcon } from 'lucide-react'
+import { Info as InfoIcon } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import PageHeader from '@/components/shared/PageHeader'
+import EmptyState from '@/components/shared/EmptyState'
 import ChannelSection, { CHANNELS } from '@/components/pricing/ChannelSection'
 import PricingSkeleton from '@/components/pricing/PricingSkeleton'
 import { ACQUIRER_NAMES, getAcquirerDisplayName } from '@/hooks/pricing/usePricingData'
@@ -103,19 +104,13 @@ function CostsPageInner() {
         {loading && <PricingSkeleton variant="costs" />}
 
         {showEmpty && (
-          <div role="status" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 0', maxWidth: 460, margin: '0 auto', textAlign: 'center' }}>
-            <Inbox size={48} color="#d9d9d9" style={{ marginBottom: 16 }} aria-hidden="true" />
-            <Text strong style={{ fontSize: 15, color: 'rgba(0,0,0,0.85)', marginBottom: 6, display: 'block' }}>
-              Nenhuma tabela de custos cadastrada
-            </Text>
-            <Text style={{ color: 'rgba(0,0,0,0.45)', marginBottom: 20, fontSize: 13, display: 'block' }}>
-              Cadastre os custos cobrados pelos adquirentes (Adiq, GetNet) para que a Conciliação possa
-              comparar com os valores liquidados pelas registradoras.
-            </Text>
-            <Button type="primary" onClick={() => setConfiguring(true)}>
-              Configurar custos
-            </Button>
-          </div>
+          <EmptyState
+            title="Nenhuma tabela de custos cadastrada"
+            description={
+              <>Cadastre os custos cobrados pelos adquirentes (Adiq, GetNet) para que a Conciliação possa comparar com os valores liquidados pelas registradoras.</>
+            }
+            action={{ label: 'Configurar custos', onClick: () => setConfiguring(true) }}
+          />
         )}
 
         {showConfig && CHANNELS.map(channel => (

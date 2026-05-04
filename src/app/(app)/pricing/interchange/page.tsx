@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter, usePathname } from 'next/navigation'
 import PageHeader from '@/components/shared/PageHeader'
 import Icon from '@/components/shared/Icon'
 import InterchangeRateCard from '@/components/interchange/InterchangeRateCard'
@@ -16,15 +15,7 @@ import {
 import { fetchInterchangeRateBrandSummary } from '@/services/interchangeRateService'
 import type { InterchangeRateBrandSummary } from '@/services/types/interchangeRate.types'
 
-const PRICING_TABS = [
-  { key: 'costs', label: 'Custos', href: '/pricing/costs' },
-  { key: 'prices', label: 'Preços', href: '/pricing/prices' },
-  { key: 'interchange', label: 'Matriz de Intercâmbio', href: '/pricing/interchange' },
-]
-
 export default function PricingPage() {
-  const router = useRouter()
-  const pathname = usePathname() || ''
   const [brands, setBrands] = useState<InterchangeRateBrandSummary[]>([])
   const [loading, setLoading] = useState(true)
   const { filters, setSearchTerm, setCardBrand, setCardProduct, setPersonType, setCardEntry, setSector } = useInterchangeRateFilters()
@@ -43,13 +34,7 @@ export default function PricingPage() {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <PageHeader
         title="Matriz de Intercâmbio"
-        breadcrumb="Configuração / Pricing"
-        tabs={PRICING_TABS.map(t => ({ key: t.key, label: t.label }))}
-        activeTab={pathname.endsWith('/costs') ? 'costs' : pathname.endsWith('/prices') ? 'prices' : 'interchange'}
-        onTabChange={key => {
-          const tab = PRICING_TABS.find(t => t.key === key)
-          if (tab) router.push(tab.href)
-        }}
+        breadcrumb="Configuração / Pricing / Matriz de Intercâmbio"
       />
 
       <div style={{ flex: 1, overflow: 'auto', background: '#F2F4F8', padding: '16px 24px' }}>

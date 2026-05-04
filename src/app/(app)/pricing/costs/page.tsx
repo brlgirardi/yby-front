@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState, useRef } from 'react'
 import { App, Button, Modal, Typography } from 'antd'
 import { ArrowLeft, Inbox, Info as InfoIcon } from 'lucide-react'
-import { useRouter, usePathname } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import PageHeader from '@/components/shared/PageHeader'
 import ChannelSection, { CHANNELS } from '@/components/pricing/ChannelSection'
 import PricingSkeleton from '@/components/pricing/PricingSkeleton'
@@ -14,15 +14,8 @@ import type { CostRow } from '@/components/pricing/MethodTable'
 
 const { Text } = Typography
 
-const PRICING_TABS = [
-  { key: 'costs', label: 'Custos', href: '/pricing/costs' },
-  { key: 'prices', label: 'Preços', href: '/pricing/prices' },
-  { key: 'interchange', label: 'Matriz de Intercâmbio', href: '/pricing/interchange' },
-]
-
 function CostsPageInner() {
   const router = useRouter()
-  const pathname = usePathname() || ''
   const { message } = App.useApp()
 
   const [tables, setTables] = useState<CostBlueprintTable[]>([])
@@ -97,13 +90,7 @@ function CostsPageInner() {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <PageHeader
         title="Custo por Adquirente"
-        breadcrumb="Configuração / Pricing"
-        tabs={PRICING_TABS.map(t => ({ key: t.key, label: t.label }))}
-        activeTab={pathname.endsWith('/costs') ? 'costs' : pathname.endsWith('/prices') ? 'prices' : 'interchange'}
-        onTabChange={key => {
-          const tab = PRICING_TABS.find(t => t.key === key)
-          if (tab) router.push(tab.href)
-        }}
+        breadcrumb="Configuração / Pricing / Custos"
         extra={showConfig ? (
           <>
             <Button onClick={() => configuring ? setConfiguring(false) : router.back()} style={{ borderRadius: 0 }}>Cancelar</Button>

@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import { App, Button, Typography } from 'antd'
 import { ArrowLeft, Inbox } from 'lucide-react'
-import { useRouter, usePathname } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import PageHeader from '@/components/shared/PageHeader'
 import ChannelPriceSection, { CHANNELS } from '@/components/pricing/ChannelPriceSection'
 import PricingSkeleton from '@/components/pricing/PricingSkeleton'
@@ -11,15 +11,8 @@ import { ACQUIRER_NAMES, getAcquirerDisplayName, usePricingData } from '@/hooks/
 
 const { Text } = Typography
 
-const PRICING_TABS = [
-  { key: 'costs', label: 'Custos', href: '/pricing/costs' },
-  { key: 'prices', label: 'Preços', href: '/pricing/prices' },
-  { key: 'interchange', label: 'Matriz de Intercâmbio', href: '/pricing/interchange' },
-]
-
 function PricesPageInner() {
   const router = useRouter()
-  const pathname = usePathname() || ''
   const { message } = App.useApp()
   const { installments, costItems, priceTables, priceItems, loading } = usePricingData()
   const [saving, setSaving] = useState(false)
@@ -50,13 +43,7 @@ function PricesPageInner() {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <PageHeader
         title="Preços por Adquirente"
-        breadcrumb="Configuração / Pricing"
-        tabs={PRICING_TABS.map(t => ({ key: t.key, label: t.label }))}
-        activeTab={pathname.endsWith('/costs') ? 'costs' : pathname.endsWith('/prices') ? 'prices' : 'interchange'}
-        onTabChange={key => {
-          const tab = PRICING_TABS.find(t => t.key === key)
-          if (tab) router.push(tab.href)
-        }}
+        breadcrumb="Configuração / Pricing / Preços"
         extra={!loading ? (
           <>
             <Button onClick={() => router.back()} style={{ borderRadius: 0 }}>Cancelar</Button>

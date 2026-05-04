@@ -201,22 +201,40 @@ function resolveBrand(brand: string): React.ReactNode | undefined {
   return ALL_BRANDS[normalized]
 }
 
+// Classe CSS injetada uma vez — força os SVGs internos a preencherem 100%
+// do container. Sem isso, o SVG (sem width/height) renderiza em ~300×150
+// e fica desalinhado/cortado no slot.
+const BRAND_SVG_CSS_ID = 'brand-logo-fit-style'
+if (typeof window !== 'undefined' && !document.getElementById(BRAND_SVG_CSS_ID)) {
+  const style = document.createElement('style')
+  style.id = BRAND_SVG_CSS_ID
+  style.textContent = `.brand-logo-fit > svg { width: 100% !important; height: 100% !important; display: block; }`
+  document.head.appendChild(style)
+}
+
 export default function BrandLogo({ brand, size = 20, showLabel = false }: BrandLogoProps) {
   const h = size
-  const w = Math.round(size * 1.6)
+  // Proporção 36:24 = 1.5 (mesma do viewBox de todos os SVGs de bandeira/adquirente).
+  // Antes era 1.6 e isso criava barras laterais visíveis (espaço fantasma à direita).
+  const w = Math.round(size * 1.5)
 
   const svg = resolveBrand(brand)
   if (svg) {
     return (
       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-        <span style={{
-          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-          width: w, height: h,
-          background: '#fff',
-          border: '1px solid #D9D9D9',
-          borderRadius: 3, overflow: 'hidden', flexShrink: 0,
-        }}>
-          <span style={{ display: 'flex', width: '100%', height: '100%' }}>{svg}</span>
+        <span
+          className="brand-logo-fit"
+          style={{
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            width: w, height: h,
+            background: '#fff',
+            border: '1px solid #D9D9D9',
+            borderRadius: 3,
+            overflow: 'hidden',
+            flexShrink: 0,
+          }}
+        >
+          {svg}
         </span>
         {showLabel && <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.85)', fontWeight: 500 }}>{brand}</span>}
       </span>

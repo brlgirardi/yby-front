@@ -23,12 +23,26 @@ export default function ReconciliationPage() {
     setSelectedBrand(null)
   }
 
+  // Breadcrumb dinâmico — em drill-down mostra "...> [Bandeira]" para
+  // contexto histórico (Nielsen #3 controle do usuário + #6 reconhecimento).
+  const breadcrumb = view === 'detail' && selectedBrand
+    ? `Financeiro / Conciliação / ${selectedBrand.name.charAt(0).toUpperCase() + selectedBrand.name.slice(1)}`
+    : 'Financeiro / Conciliação'
+
+  // Em drill-down, o título pode mostrar a bandeira para reforçar onde estamos
+  const title = view === 'detail' && selectedBrand
+    ? `Conciliação · ${selectedBrand.name.charAt(0).toUpperCase() + selectedBrand.name.slice(1)}`
+    : 'Conciliação'
+
+  // onBack do header: em overview = null (raiz do menu), em detail = handleBack
+  const onBackProp = view === 'detail' ? handleBack : null
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <PageHeader
-        title="Conciliação"
-        breadcrumb="Financeiro / Conciliação"
-        onBack={null}
+        title={title}
+        breadcrumb={breadcrumb}
+        onBack={onBackProp}
       />
 
       <div style={{ flex: 1, overflow: 'auto', background: '#F2F4F8' }}>

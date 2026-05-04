@@ -54,17 +54,12 @@ export default function BrandDetail({ brand, date, onDateChange, onBack }: Brand
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16, padding: '16px 24px' }}>
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <button onClick={onBack} aria-label="Voltar"
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(0,0,0,0.65)', display: 'flex', alignItems: 'center', padding: '4px 8px 4px 0' }}>
-          <Icon name="arrowLeft" size={16} />
-        </button>
-        <span style={{ fontSize: 16, fontWeight: 600, color: 'rgba(0,0,0,0.85)', textTransform: 'capitalize' }}>
-          {brand.name}
-        </span>
-        <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>•</span>
-        <span style={{ fontFamily: 'Roboto Mono', fontSize: 11, color: 'rgba(0,0,0,0.45)' }}>{brand.useConfigId}</span>
+      {/* Header local: identificação técnica + Exportar.
+          Voltar e título "Conciliação · Mastercard" ficam no PageHeader (já no breadcrumb).
+       */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>Use config:</span>
+        <span style={{ fontFamily: 'Roboto Mono', fontSize: 11, color: 'rgba(0,0,0,0.65)' }}>{brand.useConfigId}</span>
         <button
           onClick={() => exportInterchangeListToCSV(records, brand.name, date)}
           disabled={!records.length}

@@ -12,6 +12,10 @@ export type LoginFormProps = {
   showDemoBadge?: boolean
   /** URL para "Esqueci minha senha". Default '/forgot-password'. */
   forgotHref?: string
+  /** E-mail pré-preenchido (vem de prefs.lastLoginEmail). */
+  initialEmail?: string
+  /** E-mail/contato do gerente Yby para "sem acesso". Default Yby genérico. */
+  supportEmail?: string
   /** Callback quando usuário submete o form. */
   onSubmit: (data: { email: string; password: string }) => void
 }
@@ -25,9 +29,11 @@ export default function LoginForm({
   loading = false,
   showDemoBadge = false,
   forgotHref = '/forgot-password',
+  initialEmail = '',
+  supportEmail = 'suporte@tupi.io',
   onSubmit,
 }: LoginFormProps) {
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(initialEmail)
   const [password, setPassword] = useState('')
   const [showPass, setShowPass] = useState(false)
 
@@ -92,6 +98,15 @@ export default function LoginForm({
             style={{ width:'100%', background:loading?'#69b1ff':'#1890FF', color:'#fff', border:'none', borderRadius:2, padding:'8px 0', fontSize:14, fontWeight:500, cursor:loading?'not-allowed':'pointer', marginTop:16, fontFamily:'Roboto' }}>
             {loading?'Entrando...':'Entrar'}
           </button>
+
+          {/* Help externo (Nielsen #10) — para quem nunca entrou ou perdeu acesso */}
+          <div style={{ marginTop:20, paddingTop:16, borderTop:'1px solid #f0f0f0', textAlign:'center', fontSize:12, color:'rgba(0,0,0,0.45)' }}>
+            Não tem acesso ao painel?{' '}
+            <a href={`mailto:${supportEmail}?subject=Acesso%20ao%20painel%20Sub-adquirente`}
+               style={{ color:'#1890FF', textDecoration:'none', fontWeight:500 }}>
+              Contate seu gerente Yby
+            </a>
+          </div>
         </div>
       </div>
 

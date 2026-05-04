@@ -1,15 +1,16 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import KpiCard from '@/components/ui/KpiCard'
 import Icon from '@/components/shared/Icon'
 import AcquirerSummaryCard from './AcquirerSummaryCard'
 import ConciliationSkeleton from './ConciliationSkeleton'
 import DateScroller from './DateScroller'
 import { useAcquirerSummary } from '@/hooks/conciliation/useAcquirerSummary'
-import { useConciliationFilters, applyConciliationFilters, STATUS_OPTIONS, BRAND_OPTIONS } from '@/hooks/conciliation/useConciliationFilters'
+import { applyConciliationFilters, STATUS_OPTIONS, BRAND_OPTIONS } from '@/hooks/conciliation/useConciliationFilters'
 import { formatCurrencyShort } from '@/lib/conciliation/formatters'
 import { exportOverviewToCSV } from '@/lib/conciliation/csvExport'
+import { usePrefsStore } from '@/store/prefs.store'
 import type { BrandData } from '@/services/types/acquirerSummary.types'
 
 export interface ConciliationOverviewProps {
@@ -20,7 +21,20 @@ export interface ConciliationOverviewProps {
 
 export default function ConciliationOverview({ date, onDateChange, onBrandClick }: ConciliationOverviewProps) {
   const { brand: brands, loading, error } = useAcquirerSummary(date)
-  const { filters, setSearchTerm, setStatusFilter, setBrandFilter } = useConciliationFilters()
+
+  // Filtros: status e bandeira persistem entre sessões (Status quo — Enviesados cap. 5).
+  // searchTerm é volátil (pesquisa pontual, não faz sentido persistir).
+  const reconStatusFilter = usePrefsStore(s => s.reconStatusFilter)
+  const reconBrandFilter = usePrefsStore(s => s.reconBrandFilter)
+  const setReconStatusFilter = usePrefsStore(s => s.setReconStatusFilter)
+  const setReconBrandFilter = usePrefsStore(s => s.setReconBrandFilter)
+  const [searchTerm, setSearchTerm] = useState('')
+
+  const filters = useMemo(() => ({
+    searchTerm,
+    statusFilter: reconStatusFilter,
+    brandFilter: reconBrandFilter,
+  }), [searchTerm, reconStatusFilter, reconBrandFilter])
 
   const filtered = useMemo(() => applyConciliationFilters(brands, filters), [brands, filters])
 
@@ -116,7 +130,7 @@ export default function ConciliationOverview({ date, onDateChange, onBrandClick 
 
         <select
           value={filters.statusFilter}
-          onChange={e => setStatusFilter(e.target.value)}
+          onChange={e => setReconStatusFilter(e.target.value)}
           aria-label="Filtrar por status"
           style={{ border: '1px solid #d9d9d9', borderRadius: 2, padding: '5px 8px', fontSize: 13, fontFamily: 'Roboto', outline: 'none', background: '#fff' }}
         >
@@ -125,7 +139,7 @@ export default function ConciliationOverview({ date, onDateChange, onBrandClick 
 
         <select
           value={filters.brandFilter}
-          onChange={e => setBrandFilter(e.target.value)}
+          onChange={e => setReconBrandFilter(e.target.value)}
           aria-label="Filtrar por bandeira"
           style={{ border: '1px solid #d9d9d9', borderRadius: 2, padding: '5px 8px', fontSize: 13, fontFamily: 'Roboto', outline: 'none', background: '#fff' }}
         >

@@ -4,6 +4,7 @@ import { Suspense, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import LoginForm from '@/components/auth/LoginForm'
 import { useAuthStore } from '@/store/auth.store'
+import { usePrefsStore } from '@/store/prefs.store'
 import { login } from '@/services/authService'
 import { ApiError, apiMode } from '@/services/apiClient'
 
@@ -14,6 +15,11 @@ function LoginPageInner() {
   const setAccessToken = useAuthStore(s => s.setAccessToken)
   const setUser = useAuthStore(s => s.setUser)
   const setFirstAccess = useAuthStore(s => s.setFirstAccess)
+
+  // Status quo (Enviesados, cap. 5): pré-preenche último e-mail usado.
+  // Privacidade: senha NUNCA é persistida; apenas o e-mail.
+  const lastLoginEmail = usePrefsStore(s => s.lastLoginEmail)
+  const setLastLoginEmail = usePrefsStore(s => s.setLastLoginEmail)
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -29,6 +35,8 @@ function LoginPageInner() {
       const res = await login({ email, password })
       setAccessToken(res.accessToken)
       setUser(res.user)
+      // Persiste só após login bem-sucedido (evita salvar typo)
+      setLastLoginEmail(email)
       if (res.isFirstAccess) {
         setFirstAccess(res.user.email, true)
         router.push('/redefine-temporary-password')
@@ -52,6 +60,7 @@ function LoginPageInner() {
       loading={loading}
       error={error}
       showDemoBadge={apiMode === 'mock'}
+      initialEmail={lastLoginEmail}
       onSubmit={handleLogin}
     />
   )

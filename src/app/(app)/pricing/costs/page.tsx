@@ -112,7 +112,7 @@ function CostsPageInner() {
               Cadastre os custos cobrados pelos adquirentes (Adiq, GetNet) para que a Conciliação possa
               comparar com os valores liquidados pelas registradoras.
             </Text>
-            <Button type="primary" onClick={() => setConfiguring(true)} style={{ borderRadius: 0, background: '#1890FF', borderColor: '#1890FF' }}>
+            <Button type="primary" onClick={() => setConfiguring(true)}>
               Configurar custos
             </Button>
           </div>
@@ -153,8 +153,8 @@ function CostsPageInner() {
           </div>
         </div>
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 24 }}>
-          <Button onClick={() => { setSaveEmptyModalOpen(false); doSave() }} style={{ borderRadius: 0 }}>Salvar</Button>
-          <Button type="primary" style={{ borderRadius: 0, background: '#1890FF', borderColor: '#1890FF' }} onClick={() => setSaveEmptyModalOpen(false)}>
+          <Button onClick={() => { setSaveEmptyModalOpen(false); doSave() }}>Salvar</Button>
+          <Button type="primary" onClick={() => setSaveEmptyModalOpen(false)}>
             Cancelar
           </Button>
         </div>

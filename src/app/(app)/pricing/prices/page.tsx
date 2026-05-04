@@ -102,7 +102,7 @@ function PricesPageInner() {
               Os preços vendidos aos ECs são derivados dos custos pagos aos adquirentes (custo + sua
               margem em pontos percentuais). Sem custos configurados, não há base para calcular preços.
             </Text>
-            <Button type="primary" onClick={() => router.push('/pricing/costs')} style={{ borderRadius: 0, background: '#1890FF', borderColor: '#1890FF' }}>
+            <Button type="primary" onClick={() => router.push('/pricing/costs')}>
               Ir para Custos
             </Button>
           </div>

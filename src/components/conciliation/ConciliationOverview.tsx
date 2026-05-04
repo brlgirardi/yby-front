@@ -4,6 +4,7 @@ import { useMemo } from 'react'
 import KpiCard from '@/components/ui/KpiCard'
 import Icon from '@/components/shared/Icon'
 import AcquirerSummaryCard from './AcquirerSummaryCard'
+import ConciliationSkeleton from './ConciliationSkeleton'
 import DateScroller from './DateScroller'
 import { useAcquirerSummary } from '@/hooks/conciliation/useAcquirerSummary'
 import { useConciliationFilters, applyConciliationFilters, STATUS_OPTIONS, BRAND_OPTIONS } from '@/hooks/conciliation/useConciliationFilters'
@@ -144,11 +145,7 @@ export default function ConciliationOverview({ date, onDateChange, onBrandClick 
       )}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {loading && (
-          <div style={{ padding: '40px', textAlign: 'center', color: 'rgba(0,0,0,0.45)', fontSize: 13 }}>
-            Carregando conciliação para {date}…
-          </div>
-        )}
+        {loading && <ConciliationSkeleton variant="overview" />}
         {!loading && filtered.length === 0 && (
           <div style={{ padding: '40px', textAlign: 'center', color: 'rgba(0,0,0,0.45)', fontSize: 13 }}>
             Nenhuma conciliação encontrada para os filtros aplicados.

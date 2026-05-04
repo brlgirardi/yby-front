@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Space, Typography } from 'antd'
+import { Typography } from 'antd'
 import { ChevronDown, ChevronUp, Clock } from 'lucide-react'
 import BrandLogo from '@/components/shared/BrandLogo'
 import type { CardBrand, CostItem, Installment, PriceBlueprintTable, PriceItem } from '@/services/types/pricing.types'
@@ -33,22 +33,22 @@ export default function AcquirerPriceSection({
   return (
     <div style={{ border: '1px solid #f0f0f0', borderRadius: 0, marginBottom: 8, background: '#fff', overflow: 'hidden' }}>
       <div
-        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', cursor: 'pointer' }}
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', cursor: 'pointer' }}
         onClick={() => setOpen(v => !v)}
       >
-        <Space size={12} align="center">
-          <BrandLogo brand={acquirerName} size={32} />
-          <Text style={{ fontSize: 15, fontWeight: 600 }}>{acquirerName}</Text>
-        </Space>
-        <Space size={8} align="center">
-          <Space size={4} align="center">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <BrandLogo brand={acquirerName} size={28} />
+          <Text style={{ fontSize: 15, fontWeight: 600, lineHeight: '28px' }}>{acquirerName}</Text>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             <Clock size={12} color="#888" />
-            <Text style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>
+            <Text style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', lineHeight: '16px' }}>
               Atualizado em {table ? formatDate(table.updated_at) : '—'}
             </Text>
-          </Space>
+          </div>
           {open ? <ChevronUp size={16} color="#666" /> : <ChevronDown size={16} color="#666" />}
-        </Space>
+        </div>
       </div>
 
       {open && (

@@ -28,9 +28,7 @@ export default function ReconciliationPage() {
       <PageHeader
         title="Conciliação"
         breadcrumb="Financeiro / Conciliação"
-        tabs={[{ key: 'overview', label: 'Visão geral' }, { key: 'details', label: 'Conciliação detalhada' }]}
-        activeTab={view === 'overview' ? 'overview' : 'details'}
-        onTabChange={k => k === 'overview' ? handleBack() : selectedBrand && setView('detail')}
+        onBack={null}
       />
 
       <div style={{ flex: 1, overflow: 'auto', background: '#F2F4F8' }}>

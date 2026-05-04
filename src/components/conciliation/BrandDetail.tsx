@@ -8,6 +8,7 @@ import { isFullyReconciled } from '@/lib/conciliation/statusUtils'
 import type { BrandData } from '@/services/types/acquirerSummary.types'
 import type { InterchangeRecord } from '@/services/types/brandDetail.types'
 import BrandSummaryCard from './BrandSummaryCard'
+import ConciliationSkeleton from './ConciliationSkeleton'
 import DateScroller from './DateScroller'
 import InterchangeDetailModal from './InterchangeDetailModal'
 import InterchangeDropdownTable from './InterchangeDropdownTable'
@@ -113,7 +114,7 @@ export default function BrandDetail({ brand, date, onDateChange, onBack }: Brand
       </div>
 
       {error && <div style={{ padding: 12, background: '#FFF1F0', border: '1px solid #FFCCC7', borderRadius: 2, color: '#820014', fontSize: 13 }}>Erro: {error}</div>}
-      {loading && <div style={{ padding: 30, textAlign: 'center', fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>Carregando IRDs…</div>}
+      {loading && <ConciliationSkeleton variant="detail" />}
 
       {/* Divergentes */}
       {!loading && divergent.length > 0 && (

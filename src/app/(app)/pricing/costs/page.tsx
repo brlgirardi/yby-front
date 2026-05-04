@@ -114,7 +114,7 @@ function CostsPageInner() {
         )}
       />
 
-      <div style={{ flex: 1, overflow: 'auto', background: '#fff', padding: 24 }}>
+      <div style={{ flex: 1, overflow: 'auto', background: '#F2F4F8', padding: 24 }}>
         {loading && <PricingSkeleton variant="costs" />}
 
         {showEmpty && (

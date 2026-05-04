@@ -2,8 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { App, Button } from 'antd'
-import { Sparkles } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import Icon from '@/components/shared/Icon'
 import PageHeader from '@/components/shared/PageHeader'
 import EmptyState from '@/components/shared/EmptyState'
 import ChannelPriceSection, { CHANNELS } from '@/components/pricing/ChannelPriceSection'
@@ -67,7 +67,7 @@ function PricesPageInner() {
         breadcrumb="Configuração / Pricing / Preços"
         extra={!loading ? (
           <>
-            <Button icon={<Sparkles size={14} />} onClick={handleSimulate}>Simulação</Button>
+            <Button icon={<Icon name="sparkles" size={14} />} onClick={handleSimulate}>Simulação</Button>
             <Button onClick={() => router.back()}>Cancelar</Button>
             <Button type="primary" loading={saving} onClick={handleSave}>Salvar</Button>
           </>
@@ -76,7 +76,7 @@ function PricesPageInner() {
 
       {/* Linha 2 do header: abas de tabelas */}
       {!loading && !showEmpty && (
-        <div style={{ background: '#fff', borderBottom: '1px solid #f0f0f0', padding: '8px 24px', flexShrink: 0 }}>
+        <div style={{ background: '#fff', borderBottom: '1px solid #f0f0f0', padding: '8px 24px 0', flexShrink: 0 }}>
           <TableTabsBar
             tabs={tableTabs.tabs}
             activeId={tableTabs.activeId}
@@ -103,14 +103,6 @@ function PricesPageInner() {
 
         {!loading && !showEmpty && (
           <>
-            {/* Banner identificando tabela ativa */}
-            {tableTabs.activeId && (
-              <div role="status" aria-live="polite" style={{ background: '#E6F7FF', border: '1px solid #91D5FF', borderRadius: 2, padding: '8px 12px', marginBottom: 16, fontSize: 12, color: 'rgba(0,0,0,0.65)' }}>
-                Editando preços da tabela <strong>{tableTabs.tabs.find(t => t.id === tableTabs.activeId)?.name}</strong>.
-                {tableTabs.tabs.length > 1 && ' Você pode alternar entre tabelas pelas abas acima.'}
-              </div>
-            )}
-
             {loadingTable ? (
               <PricingSkeleton variant="prices" />
             ) : (

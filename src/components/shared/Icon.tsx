@@ -38,6 +38,7 @@ import {
   UserPlus,
   Users,
   X,
+  Sparkles,
   Zap,
 } from 'lucide-react'
 
@@ -98,6 +99,7 @@ const ICON_MAP: Record<string, React.ComponentType<{ size?: number; color?: stri
   alertTriangle:  AlertTriangle,
   checkCircle:    CheckCircle,
   upload:         Upload,
+  sparkles:       Sparkles,
   // "pos" — usamos Smartphone (mais próximo conceitualmente)
   pos:            Smartphone,
 }

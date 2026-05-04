@@ -708,19 +708,7 @@ export default function FinancialPage() {
       { label:'Reserva operacional', value:'R$ 43.200,00', bg:'#f5f5f5', border:'#d9d9d9', color:'rgba(0,0,0,0.65)', sub:'Rolling reserve — libera em 90 dias',
         tip:'Reserva financeira (rolling reserve) retida temporariamente como garantia. Liberada em 90 dias.' },
     ],
-    arquivos: [
-      { label:'Arquivos publicados', value:'2', bg:'#f6ffed', border:'#b7eb8f', color:'#52c41a', sub:'Aceitos e processados pela Núclea',
-        tip:'Arquivos CSV de captura aceitos e publicados pela Núclea (registradora). Recebíveis registrados.',
-        filterStatus:'Publicado' },
-      { label:'Em processamento', value:'2', bg:'#e6f7ff', border:'#91d5ff', color:'#1890FF', sub:'Na fila da Núclea — aguardando retorno',
-        tip:'Arquivos enviados aguardando processamento e validação da Núclea.',
-        filterStatus:'Em processamento' },
-      { label:'Reprovados', value:'1', bg:'#fff1f0', border:'#ffa39e', color:'#ff4d4f', sub:'Rejeitados — reenvio necessário',
-        tip:'Arquivos rejeitados pela Núclea por erro de formato/validação. Necessário corrigir e reenviar.',
-        filterStatus:'Reprovado' },
-      { label:'Transações registradas', value:'488', bg:'#f5f5f5', border:'#d9d9d9', color:'rgba(0,0,0,0.85)', sub:'Total de transações nos arquivos publicados',
-        tip:'Soma das transações contidas nos arquivos publicados na Núclea no período.' },
-    ],
+    arquivos: [],
     antecipacoes: [
       { label:'Capital adiantado (em aberto)', value:'R$ 140.000,00', bg:'#e6f7ff', border:'#91d5ff', color:'#1890FF', sub:'Saldo devedor dos ECs — a recuperar via repasses',
         tip:'Capital que o sub adiantou aos ECs e ainda não recuperou. Recuperação acontece nos próximos repasses (descontado do bruto a transferir).' },
@@ -781,6 +769,7 @@ export default function FinancialPage() {
       />
 
       {/* KPI cards */}
+      {currentKpis.length > 0 && (
       <div style={{ padding:'16px 24px 0', display:'flex', gap:16, alignItems:'stretch' }}>
         {currentKpis.map((k,i) => {
           const clickable = !!k.filterStatus && tab === 'liquidacoes'
@@ -837,6 +826,7 @@ export default function FinancialPage() {
             : <div key={i} style={{ flex:1, display:'flex', alignSelf:'stretch' }}>{card}</div>
         })}
       </div>
+      )}
 
       {/* ── EXTRATO TAB ── */}
       {/* ── LIQUIDAÇÕES TAB ── */}
@@ -1147,17 +1137,6 @@ export default function FinancialPage() {
 
         return (
           <div style={{ padding:24, display:'flex', flexDirection:'column', gap:16 }}>
-            <div style={{ background:'#fff', border:'1px solid rgba(0,0,0,0.06)', borderRadius:2, padding:'10px 20px', display:'flex', gap:20, alignItems:'center', alignSelf:'flex-start' }}>
-              <div>
-                <div style={{ fontSize:11, color:'rgba(0,0,0,0.45)' }}>Reserva operacional (rolling reserve)</div>
-                <div style={{ fontSize:16, fontWeight:700, color:'#722ED1' }}>R$ 43.200,00</div>
-              </div>
-              <div style={{ width:1, height:32, background:'#f0f0f0' }} />
-              <div>
-                <div style={{ fontSize:11, color:'rgba(0,0,0,0.45)' }}>Retenção aplicada</div>
-                <div style={{ fontSize:14, fontWeight:600, color:'rgba(0,0,0,0.65)' }}>3% · libera em 90d</div>
-              </div>
-            </div>
             {repViewMode === 'lote' ? (
               <DataTable<PRow>
                 title="Repasses a merchants — Abril 2026"
@@ -1472,11 +1451,11 @@ export default function FinancialPage() {
                   ))}
                 </div>
               </div>
-              <div style={{ background:'#fff', border:'1px solid rgba(0,0,0,0.06)', borderRadius:2, overflow:'hidden' }}>
+              <div style={{ background:'#fff', border:'1px solid rgba(0,0,0,0.06)', borderRadius:2, overflow:'hidden', flex:1, display:'flex', flexDirection:'column' }}>
                 <div style={{ padding:'12px 20px', borderBottom:'1px solid #f0f0f0' }}>
                   <div style={{ fontSize:13, fontWeight:600, color:'rgba(0,0,0,0.85)' }}>Receita por origem</div>
                 </div>
-                <div style={{ padding:'16px 20px', display:'flex', flexDirection:'column', gap:10 }}>
+                <div style={{ padding:'16px 20px', display:'flex', flexDirection:'column', gap:10, flex:1, justifyContent:'center' }}>
                   {[
                     { label:'MDR cobrado dos ECs', value:fmt(42473), pct:96, color:'#52c41a' },
                     { label:'Juros antecipações',  value:fmt(1691),  pct:4,  color:'#1890FF' },

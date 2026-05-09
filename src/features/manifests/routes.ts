@@ -64,16 +64,16 @@ const sub: RouteMap = {
   usuarios: '/users',
   settings: '/settings',
   // V1++
-  aprovacoes:        '/aprovacoes',         // V1 SUB
-  'monitor-avancado':'/monitor-avancado',   // V1 SUB
-  'config-avancada': {                       // V1 SUB
-    root: '/config-avancada/taxas',
+  aprovacoes:   '/aprovacoes',
+  antecipacao: {
+    root: '/antecipacao',
     subs: {
-      taxas:        '/config-avancada/taxas',
-      risco:        '/config-avancada/risco',
-      limites:      '/config-avancada/limites',
-      operacional:  '/config-avancada/operacional',
-      notificacoes: '/config-avancada/notificacoes',
+      visao:        '/antecipacao',
+      taxas:        '/antecipacao/taxas',
+      risco:        '/antecipacao/risco',
+      limites:      '/antecipacao/limites',
+      operacional:  '/antecipacao/operacional',
+      notificacoes: '/antecipacao/notificacoes',
     },
   },
 }

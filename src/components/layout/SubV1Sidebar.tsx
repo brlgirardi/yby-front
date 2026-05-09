@@ -19,35 +19,33 @@ import { useAuthStore } from '@/store/auth.store'
 import { logout as apiLogout } from '@/services/authService'
 
 const moduleIconMap: Partial<Record<ModuleKey, string>> = {
-  dashboard:        'dashboard',
-  merchants:        'users',
-  transactions:     'receipt',
-  agenda:           'calendar',
-  financeiro:       'landmark',
-  reconciliation:   'reconcile',
-  pricing:          'creditCard',
-  usuarios:         'users',
-  settings:         'settings',
+  dashboard:      'dashboard',
+  merchants:      'users',
+  transactions:   'receipt',
+  agenda:         'calendar',
+  financeiro:     'landmark',
+  reconciliation: 'reconcile',
+  pricing:        'creditCard',
+  usuarios:       'users',
+  settings:       'settings',
   // V1++
-  aprovacoes:       'checkCircle',
-  'monitor-avancado':'barChart',
-  'config-avancada':'settings',
+  aprovacoes:     'checkCircle',
+  antecipacao:    'barChart',
 }
 
 const moduleLabel: Partial<Record<ModuleKey, string>> = {
-  dashboard:        'Dashboard',
-  merchants:        'Merchants',
-  transactions:     'Transações',
-  agenda:           'Agenda',
-  financeiro:       'Financeiro',
-  reconciliation:   'Conciliação',
-  pricing:          'Pricing',
-  usuarios:         'Usuários',
-  settings:         'Configurações',
+  dashboard:      'Dashboard',
+  merchants:      'Merchants',
+  transactions:   'Transações',
+  agenda:         'Agenda',
+  financeiro:     'Financeiro',
+  reconciliation: 'Conciliação',
+  pricing:        'Pricing',
+  usuarios:       'Usuários',
+  settings:       'Configurações',
   // V1++
-  aprovacoes:       'Aprovações',
-  'monitor-avancado':'Monitor avançado',
-  'config-avancada':'Config avançada',
+  aprovacoes:     'Aprovações',
+  antecipacao:    'Antecipação',
 }
 
 const submenuLabels: Record<string, string> = {
@@ -59,8 +57,10 @@ const submenuLabels: Record<string, string> = {
   costs:        'Custos',
   prices:       'Preços',
   interchange:  'Matriz de Intercâmbio',
+  // Antecipação hub
+  visao:        'Visão geral',
   taxas:        'Taxas',
-  risco:        'Risco',
+  risco:        'Risco e limites',
   limites:      'Limites',
   operacional:  'Operacional',
   notificacoes: 'Notificações',

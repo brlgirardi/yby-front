@@ -98,6 +98,14 @@ function getAreaFromPath(pathname: string): string {
   return AREA_IDS.includes(segment as typeof AREA_IDS[number]) ? segment : 'taxas'
 }
 
+const AREA_LABEL: Record<string, string> = {
+  taxas:        'Taxas',
+  risco:        'Risco e limites',
+  limites:      'Limites',
+  operacional:  'Operacional',
+  notificacoes: 'Notificações',
+}
+
 export default function SubConfigAvancada() {
   const pathname = usePathname()
   const [activeArea, setActiveArea] = useState<string>(() => getAreaFromPath(pathname))
@@ -108,7 +116,10 @@ export default function SubConfigAvancada() {
 
   return (
     <div style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
-      <PageHeader title="Configuração avançada" breadcrumb="Sub-adquirente · v1 / Configuração avançada" />
+      <PageHeader
+        title={AREA_LABEL[activeArea] ?? 'Antecipação'}
+        breadcrumb={`Sub-adquirente · v1 / Antecipação / ${AREA_LABEL[activeArea] ?? ''}`}
+      />
 
       <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 24 }}>
         {/* Banner regras V1++ */}

@@ -92,7 +92,7 @@ export default function SubMonitorAvancado() {
 
   return (
     <div style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
-      <PageHeader title="Monitor avançado" breadcrumb="Sub-adquirente · v1 / Monitor avançado" />
+      <PageHeader title="Visão geral" breadcrumb="Sub-adquirente · v1 / Antecipação / Visão geral" />
 
       <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 24 }}>
         {/* KPIs globais */}

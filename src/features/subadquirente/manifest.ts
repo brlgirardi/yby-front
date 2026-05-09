@@ -42,16 +42,15 @@ const v1 = {
     'agenda',
     'financeiro',
     'reconciliation',
-    'aprovacoes',           // NOVO V1
+    'aprovacoes',
     'pricing',
-    'config-avancada',      // NOVO V1
-    'monitor-avancado',     // NOVO V1
+    'antecipacao',          // hub: visão geral + taxas + risco + limites + operacional + notificações
     'usuarios',
   ],
   submenus: {
-    financeiro: ['liquidacoes', 'repasses', 'arquivos', 'antecipacoes', 'dre'],
-    pricing:    ['costs', 'prices', 'interchange'],
-    'config-avancada': ['taxas', 'risco', 'limites', 'operacional', 'notificacoes'],
+    financeiro:   ['liquidacoes', 'repasses', 'arquivos', 'antecipacoes', 'dre'],
+    pricing:      ['costs', 'prices', 'interchange'],
+    antecipacao:  ['visao', 'taxas', 'risco', 'limites', 'operacional', 'notificacoes'],
   },
   defaultExpanded: 'dashboard',
   badges: { dev: 'SA v1' },

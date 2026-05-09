@@ -55,7 +55,7 @@ const submenuLabels: Record<string, string> = {
   costs:        'Custos',
   prices:       'Preços',
   interchange:  'Matriz de Intercâmbio',
-  antecipacao:  'Taxas de Antecipação',
+  antecipacao:  'Antecipação',
 }
 
 export default function SubV1Sidebar() {

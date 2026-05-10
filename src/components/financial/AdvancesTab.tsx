@@ -1,13 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { Table, Button, Drawer, Select, Form, InputNumber } from 'antd'
+import { Table, Button, Drawer, Form, InputNumber } from 'antd'
+import AppSelect, { Option } from '@/components/ui/AppSelect'
 import Tooltip from '@/components/shared/Tooltip'
 import Tag from '@/components/shared/Tag'
 import { PlusCircle, X, RefreshCw, ChevronDown, ChevronUp, Info } from 'lucide-react'
 import KpiCard from '@/components/ui/KpiCard'
 
-const { Option } = Select
 
 interface AntRow { key: string; id: string; data: string; merchant: string; valor: string; taxa: string; juros: string; vencimento: string; aRecuperar: string; status: string }
 
@@ -42,8 +42,8 @@ function simulate(valor: number, bandeira: string, metodo: string): SimResult {
 const fmt = (n: number) => `R$ ${n.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`
 
 const columns = [
-  { title: 'ID', dataIndex: 'id', key: 'id', render: (v: string) => <span className="font-mono text-xs text-[#1890FF]">{v}</span> },
   { title: 'Data', dataIndex: 'data', key: 'data' },
+  { title: 'ID', dataIndex: 'id', key: 'id', render: (v: string) => <span className="font-mono text-xs text-[#1890FF]">{v}</span> },
   { title: 'Merchant (EC)', dataIndex: 'merchant', key: 'merchant' },
   { title: 'Valor antecipado', dataIndex: 'valor', key: 'valor', align: 'right' as const, render: (v: string) => <span className="font-semibold text-[#FA8C16]">{v}</span> },
   { title: 'Taxa cobrada', dataIndex: 'taxa', key: 'taxa', align: 'right' as const },
@@ -184,19 +184,19 @@ export default function AdvancesTab() {
             <InputNumber min={1} style={{ width: '100%', borderRadius: 2 }} precision={2} placeholder="0,00" />
           </Form.Item>
           <Form.Item label="Método de pagamento" name="metodo" rules={[{ required: true }]}>
-            <Select placeholder="Selecione" style={{ borderRadius: 2 }}>
+            <AppSelect placeholder="Selecione">
               {['Crédito', 'Débito', 'PIX'].map(m => <Option key={m} value={m}>{m}</Option>)}
-            </Select>
+            </AppSelect>
           </Form.Item>
           <Form.Item label="Bandeira" name="bandeira" rules={[{ required: true }]}>
-            <Select placeholder="Selecione" style={{ borderRadius: 2 }}>
+            <AppSelect placeholder="Selecione">
               {['Visa','Mastercard','Elo','PIX'].map(b => <Option key={b} value={b}>{b}</Option>)}
-            </Select>
+            </AppSelect>
           </Form.Item>
           <Form.Item label="MCC do merchant" name="mcc">
-            <Select placeholder="Selecione (opcional)" style={{ borderRadius: 2 }}>
+            <AppSelect placeholder="Selecione (opcional)">
               {['5812 - Restaurantes','5912 - Farmácias','5411 - Mercados','5734 - Eletrônicos'].map(m => <Option key={m} value={m}>{m}</Option>)}
-            </Select>
+            </AppSelect>
           </Form.Item>
 
           {!simResult ? (

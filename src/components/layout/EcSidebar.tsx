@@ -47,7 +47,7 @@ const submenuLabels: Record<string, string> = {
   maquininhas:              'Maquininhas',
   extrato:                  'Extrato',
   antecipacoes:             'Antecipações',
-  'antecipacao-programada': 'Antecipação programada',
+  'antecipacao-programada': 'Antecipação automática',
   liquidacoes:              'Liquidações',
   'taxas-simulacoes':       'Taxas e Simulações',
   usuarios:                 'Usuários',

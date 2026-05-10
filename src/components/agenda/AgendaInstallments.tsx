@@ -1,12 +1,12 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Input, Select, Switch, Button, Table, Tag, Empty } from 'antd'
+import { Switch, Button, Table, Tag, Empty } from 'antd'
 import { Search, X, ChevronDown, ChevronRight } from 'lucide-react'
 import KpiCard from '@/components/ui/KpiCard'
 import StatusTag from '@/components/shared/Tag'
-
-const { Option } = Select
+import Input from '@/components/shared/Input'
+import AppSelect, { Option } from '@/components/ui/AppSelect'
 
 interface Row {
   key: string
@@ -115,23 +115,21 @@ export default function AgendaInstallments() {
       <div className="bg-white rounded-sm border border-[#f0f0f0] p-4 mb-4" style={{ boxShadow: '0 1px 2px rgba(0,0,0,0.03)' }}>
         <div className="flex flex-wrap items-center gap-3">
           <Input
-            prefix={<Search size={14} className="text-[rgba(0,0,0,0.45)]" />}
+            prefix="search"
             placeholder="Buscar NSU..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            style={{ width: 200, borderRadius: 2 }}
-            size="small"
-            allowClear
+            style={{ width: 200 }}
           />
-          <Select placeholder="Bandeira" value={bandeira} onChange={setBandeira} size="small" allowClear style={{ width: 130, borderRadius: 2 }}>
+          <AppSelect placeholder="Bandeira" value={bandeira} onChange={setBandeira} size="small" allowClear style={{ width: 130 }}>
             {['Visa','Mastercard','Elo','PIX'].map(b => <Option key={b} value={b}>{b}</Option>)}
-          </Select>
-          <Select placeholder="Lançamento" value={lancamento} onChange={setLancamento} size="small" allowClear style={{ width: 140, borderRadius: 2 }}>
+          </AppSelect>
+          <AppSelect placeholder="Lançamento" value={lancamento} onChange={setLancamento} size="small" allowClear style={{ width: 140 }}>
             {['Crédito','Débito','PIX'].map(l => <Option key={l} value={l}>{l}</Option>)}
-          </Select>
-          <Select placeholder="Status" value={status} onChange={setStatus} size="small" allowClear style={{ width: 130, borderRadius: 2 }}>
+          </AppSelect>
+          <AppSelect placeholder="Status" value={status} onChange={setStatus} size="small" allowClear style={{ width: 130 }}>
             {['Pendente','Liquidado'].map(s => <Option key={s} value={s}>{s}</Option>)}
-          </Select>
+          </AppSelect>
 
           <div className="ml-auto flex items-center gap-2">
             <span className="text-xs" style={{ color: 'rgba(0,0,0,0.65)' }}>Agrupar por bandeira</span>

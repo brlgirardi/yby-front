@@ -11,6 +11,14 @@ import Tag from '@/components/shared/Tag'
 import Tooltip from '@/components/shared/Tooltip'
 import Sparkline from '@/components/shared/Sparkline'
 import BrandLogo from '@/components/shared/BrandLogo'
+import { Progress, Tag as AntTag } from 'antd'
+import {
+  subSolicitacoes,
+  subAprovacoesKpis,
+  FLAG_LABELS,
+  type SolicitacaoAprovacao,
+  type Categoria as CategoriaAprov,
+} from '@/mocks/sub/aprovacoes'
 
 const fmt = (v: number) => 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
@@ -691,6 +699,8 @@ export default function FinancialPage() {
   const [drawerSim, setDrawerSim] = useState(false)
   const [drawerImport, setDrawerImport] = useState(false)
   const [drawerArquivo, setDrawerArquivo] = useState<ArquivoRow | null>(null)
+  const [drawerAprov, setDrawerAprov] = useState<SolicitacaoAprovacao | null>(null)
+  const [aprovFilter, setAprovFilter] = useState<'pendente' | 'todos'>('pendente')
   const [dismissed, setDismissed] = useState<Set<string>>(new Set())
   const [liqStatusFilter, setLiqStatusFilter] = useState<string>('todos')
   const { liqViewMode, setLiqViewMode, repViewMode, setRepViewMode } = usePrefsStore()
@@ -894,8 +904,8 @@ export default function FinancialPage() {
               'Reprovado':        'Núclea rejeitou o registro do recebível por inconsistência no arquivo. Necessário corrigir e reenviar em Financeiro → Arquivos.',
             }
             const evCols: ColumnType<LiqEvento>[] = [
-              { title:'Lote', dataIndex:'loteId', key:'loteId', width:130, render: v => <span style={{ fontFamily:'Roboto Mono', fontSize:11, color:'rgba(0,0,0,0.65)' }}>{v}</span> },
               { title:'Data', dataIndex:'data', key:'data', width:110, render: v => <span style={{ color:'rgba(0,0,0,0.65)', whiteSpace:'nowrap' }}>{v}</span> },
+              { title:'Lote', dataIndex:'loteId', key:'loteId', width:130, render: v => <span style={{ fontFamily:'Roboto Mono', fontSize:11, color:'rgba(0,0,0,0.65)' }}>{v}</span> },
               { title:'Adquirente', dataIndex:'adq', key:'adq', width:120, render: v => <BrandLogo brand={v} size={20} showLabel /> },
               { title:'Bandeira', dataIndex:'bandeira', key:'bandeira', width:110, render: v => <BrandLogo brand={v} size={20} showLabel /> },
               { title:'Parcelas', key:'qtd', width:90, render: (_,r) => <span style={{ color:'rgba(0,0,0,0.65)' }}>{r.parcelas.length}</span> },
@@ -927,9 +937,9 @@ export default function FinancialPage() {
               l.parcelas.map(p => ({ ...p, loteId: l.loteId, data: l.data, adq: l.adq, bandeira: l.bandeira, statusNuclea: l.statusNuclea }))
             )
             const parcelaCols: ColumnType<ParcelaFlat>[] = [
+              { title:'Data', dataIndex:'data', key:'data', width:110, render: v => <span style={{ color:'rgba(0,0,0,0.65)', whiteSpace:'nowrap' }}>{v}</span> },
               { title:'Lote', dataIndex:'loteId', key:'loteId', width:130, render: v => <span style={{ fontFamily:'Roboto Mono', fontSize:11, color:'rgba(0,0,0,0.65)' }}>{v}</span> },
               { title:'NSU', dataIndex:'nsu', key:'nsu', width:140, render: v => <span style={{ fontFamily:'Roboto Mono', fontSize:11, color:'rgba(0,0,0,0.65)' }}>{v}</span> },
-              { title:'Data', dataIndex:'data', key:'data', width:110, render: v => <span style={{ color:'rgba(0,0,0,0.65)', whiteSpace:'nowrap' }}>{v}</span> },
               { title:'Adquirente', dataIndex:'adq', key:'adq', width:120, render: v => <BrandLogo brand={v} size={20} showLabel /> },
               { title:'Bandeira', dataIndex:'bandeira', key:'bandeira', width:110, render: v => <BrandLogo brand={v} size={20} showLabel /> },
               { title:'EC', dataIndex:'ec', key:'ec', width:140, render: v => <span style={{ color:'rgba(0,0,0,0.85)', fontWeight:500 }}>{v}</span> },
@@ -1090,10 +1100,10 @@ export default function FinancialPage() {
         ]
 
         const cols: ColumnType<PRow>[] = [
+          { title:'Data repasse', dataIndex:'data', key:'data', width:110 },
           { title:'Repasse', dataIndex:'repId', key:'repId', width:130, render: v => <span style={{ fontFamily:'Roboto Mono', fontSize:11, color:'rgba(0,0,0,0.65)' }}>{v}</span> },
           { title:'Merchant (EC)', dataIndex:'name', key:'name', render: v => <span style={{ fontWeight:500, color:'rgba(0,0,0,0.85)' }}>{v}</span> },
           { title:'CNPJ', dataIndex:'cnpj', key:'cnpj', render: v => <span style={{ fontFamily:'Roboto Mono', fontSize:11, color:'rgba(0,0,0,0.45)' }}>{v}</span> },
-          { title:'Data repasse', dataIndex:'data', key:'data', width:110 },
           { title:'Transações', key:'qtd', width:100, render: (_,r) => <span style={{ color:'rgba(0,0,0,0.65)' }}>{r.transacoes.length}</span> },
           { title:'Bruto vendas', dataIndex:'bruto', key:'bruto', render: v => <span style={{ color:'rgba(0,0,0,0.85)' }}>{fmt(v)}</span> },
           { title:'MDR retido', dataIndex:'taxa', key:'taxa', render: v => <span style={{ color:'#ff4d4f' }}>{fmt(v)}</span> },
@@ -1283,22 +1293,87 @@ export default function FinancialPage() {
             </div>
           )}
 
-          <div style={{ display:'flex', justifyContent:'flex-end' }}>
-            <button
-              onClick={() => router.push('/pricing/antecipacao')}
-              style={{ display:'flex', alignItems:'center', gap:6, border:'1px solid #d9d9d9', background:'#fff', borderRadius:2, padding:'5px 12px', fontSize:13, cursor:'pointer', color:'rgba(0,0,0,0.65)' }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#1890FF'; (e.currentTarget as HTMLElement).style.color = '#1890FF' }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = '#d9d9d9'; (e.currentTarget as HTMLElement).style.color = 'rgba(0,0,0,0.65)' }}
-            >
-              <Icon name="settings" size={13} color="currentColor" />
-              Configurar taxas
-            </button>
-          </div>
+          {/* ── Fila de aprovação manual ── */}
+          {(()=>{
+            const fmtSla = (min: number) => min < 60 ? `${min}min` : `${Math.floor(min/60)}h`
+            const slaColor = (min: number) => min < 240 ? '#FF4D4F' : min < 720 ? '#FA8C16' : '#52c41a'
+            const catTag = (cat: CategoriaAprov) => {
+              const map: Record<CategoriaAprov, { color: string }> = { Bronze:{color:'orange'}, Prata:{color:'default'}, Ouro:{color:'gold'} }
+              return <AntTag color={map[cat].color} style={{ marginInlineEnd:0 }}>{cat}</AntTag>
+            }
+            const pendentes = subSolicitacoes.filter(s => s.status === 'pendente')
+            const exibir = aprovFilter === 'pendente' ? pendentes : subSolicitacoes
+            const sorted = [...exibir].sort((a,b) => a.slaRestanteMin - b.slaRestanteMin)
+
+            if (pendentes.length === 0) return null
+
+            return (
+              <div style={{ background:'#fff', border:'1px solid rgba(0,0,0,0.06)', borderRadius:2, overflow:'hidden' }}>
+                <div style={{ padding:'12px 20px', borderBottom:'1px solid #f0f0f0', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                    <span style={{ fontSize:13, fontWeight:600, color:'rgba(0,0,0,0.85)' }}>Aguardando aprovação manual</span>
+                    <span style={{ fontSize:11, fontWeight:600, background:'#FF4D4F', color:'#fff', borderRadius:10, padding:'1px 7px' }}>{pendentes.length}</span>
+                  </div>
+                  <div style={{ display:'flex', gap:4 }}>
+                    {(['pendente','todos'] as const).map(f => (
+                      <button key={f} onClick={() => setAprovFilter(f)}
+                        style={{ border:'1px solid', borderColor: aprovFilter===f ? '#1890FF' : '#d9d9d9', background: aprovFilter===f ? '#e6f7ff' : '#fff', color: aprovFilter===f ? '#1890FF' : 'rgba(0,0,0,0.65)', borderRadius:2, padding:'3px 10px', fontSize:12, cursor:'pointer' }}>
+                        {f === 'pendente' ? 'Pendentes' : 'Todas'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12 }}>
+                  <thead>
+                    <tr style={{ background:'#fafafa' }}>
+                      {['ID','EC / Categoria','Valor','Score','Flags','SLA restante',''].map(h => (
+                        <th key={h} style={{ padding:'8px 14px', textAlign:'left', fontWeight:500, color:'rgba(0,0,0,0.65)', borderBottom:'1px solid #f0f0f0', whiteSpace:'nowrap', fontSize:11, textTransform:'uppercase', letterSpacing:'0.4px' }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sorted.map(row => (
+                      <tr key={row.id} onClick={() => setDrawerAprov(row)} style={{ borderBottom:'1px solid #f0f0f0', cursor:'pointer', background:'#fff' }}
+                        onMouseEnter={e=>(e.currentTarget as HTMLElement).style.background='#fafafa'}
+                        onMouseLeave={e=>(e.currentTarget as HTMLElement).style.background='#fff'}>
+                        <td style={{ padding:'10px 14px', fontFamily:'Roboto Mono', fontSize:11, color:'rgba(0,0,0,0.55)' }}>{row.id}</td>
+                        <td style={{ padding:'10px 14px' }}>
+                          <span style={{ display:'inline-flex', alignItems:'center', gap:6 }}>
+                            <span style={{ fontWeight:500, color:'rgba(0,0,0,0.85)' }}>{row.ec}</span>
+                            {catTag(row.categoria)}
+                          </span>
+                        </td>
+                        <td style={{ padding:'10px 14px', fontWeight:600, color:'rgba(0,0,0,0.85)', whiteSpace:'nowrap' }}>{fmt(row.valorSolicitado)}</td>
+                        <td style={{ padding:'10px 14px', fontWeight:600 }}>{row.scoreAtual}</td>
+                        <td style={{ padding:'10px 14px' }}>
+                          {row.flags.length === 0
+                            ? <span style={{ color:'rgba(0,0,0,0.25)' }}>—</span>
+                            : <span style={{ display:'inline-flex', flexWrap:'wrap', gap:3 }}>
+                                {row.flags.slice(0,2).map(f => (
+                                  <span key={f} style={{ fontSize:10, padding:'1px 5px', background:'#fff', color:FLAG_LABELS[f].cor, border:`1px solid ${FLAG_LABELS[f].cor}40`, borderRadius:2, fontWeight:500 }}>
+                                    {FLAG_LABELS[f].label}
+                                  </span>
+                                ))}
+                                {row.flags.length > 2 && <span style={{ fontSize:10, color:'rgba(0,0,0,0.35)' }}>+{row.flags.length-2}</span>}
+                              </span>
+                          }
+                        </td>
+                        <td style={{ padding:'10px 14px', fontWeight:600, color:slaColor(row.slaRestanteMin), whiteSpace:'nowrap' }}>{fmtSla(row.slaRestanteMin)}</td>
+                        <td style={{ padding:'10px 14px' }}>
+                          <span style={{ color:'rgba(0,0,0,0.35)' }}><Icon name="eye" size={15} /></span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )
+          })()}
 
           {(()=>{
             const cols: ColumnType<AntecipEC>[] = [
-              { title:'ID', dataIndex:'id', key:'id', width:90, render: v => <span style={{ fontFamily:'Roboto Mono', fontSize:11, color:'rgba(0,0,0,0.65)' }}>{v}</span> },
               { title:'Data', dataIndex:'data', key:'data', width:100, render: v => <span style={{ color:'rgba(0,0,0,0.65)' }}>{v}</span> },
+              { title:'ID', dataIndex:'id', key:'id', width:90, render: v => <span style={{ fontFamily:'Roboto Mono', fontSize:11, color:'rgba(0,0,0,0.65)' }}>{v}</span> },
               { title:'Merchant (EC)', dataIndex:'merchant', key:'merchant', width:160, render: v => <span style={{ fontWeight:500, color:'rgba(0,0,0,0.85)', whiteSpace:'nowrap' }}>{v}</span> },
               { title:'Valor antecipado', dataIndex:'valor', key:'valor', width:140, render: v => <span style={{ fontWeight:600, color:'rgba(0,0,0,0.85)', whiteSpace:'nowrap' }}>{fmt(v)}</span> },
               { title:'Taxa (a.m.)', dataIndex:'taxa', key:'taxa', width:90, render: v => <span style={{ color:'rgba(0,0,0,0.65)' }}>{v}</span> },
@@ -1564,6 +1639,116 @@ export default function FinancialPage() {
       <DrawerSimulacaoAntecipacao open={drawerSim} onClose={()=>setDrawerSim(false)} />
       <DrawerImportarLiquidacao open={drawerImport} onClose={()=>setDrawerImport(false)} />
       <DrawerArquivoTimeline open={!!drawerArquivo} onClose={()=>setDrawerArquivo(null)} arq={drawerArquivo} />
+
+      {/* Drawer dossiê de aprovação */}
+      <Drawer open={drawerAprov !== null} onClose={() => setDrawerAprov(null)} title="Dossiê de aprovação" width={560}
+        footer={
+          <>
+            <button style={{ flex:1, border:'1px solid #d9d9d9', background:'#fff', borderRadius:2, padding:'8px 0', fontSize:13, cursor:'pointer', color:'rgba(0,0,0,0.85)', fontWeight:500 }}>Aprovar</button>
+            <button style={{ flex:1, border:'1px solid #d9d9d9', background:'#fff', borderRadius:2, padding:'8px 0', fontSize:13, cursor:'pointer', color:'rgba(0,0,0,0.85)', fontWeight:500 }}>Aprovar parcial</button>
+            <button style={{ flex:1, border:'1px solid #d9d9d9', background:'#fff', borderRadius:2, padding:'8px 0', fontSize:13, cursor:'pointer', color:'rgba(0,0,0,0.85)', fontWeight:500 }}>Recusar</button>
+          </>
+        }
+      >
+        {drawerAprov && (() => {
+          const s = drawerAprov
+          const fmtBRL2 = (v: number) => v.toLocaleString('pt-BR', { style:'currency', currency:'BRL', minimumFractionDigits:2 })
+          const fmtSla2 = (min: number) => min < 60 ? `${min}min` : `${Math.floor(min/60)}h`
+          const slaColor2 = (min: number) => min < 240 ? '#FF4D4F' : min < 720 ? '#FA8C16' : '#52c41a'
+          const catMap: Record<CategoriaAprov, { color: string }> = { Bronze:{color:'orange'}, Prata:{color:'default'}, Ouro:{color:'gold'} }
+          return (
+            <>
+              <div style={{ marginBottom:20, padding:'12px 14px', background:'#fafafa', borderRadius:2, border:'1px solid rgba(0,0,0,0.06)' }}>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
+                  <span style={{ fontSize:15, fontWeight:600 }}>{s.ec}</span>
+                  <AntTag color={catMap[s.categoria].color} style={{ marginInlineEnd:0 }}>{s.categoria}</AntTag>
+                </div>
+                <div style={{ fontSize:12, color:'rgba(0,0,0,0.45)' }}>{s.cnpj} · {s.ecId}</div>
+                <div style={{ marginTop:8, fontSize:12, color:slaColor2(s.slaRestanteMin), fontWeight:600 }}>
+                  SLA restante: {fmtSla2(s.slaRestanteMin)}
+                </div>
+              </div>
+
+              <div style={{ marginBottom:20, padding:'12px 14px', background:'#FFFBEB', borderRadius:2, border:'1px solid #FDE68A', fontSize:12, color:'rgba(0,0,0,0.75)' }}>
+                <strong>Motivo do encaminhamento manual:</strong> {s.motivoEncaminhamento}
+              </div>
+
+              <div style={{ fontSize:14, fontWeight:600, marginBottom:12 }}>Solicitação</div>
+              {[
+                { label:'Valor solicitado',       value: fmtBRL2(s.valorSolicitado) },
+                { label:'Quantidade de parcelas', value: `${s.qtdParcelas}x` },
+                { label:'Prazo médio',            value: s.prazoMedio },
+                { label:'Recebida em',            value: s.recebidaEm },
+              ].map((r,i) => (
+                <div key={i} style={{ display:'flex', justifyContent:'space-between', padding:'8px 0', borderBottom:'1px solid #f0f0f0', fontSize:13 }}>
+                  <span style={{ color:'rgba(0,0,0,0.45)' }}>{r.label}</span>
+                  <span style={{ fontWeight:500 }}>{r.value}</span>
+                </div>
+              ))}
+
+              <div style={{ fontSize:14, fontWeight:600, margin:'20px 0 12px' }}>Risco e exposição</div>
+
+              <div style={{ background:'#fafafa', border:'1px solid rgba(0,0,0,0.06)', borderRadius:2, padding:'12px 14px', marginBottom:12 }}>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:6 }}>
+                  <span style={{ fontSize:12, color:'rgba(0,0,0,0.45)' }}>Score do EC</span>
+                  <span style={{ fontSize:11, color:'rgba(0,0,0,0.45)' }}>0–1000</span>
+                </div>
+                <div style={{ display:'flex', alignItems:'baseline', gap:8 }}>
+                  <span style={{ fontSize:24, fontWeight:700, color:'rgba(0,0,0,0.85)' }}>{s.scoreAtual}</span>
+                  <span style={{ fontSize:12, color:'rgba(0,0,0,0.45)' }}>
+                    · faixa {s.categoria}: {s.categoria==='Bronze' ? '0–700' : s.categoria==='Prata' ? '600–850' : '750–1000'}
+                  </span>
+                </div>
+                <Progress percent={(s.scoreAtual/1000)*100} showInfo={false} size="small" strokeColor="rgba(0,0,0,0.45)" style={{ marginTop:4 }} />
+              </div>
+
+              <div style={{ background:'#fafafa', border:'1px solid rgba(0,0,0,0.06)', borderRadius:2, padding:'12px 14px', marginBottom:16 }}>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:6 }}>
+                  <span style={{ fontSize:12, color:'rgba(0,0,0,0.45)' }}>Exposição atual vs limite da categoria</span>
+                  <span style={{ fontSize:11, fontWeight:600, color:(s.exposicaoAtual/s.limiteCategoria)>0.8?'#FF4D4F':'#1890FF' }}>
+                    {Math.round((s.exposicaoAtual/s.limiteCategoria)*100)}%
+                  </span>
+                </div>
+                <Progress
+                  percent={(s.exposicaoAtual/s.limiteCategoria)*100} showInfo={false} size="small"
+                  strokeColor={(s.exposicaoAtual/s.limiteCategoria)>0.8?'#FF4D4F':(s.exposicaoAtual/s.limiteCategoria)>0.5?'#FA8C16':'#52C41A'}
+                />
+                <div style={{ display:'flex', justifyContent:'space-between', marginTop:6, fontSize:11, color:'rgba(0,0,0,0.65)' }}>
+                  <span>{fmtBRL2(s.exposicaoAtual)} usado</span>
+                  <span>{fmtBRL2(s.limiteCategoria)} limite</span>
+                </div>
+              </div>
+
+              {s.flags.length > 0 && (
+                <>
+                  <div style={{ fontSize:13, fontWeight:500, marginBottom:8 }}>Flags de risco detectadas</div>
+                  <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:16 }}>
+                    {s.flags.map(f => (
+                      <span key={f} style={{ fontSize:11, padding:'2px 8px', background:`${FLAG_LABELS[f].cor}10`, color:FLAG_LABELS[f].cor, border:`1px solid ${FLAG_LABELS[f].cor}40`, borderRadius:2, fontWeight:500 }}>
+                        {FLAG_LABELS[f].label}
+                      </span>
+                    ))}
+                  </div>
+                </>
+              )}
+
+              <div style={{ fontSize:14, fontWeight:600, margin:'20px 0 12px' }}>
+                Histórico de antecipações ({s.historicoAntecipacoes.length})
+              </div>
+              {s.historicoAntecipacoes.length === 0
+                ? <div style={{ fontSize:12, color:'rgba(0,0,0,0.45)', fontStyle:'italic', padding:'12px 0' }}>Nenhuma antecipação anterior — primeira operação deste EC.</div>
+                : s.historicoAntecipacoes.map((h,i) => (
+                    <div key={i} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'8px 0', borderBottom:'1px solid #f0f0f0', fontSize:13 }}>
+                      <span style={{ color:'rgba(0,0,0,0.65)' }}>{h.data}</span>
+                      <span>{fmtBRL2(h.valor)}</span>
+                      <Tag status={h.status==='paga'?'Pago':'Pendente'} label={h.status==='paga'?'Paga':'Em aberto'} />
+                    </div>
+                  ))
+              }
+            </>
+          )
+        })()}
+      </Drawer>
     </div>
   )
 }

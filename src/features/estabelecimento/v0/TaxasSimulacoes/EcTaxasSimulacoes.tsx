@@ -11,6 +11,7 @@ import Button from '@/components/shared/Button'
 import Icon from '@/components/shared/Icon'
 import Tooltip from '@/components/shared/Tooltip'
 import AccordionCard from '@/components/shared/AccordionCard'
+import BrandLogo from '@/components/shared/BrandLogo'
 import SimulacaoDrawer from '@/features/estabelecimento/v0/shared/SimulacaoDrawer'
 import { ecPrazoRecebimento, ecTaxasModalidades, type TaxaModalidadeForma } from '@/mocks/ec/financeiro'
 
@@ -31,13 +32,20 @@ function renderTaxa(text: string | undefined): React.ReactNode {
 
 export default function EcTaxasSimulacoes() {
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [aviso, setAviso] = useState(true)
+
+  const brandHeader = (brand: string) => (
+    <div style={{ display: 'flex', justifyContent: 'center' }}>
+      <BrandLogo brand={brand} size={28} />
+    </div>
+  )
 
   const taxaColumns: ColumnsType<TaxaModalidadeForma> = [
     { title: 'Forma de pagamento', dataIndex: 'forma', key: 'forma', width: 200 },
-    { title: 'Mastercard', key: 'master', align: 'center', render: (_, row) => renderTaxa(row.bandeiras.find((b) => b.bandeira === 'Mastercard')?.percentText) },
-    { title: 'Visa',       key: 'visa',   align: 'center', render: (_, row) => renderTaxa(row.bandeiras.find((b) => b.bandeira === 'Visa')?.percentText) },
-    { title: 'Elo',        key: 'elo',    align: 'center', render: (_, row) => renderTaxa(row.bandeiras.find((b) => b.bandeira === 'Elo')?.percentText) },
-    { title: 'Amex',       key: 'amex',   align: 'center', render: (_, row) => renderTaxa(row.bandeiras.find((b) => b.bandeira === 'Amex')?.percentText) },
+    { title: brandHeader('Mastercard'), key: 'master', align: 'center', render: (_, row) => renderTaxa(row.bandeiras.find((b) => b.bandeira === 'Mastercard')?.percentText) },
+    { title: brandHeader('Visa'),       key: 'visa',   align: 'center', render: (_, row) => renderTaxa(row.bandeiras.find((b) => b.bandeira === 'Visa')?.percentText) },
+    { title: brandHeader('Elo'),        key: 'elo',    align: 'center', render: (_, row) => renderTaxa(row.bandeiras.find((b) => b.bandeira === 'Elo')?.percentText) },
+    { title: brandHeader('Amex'),       key: 'amex',   align: 'center', render: (_, row) => renderTaxa(row.bandeiras.find((b) => b.bandeira === 'Amex')?.percentText) },
   ]
 
   return (
@@ -70,6 +78,22 @@ export default function EcTaxasSimulacoes() {
               </div>
             ))}
           </div>
+          {aviso && (
+            <div style={{ padding: '12px 20px', borderTop: '1px solid #f0f0f0', background: '#F6FFED', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+              <Icon name="info" size={14} color="#52C41A" />
+              <span style={{ flex: 1, fontSize: 12, color: 'rgba(0,0,0,0.75)', lineHeight: '18px' }}>
+                <strong style={{ color: '#52C41A' }}>Antecipação automática ativa.</strong>{' '}
+                Vendas parceladas no crédito são pagas em <strong>uma única parcela</strong> em até 15 dias úteis — você não espera mês a mês.
+              </span>
+              <button
+                aria-label="Fechar aviso"
+                onClick={() => setAviso(false)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(0,0,0,0.45)', padding: 0, display: 'flex', alignItems: 'center' }}
+              >
+                <Icon name="x" size={14} />
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Modalidades — AccordionCard pattern (header branco, body cinza) */}

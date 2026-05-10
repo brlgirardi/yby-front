@@ -45,10 +45,6 @@ export default function MerchantsPage() {
 
   const columns: ColumnType<Merchant>[] = [
     {
-      title: 'ID', dataIndex: 'id', key: 'id', width: 100,
-      render: v => <span style={{ fontFamily: 'ui-monospace, "SF Mono", monospace', fontSize: 12, color: 'rgba(0,0,0,0.65)', userSelect: 'text' }}>{v}</span>,
-    },
-    {
       title: 'Nome', dataIndex: 'name', key: 'name',
       sorter: (a, b) => a.name.localeCompare(b.name),
       render: v => <span style={{ fontWeight: 600, color: 'rgba(0,0,0,0.85)' }}>{v}</span>,

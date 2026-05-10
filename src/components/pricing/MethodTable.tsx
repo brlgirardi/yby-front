@@ -1,7 +1,8 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { Button, InputNumber, Radio, Select, Space, Switch, Table, Typography } from 'antd'
+import { Button, InputNumber, Radio, Space, Switch, Table, Typography } from 'antd'
+import AppSelect, { Option } from '@/components/ui/AppSelect'
 import { Trash2, Plus } from 'lucide-react'
 import type { Installment, PricingModel } from '@/services/types/pricing.types'
 
@@ -183,9 +184,8 @@ export default function MethodTable({
       dataIndex: 'methodKey',
       width: mainColPct,
       render: (val: string, record: CostRow) => (
-        <Select
+        <AppSelect
           value={val}
-          style={{ width: '100%' }}
           onChange={(methodKey) => {
             const opt = activeOptions.find(o => o.key === methodKey) ?? activeOptions[0]
             if (!opt) return
@@ -198,12 +198,12 @@ export default function MethodTable({
           {activeOptions.map(opt => {
             const usedByOther = rows.some(r => r.key !== record.key && r.methodKey === opt.key)
             return (
-              <Select.Option key={opt.key} value={opt.key} disabled={usedByOther}>
+              <Option key={opt.key} value={opt.key} disabled={usedByOther}>
                 {opt.label}
-              </Select.Option>
+              </Option>
             )
           })}
-        </Select>
+        </AppSelect>
       ),
     },
     {

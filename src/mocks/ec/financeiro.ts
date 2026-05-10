@@ -202,10 +202,10 @@ export interface PrazoRecebimento {
 }
 
 export const ecPrazoRecebimento: PrazoRecebimento[] = [
-  { pagamento: 'Débito',                 recebimento: '1 dia útil'              },
+  { pagamento: 'Débito',                 recebimento: 'Mesmo dia'                },
   { pagamento: 'Pix',                    recebimento: 'Mesmo dia'                },
-  { pagamento: 'Crédito à vista',        recebimento: '31 dias úteis'            },
-  { pagamento: 'Crédito: Parcelado loja',recebimento: '31 dias úteis para cada parcela' },
+  { pagamento: 'Crédito à vista',        recebimento: '15 dias úteis'            },
+  { pagamento: 'Crédito: Parcelado loja',recebimento: '15 dias úteis (parcela única, com antecipação automática)' },
 ]
 
 export interface TaxaModalidadeBandeira {

@@ -42,8 +42,9 @@ export default function EcCobrancas() {
   }, [search, formaFilter, canalFilter, statusFilter])
 
   const columns: ColumnType<Cobranca>[] = [
+    { title: 'Criado em',         dataIndex: 'criadoEm',        key: 'criadoEm', width: 140 },
     {
-      title:     'ID',
+      title:     'ID da transação',
       dataIndex: 'id',
       key:       'id',
       width:     140,
@@ -51,9 +52,7 @@ export default function EcCobrancas() {
         <span style={{ fontFamily: 'ui-monospace, monospace', fontSize: 11, color: 'rgba(0,0,0,0.55)', display: 'inline-block', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={v}>{v}</span>
       ),
     },
-    { title: 'Última transação', dataIndex: 'ultimaTransacao', key: 'ultimaTransacao', width: 140 },
     { title: 'Cliente',           dataIndex: 'cliente',         key: 'cliente' },
-    { title: 'Criado em',         dataIndex: 'criadoEm',        key: 'criadoEm', width: 140 },
     {
       title:  'Canal',
       key:    'canal',
@@ -162,7 +161,7 @@ export default function EcCobrancas() {
               <Tag status={selected.status === 'Sucesso' ? 'Pago' : selected.status === 'Falha' ? 'Erro' : 'Pendente'} />
             </div>
             {[
-              { label: 'ID',                value: selected.id },
+              { label: 'ID da transação',   value: selected.id },
               { label: 'Cliente',           value: selected.cliente },
               { label: 'Canal',             value: channelLabel[selected.canal] + (selected.canal === 'pos' && selected.canalDetalhe ? ` · POS-${selected.canalDetalhe}` : '') },
               { label: 'Forma de pagamento',value: `${selected.brand} ${selected.parcelas}x` },

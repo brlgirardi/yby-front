@@ -9,7 +9,10 @@ export type DayStatus = 'recebido' | 'aReceber' | 'vazio'
 export interface AgendaDay {
   day: number
   status: DayStatus
-  amount: number  // R$ — positivo (entrada), 0 (vazio)
+  /** Valor BRUTO do dia (parcelas + antecipações que caem) */
+  amount: number
+  /** Valor LÍQUIDO efetivo (depois de taxas e débitos de gravame). Se omitido, o consumidor calcula. */
+  liquido?: number
   isToday?: boolean
   isSelected?: boolean
 }
@@ -45,38 +48,40 @@ export const ecAgendaKpis: AgendaKpis = {
 // Calendário mensal — 31 dias. Status / valor por dia.
 // Padrão do Figma: dias passados = "Recebido" (vermelho-cinza), atuais/futuros = "A receber" (azul).
 // Hoje é dia 11 (selecionado).
+// Bruto = parcelas + antecipações que caem; Líquido = bruto − taxas − débitos de gravame.
+// Proporção média: líquido ≈ 32% do bruto (mesma do dia 11: 91.400 / 282.800).
 export const ecAgendaJanuary: AgendaDay[] = [
-  { day: 1,  status: 'recebido',  amount: 0 },
-  { day: 2,  status: 'recebido',  amount: 48000 },
-  { day: 3,  status: 'recebido',  amount: 0 },
-  { day: 4,  status: 'recebido',  amount: 48000 },
-  { day: 5,  status: 'recebido',  amount: 0 },
-  { day: 6,  status: 'recebido',  amount: 48000 },
-  { day: 7,  status: 'recebido',  amount: 48000 },
-  { day: 8,  status: 'recebido',  amount: 0 },
-  { day: 9,  status: 'recebido',  amount: 48000 },
-  { day: 10, status: 'recebido',  amount: 0 },
-  { day: 11, status: 'aReceber',  amount: 48000, isToday: true, isSelected: true },
-  { day: 12, status: 'aReceber',  amount: 0 },
-  { day: 13, status: 'aReceber',  amount: 48000 },
-  { day: 14, status: 'aReceber',  amount: 48000 },
-  { day: 15, status: 'aReceber',  amount: 0 },
-  { day: 16, status: 'aReceber',  amount: 48000 },
-  { day: 17, status: 'aReceber',  amount: 48000 },
-  { day: 18, status: 'aReceber',  amount: 48000 },
-  { day: 19, status: 'aReceber',  amount: 48000 },
-  { day: 20, status: 'aReceber',  amount: 48000 },
-  { day: 21, status: 'aReceber',  amount: 48000 },
-  { day: 22, status: 'aReceber',  amount: 0 },
-  { day: 23, status: 'aReceber',  amount: 48000 },
-  { day: 24, status: 'aReceber',  amount: 48000 },
-  { day: 25, status: 'aReceber',  amount: 48000 },
-  { day: 26, status: 'aReceber',  amount: 48000 },
-  { day: 27, status: 'aReceber',  amount: 0 },
-  { day: 28, status: 'aReceber',  amount: 48000 },
-  { day: 29, status: 'aReceber',  amount: 48000 },
-  { day: 30, status: 'aReceber',  amount: 0 },
-  { day: 31, status: 'aReceber',  amount: 48000 },
+  { day: 1,  status: 'recebido',  amount: 0,      liquido: 0      },
+  { day: 2,  status: 'recebido',  amount: 152000, liquido: 49000  },
+  { day: 3,  status: 'recebido',  amount: 0,      liquido: 0      },
+  { day: 4,  status: 'recebido',  amount: 168000, liquido: 54000  },
+  { day: 5,  status: 'recebido',  amount: 0,      liquido: 0      },
+  { day: 6,  status: 'recebido',  amount: 145000, liquido: 47000  },
+  { day: 7,  status: 'recebido',  amount: 198000, liquido: 64000  },
+  { day: 8,  status: 'recebido',  amount: 0,      liquido: 0      },
+  { day: 9,  status: 'recebido',  amount: 175000, liquido: 56000  },
+  { day: 10, status: 'recebido',  amount: 0,      liquido: 0      },
+  { day: 11, status: 'aReceber',  amount: 282800, liquido: 91400, isToday: true, isSelected: true },
+  { day: 12, status: 'aReceber',  amount: 0,      liquido: 0      },
+  { day: 13, status: 'aReceber',  amount: 162000, liquido: 52000  },
+  { day: 14, status: 'aReceber',  amount: 188000, liquido: 60000  },
+  { day: 15, status: 'aReceber',  amount: 0,      liquido: 0      },
+  { day: 16, status: 'aReceber',  amount: 145000, liquido: 47000  },
+  { day: 17, status: 'aReceber',  amount: 172000, liquido: 55000  },
+  { day: 18, status: 'aReceber',  amount: 158000, liquido: 51000  },
+  { day: 19, status: 'aReceber',  amount: 195000, liquido: 63000  },
+  { day: 20, status: 'aReceber',  amount: 142000, liquido: 46000  },
+  { day: 21, status: 'aReceber',  amount: 168000, liquido: 54000  },
+  { day: 22, status: 'aReceber',  amount: 0,      liquido: 0      },
+  { day: 23, status: 'aReceber',  amount: 178000, liquido: 57000  },
+  { day: 24, status: 'aReceber',  amount: 152000, liquido: 49000  },
+  { day: 25, status: 'aReceber',  amount: 165000, liquido: 53000  },
+  { day: 26, status: 'aReceber',  amount: 185000, liquido: 60000  },
+  { day: 27, status: 'aReceber',  amount: 0,      liquido: 0      },
+  { day: 28, status: 'aReceber',  amount: 192000, liquido: 62000  },
+  { day: 29, status: 'aReceber',  amount: 158000, liquido: 51000  },
+  { day: 30, status: 'aReceber',  amount: 0,      liquido: 0      },
+  { day: 31, status: 'aReceber',  amount: 175000, liquido: 56000  },
 ]
 
 export const ecAgendaDay11: DayDetail = {

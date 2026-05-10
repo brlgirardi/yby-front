@@ -13,9 +13,9 @@ const data = [
 ]
 
 const columns = [
+  { title: 'Data', dataIndex: 'data', key: 'data' },
   { title: 'Merchant', dataIndex: 'merchant', key: 'merchant', render: (v: string) => <span className="font-medium text-sm">{v}</span> },
   { title: 'CNPJ', dataIndex: 'cnpj', key: 'cnpj', render: (v: string) => <span className="font-mono text-xs text-[rgba(0,0,0,0.65)]">{v}</span> },
-  { title: 'Data', dataIndex: 'data', key: 'data' },
   { title: 'Bruto vendas', dataIndex: 'bruto', key: 'bruto', align: 'right' as const, render: (v: string) => <span className="text-[#1890FF] font-semibold">{v}</span> },
   { title: 'Taxas retidas', dataIndex: 'taxas', key: 'taxas', align: 'right' as const, render: (v: string) => <span className="text-[#FF4D4F]">{v}</span> },
   { title: 'Valor repassado', dataIndex: 'repassado', key: 'repassado', align: 'right' as const, render: (v: string) => <span className="font-bold text-[#52C41A]">{v}</span> },

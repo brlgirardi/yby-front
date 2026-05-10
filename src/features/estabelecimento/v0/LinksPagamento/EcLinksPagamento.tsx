@@ -30,6 +30,7 @@ export default function EcLinksPagamento() {
   }, [search])
 
   const columns: ColumnType<LinkPagamento>[] = [
+    { title: 'Criado em', dataIndex: 'criadoEm', key: 'criadoEm', width: 140 },
     { title: 'ID',           dataIndex: 'id',     key: 'id',     width: 80 },
     { title: 'Nome do link', dataIndex: 'nome',   key: 'nome' },
     {
@@ -63,7 +64,6 @@ export default function EcLinksPagamento() {
         />
       ),
     },
-    { title: 'Criado em', dataIndex: 'criadoEm', key: 'criadoEm', width: 140 },
     {
       title:  'Ações',
       key:    'acoes',
@@ -123,7 +123,7 @@ export default function EcLinksPagamento() {
               <Tag status={selected.status === 'Concluído' ? 'Liquidado' : selected.status === 'Ativo' ? 'Ativo' : 'Inativo'} label={selected.status} />
             </div>
             {[
-              { label: 'ID',                value: selected.id },
+              { label: 'ID do link',        value: selected.id },
               { label: 'Nome do link',      value: selected.nome },
               { label: 'Formas aceitas',    value: selected.formas.join(', ') },
               { label: 'Valor',             value: `R$ ${selected.valor.toFixed(2).replace('.', ',')}` },

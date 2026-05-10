@@ -9,6 +9,7 @@ import { useAuthStore } from '@/store/auth.store'
 import { logout as apiLogout } from '@/services/authService'
 import ChangelogModal from './ChangelogModal'
 import PersonaSwitcher from './PersonaSwitcher'
+import { useTheme, useThemeStore, THEMES, type ThemeKey } from '@/stores/themeStore'
 
 export default function GlobalHeader() {
   const router = useRouter()
@@ -21,6 +22,10 @@ export default function GlobalHeader() {
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const userMenuRef = useRef<HTMLDivElement>(null)
+  const theme = useTheme()
+  const setTheme = useThemeStore((s) => s.setTheme)
+  const themeKey = useThemeStore((s) => s.theme)
+  const [themeSubOpen, setThemeSubOpen] = useState(false)
 
   const initials = (user?.name ?? 'Sub Adquirente')
     .split(' ').filter(Boolean).slice(0, 2).map(p => p[0]?.toUpperCase()).join('')
@@ -85,7 +90,11 @@ export default function GlobalHeader() {
         >
           <Icon name="menu" size={18} />
         </button>
-        <img src="/logo-tupi.svg" alt="TUPI" style={{ height: 20, display: 'block' }} />
+        <img
+          src={theme.logoSrc}
+          alt={theme.label}
+          style={{ height: 20, display: 'block' }}
+        />
         <PersonaSwitcher />
       </div>
 
@@ -99,7 +108,7 @@ export default function GlobalHeader() {
           overflow: 'hidden',
           width: searchOpen ? 220 : 32,
           height: 32,
-          border: searchOpen ? '1px solid #91d5ff' : 'none',
+          border: searchOpen ? `1px solid ${theme.primarySoft}` : 'none',
           borderRadius: 2,
           background: searchOpen ? '#fff' : 'transparent',
           transition: 'width 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s ease, background 0.2s ease',
@@ -117,7 +126,7 @@ export default function GlobalHeader() {
               transition: 'color 0.2s ease',
             }}
           >
-            <Icon name="search" size={16} color={searchOpen ? '#1890FF' : 'rgba(0,0,0,0.45)'} />
+            <Icon name="search" size={16} color={searchOpen ? theme.primary : 'rgba(0,0,0,0.45)'} />
           </button>
 
           {/* Input — visível apenas quando expandido */}
@@ -190,6 +199,37 @@ export default function GlobalHeader() {
                 <Icon name="info" size={14} color="rgba(0,0,0,0.45)" />
                 Novidades
               </button>
+
+              {/* Tema — submenu inline (clica e expande as opções) */}
+              <div>
+                <button onClick={() => setThemeSubOpen((o) => !o)}
+                  style={{ width:'100%', textAlign:'left', padding:'8px 14px', background:'none', border:'none', cursor:'pointer', fontSize:13, color:'rgba(0,0,0,0.85)', display:'flex', alignItems:'center', gap:8 }}
+                  onMouseEnter={e=>(e.currentTarget as HTMLElement).style.background='#f5f5f5'}
+                  onMouseLeave={e=>(e.currentTarget as HTMLElement).style.background='none'}>
+                  <Icon name="sparkles" size={14} color="rgba(0,0,0,0.45)" />
+                  <span style={{ flex: 1 }}>Tema</span>
+                  <span style={{ fontSize:11, color:'rgba(0,0,0,0.45)' }}>{theme.label}</span>
+                  <Icon name={themeSubOpen ? 'chevronUp' : 'chevronDown'} size={11} color="rgba(0,0,0,0.35)" />
+                </button>
+                {themeSubOpen && (
+                  <div style={{ background: '#FAFAFA', borderTop: '1px solid #f0f0f0', borderBottom: '1px solid #f0f0f0' }}>
+                    {(Object.values(THEMES)).map((t) => {
+                      const active = t.key === themeKey
+                      return (
+                        <button key={t.key} onClick={() => { setTheme(t.key as ThemeKey); setThemeSubOpen(false); setUserMenuOpen(false) }}
+                          style={{ width:'100%', textAlign:'left', padding:'8px 14px 8px 32px', background:'none', border:'none', cursor:'pointer', fontSize:12, color: active ? t.primary : 'rgba(0,0,0,0.75)', fontWeight: active ? 500 : 400, display:'flex', alignItems:'center', gap:10 }}
+                          onMouseEnter={e=>(e.currentTarget as HTMLElement).style.background='#f0f0f0'}
+                          onMouseLeave={e=>(e.currentTarget as HTMLElement).style.background='transparent'}>
+                          <span style={{ width:12, height:12, borderRadius:'50%', background:`linear-gradient(135deg, ${t.primary} 0%, ${t.accent} 100%)` }} />
+                          <span style={{ flex: 1 }}>{t.label}</span>
+                          {active && <Icon name="checkCircle" size={11} color={t.primary} />}
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+
               <button onClick={handleLogout}
                 style={{ width:'100%', textAlign:'left', padding:'8px 14px', background:'none', border:'none', cursor:'pointer', fontSize:13, color:'rgba(0,0,0,0.85)', display:'flex', alignItems:'center', gap:8 }}
                 onMouseEnter={e=>(e.currentTarget as HTMLElement).style.background='#f5f5f5'}

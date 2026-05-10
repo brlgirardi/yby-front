@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import Icon from './Icon'
+import { useTheme } from '@/stores/themeStore'
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger'
 export type ButtonSize = 'sm' | 'md' | 'lg'
@@ -76,6 +77,22 @@ export default function Button({
   const [hovered, setHovered] = useState(false)
   const sz = SIZE_MAP[size]
   const isDisabled = disabled || loading
+  const theme = useTheme()
+
+  // Override de tokens só onde a marca importa — primary background/border, ghost text
+  const themedBase: React.CSSProperties = {
+    primary:   { background: theme.primary, color: '#fff', border: `1px solid ${theme.primary}` },
+    secondary: VARIANT_BASE.secondary,
+    ghost:     { background: 'transparent', color: theme.primary, border: '1px solid transparent' },
+    danger:    VARIANT_BASE.danger,
+  }[variant]
+
+  const themedHover: React.CSSProperties = {
+    primary:   { background: theme.primaryDark, border: `1px solid ${theme.primaryDark}` },
+    secondary: { background: '#fff', color: theme.primary, border: `1px solid ${theme.primary}` },
+    ghost:     { background: theme.primaryBg, border: '1px solid transparent' },
+    danger:    VARIANT_HOVER.danger,
+  }[variant]
 
   const baseStyle: React.CSSProperties = {
     display: 'inline-flex',
@@ -94,7 +111,7 @@ export default function Button({
     outline: 'none',
     whiteSpace: 'nowrap',
     userSelect: 'none',
-    ...(isDisabled ? VARIANT_DISABLED[variant] : hovered ? { ...VARIANT_BASE[variant], ...VARIANT_HOVER[variant] } : VARIANT_BASE[variant]),
+    ...(isDisabled ? VARIANT_DISABLED[variant] : hovered ? { ...themedBase, ...themedHover } : themedBase),
     ...style,
   }
 

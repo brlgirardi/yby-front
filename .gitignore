@@ -39,3 +39,15 @@ Thumbs.db
 # Large static files
 Sub-acquirer Standalone.html
 design_handoff_sub_acquirer/
+
+# Audit screenshots (Playwright/Pixel)
+.playwright-mcp/
+audit-*.png
+aq-*.png
+ai-*.png
+aud-*.png
+ux-*.png
+sub-*.png
+ec-*.png
+tupi-*.png
+smoke-*.png

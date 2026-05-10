@@ -47,7 +47,6 @@ export default function EcMaquininhas() {
   const totalHoje  = TERMINAIS.reduce((acc, t) => acc + t.totalHoje, 0)
 
   const columns: ColumnType<Terminal>[] = [
-    { title: 'ID',         dataIndex: 'id',     key: 'id',     width: 80 },
     { title: 'Serial',     dataIndex: 'serial',  key: 'serial',  width: 130 },
     { title: 'Modelo',     dataIndex: 'modelo',  key: 'modelo' },
     { title: 'Local',      dataIndex: 'local',   key: 'local' },

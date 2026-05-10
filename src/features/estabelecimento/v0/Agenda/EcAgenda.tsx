@@ -39,7 +39,7 @@ interface DaySection {
 }
 
 export default function EcAgenda() {
-  const [viewMode, setViewMode] = useState<'resumo' | 'detalhado'>('resumo')
+  const [viewMode, setViewMode] = useState<'liquido' | 'bruto'>('liquido')
   const [selectedDay, setSelectedDay] = useState<number>(TODAY)
   const [expandedPainel, setExpandedPainel] = useState<Record<string, boolean>>({ creditos: true })
 
@@ -120,18 +120,14 @@ export default function EcAgenda() {
 
               <div style={{ marginLeft: 'auto', display: 'flex', gap: 4 }}>
                 {([
-                  { v: 'resumo',     l: 'Resumo' },
-                  { v: 'detalhado',  l: 'Detalhado' },
+                  { v: 'liquido', l: 'Líquido' },
+                  { v: 'bruto',   l: 'Bruto'   },
                 ] as const).map((opt) => {
                   const active = viewMode === opt.v
                   return (
-                    <Tooltip bare key={opt.v} text={opt.v === 'resumo' ? 'Mostra apenas o valor líquido por dia. Mais simples.' : 'Mostra entradas, taxas e antecipações em detalhe.'}>
+                    <Tooltip bare key={opt.v} text={opt.v === 'liquido' ? 'O que de fato cai na conta (depois de taxas e débitos de antecipação).' : 'Total que entra antes de qualquer dedução.'}>
                       <button
-                        onClick={() => {
-                          setViewMode(opt.v)
-                          if (opt.v === 'detalhado') setExpandedPainel({ creditos: true, deducoes: true, liquido: true })
-                          else setExpandedPainel({ creditos: false, deducoes: false, liquido: false })
-                        }}
+                        onClick={() => setViewMode(opt.v)}
                         style={{
                           border:`1px solid ${active ? '#1890FF' : '#d9d9d9'}`,
                           background: active ? '#e6f7ff' : '#fff',
@@ -165,7 +161,7 @@ export default function EcAgenda() {
                     const isSelected = d.day === selectedDay
                     const isToday    = d.day === TODAY
                     const isPast     = d.day < TODAY
-                    const dayVal     = d.amount
+                    const dayVal     = viewMode === 'bruto' ? d.amount : (d.liquido ?? Math.round(d.amount * 0.32))
 
                     const dayNumColor = isToday ? '#1890FF' : isPast ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.65)'
                     const valColor    = dayVal === 0

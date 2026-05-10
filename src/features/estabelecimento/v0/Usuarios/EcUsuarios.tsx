@@ -27,7 +27,6 @@ export default function EcUsuarios() {
   }, [search])
 
   const columns: ColumnType<Usuario>[] = [
-    { title: 'ID',           dataIndex: 'id',           key: 'id',           width: 90  },
     { title: 'Nome',         dataIndex: 'nome',         key: 'nome' },
     { title: 'E-mail',       dataIndex: 'email',        key: 'email' },
     { title: 'Papel',        dataIndex: 'papel',        key: 'papel',        width: 130 },
@@ -93,7 +92,6 @@ export default function EcUsuarios() {
               <Tag status={selected.status} />
             </div>
             {[
-              { label: 'ID',            value: selected.id },
               { label: 'Nome',          value: selected.nome },
               { label: 'E-mail',        value: selected.email },
               { label: 'Papel',         value: selected.papel },

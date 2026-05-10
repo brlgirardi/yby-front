@@ -21,8 +21,8 @@ export type ModuleKey =
   // V1++ EC
   | 'preferencias'
   | 'antecipacao-programada'
-  // V1++ SUB
-  | 'aprovacoes'
+  // Adquirente v0
+  | 'vendas'
 
 export interface PersonaManifest {
   label: string

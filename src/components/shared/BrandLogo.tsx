@@ -173,6 +173,14 @@ const PRODUCT_BRANDS: Record<string, React.ReactNode> = {
       <text x="18" y="15.5" textAnchor="middle" fontSize="9" fontWeight="700" fontFamily="Arial, sans-serif" fill="#37CF84" letterSpacing="0.2">Yby</text>
     </svg>
   ),
+  Vero: (
+    <svg viewBox="0 0 36 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="36" height="24" rx="2" fill="white"/>
+      <circle cx="9" cy="12" r="3.5" fill="#A070FE" />
+      <circle cx="13" cy="12" r="3.5" fill="#00CFCB" opacity="0.85" />
+      <text x="24" y="15.5" textAnchor="middle" fontSize="7" fontWeight="700" fontFamily="Arial, sans-serif" fill="#000051" letterSpacing="0.2">Vero</text>
+    </svg>
+  ),
 }
 
 // ─── Resolver de logo ─────────────────────────────────────────────
@@ -187,7 +195,7 @@ export const BRAND_CATEGORIES = {
   bandeiras: ['Visa', 'Mastercard', 'Elo', 'Hipercard', 'Amex'],
   adquirentes: ['Adiq', 'Rede', 'Cielo', 'Getnet', 'Stone', 'PagSeguro'],
   registradoras: ['Núclea', 'CIP', 'CERC', 'TAG'],
-  produto: ['Tupi', 'Yby'],
+  produto: ['Tupi', 'Yby', 'Vero'],
 }
 
 /**

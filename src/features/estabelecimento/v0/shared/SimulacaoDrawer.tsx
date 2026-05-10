@@ -5,8 +5,9 @@
 // Componentes: antd Drawer + Form + Select + Input + Button do design system.
 
 import { useState } from 'react'
-import { Drawer, Form, Select, InputNumber } from 'antd'
+import { Drawer, Form, InputNumber } from 'antd'
 import Button from '@/components/shared/Button'
+import AppSelect from '@/components/ui/AppSelect'
 
 interface SimulacaoDrawerProps {
   open: boolean
@@ -62,7 +63,7 @@ export default function SimulacaoDrawer({ open, onClose }: SimulacaoDrawerProps)
         </Form.Item>
 
         <Form.Item label="Método" name="metodo" rules={[{ required: true, message: 'Selecione o método' }]}>
-          <Select
+          <AppSelect
             placeholder="Selecione o método"
             options={[
               { value: 'pix',           label: 'PIX' },
@@ -76,7 +77,7 @@ export default function SimulacaoDrawer({ open, onClose }: SimulacaoDrawerProps)
         </Form.Item>
 
         <Form.Item label="Bandeira" name="bandeira" rules={[{ required: true, message: 'Selecione a bandeira' }]}>
-          <Select
+          <AppSelect
             placeholder="Selecione a bandeira"
             options={[
               { value: 'Visa',       label: 'Visa' },

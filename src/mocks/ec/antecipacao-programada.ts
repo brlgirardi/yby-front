@@ -1,7 +1,7 @@
-// Mocks de Antecipação Programada — EC V1.
-// Regras agendadas que disparam antecipação automática conforme triggers.
+// Mocks de Antecipação Automática — EC V1.
+// Regras agendadas que disparam antecipação conforme cadência ou gatilho financeiro.
 
-export type TriggerTipo = 'calendario' | 'valor-agenda' | 'fim-de-mes' | 'dia-semana'
+export type TriggerTipo = 'calendario' | 'valor-agenda'
 
 export interface RegraAntecipacao {
   id: string
@@ -16,7 +16,6 @@ export interface RegraAntecipacao {
     bandeiras?: string[]
     minParcela?: number
     maxParcela?: number
-    mccPermitidos?: string[]
   }
   ultimaExecucao?: string
   proximaExecucao?: string
@@ -49,9 +48,9 @@ export const ecRegrasAntecipacao: RegraAntecipacao[] = [
   },
   {
     id: 'REG-003',
-    nome: 'Antecipa fim de mês',
+    nome: 'Toda sexta-feira',
     ativa: false,
-    trigger: { tipo: 'fim-de-mes', descricao: 'No último dia útil de cada mês, às 14:00' },
+    trigger: { tipo: 'calendario', descricao: 'Toda sexta-feira, às 14:00' },
     filtros: {},
     ultimaExecucao: '28/02/2026 14:00',
     proximaExecucao: undefined,

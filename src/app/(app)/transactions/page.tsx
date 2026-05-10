@@ -130,8 +130,17 @@ export default function TransactionsPage() {
 
   const columns: ColumnType<Transaction>[] = [
     {
-      title: 'Canal', dataIndex: 'channel', key: 'channel', width: 150,
-      render: (v: Channel, r) => <ChannelChip channel={v} posId={r.posId} />,
+      title: 'Data', dataIndex: 'data', key: 'data', width: 110,
+      render: (_, r) => (
+        <div style={{ display:'flex', flexDirection:'column', gap:0 }}>
+          <span style={{ color:'rgba(0,0,0,0.85)', fontSize:13 }}>{r.data}</span>
+          <span style={{ color:'rgba(0,0,0,0.45)', fontSize:11 }}>{r.hora}</span>
+        </div>
+      ),
+    },
+    {
+      title: 'NSU', dataIndex: 'nsu', key: 'nsu', width: 130,
+      render: v => <TruncatedMono text={v} max={14} />,
     },
     {
       title: 'Estabelecimento', dataIndex: 'ec', key: 'ec', width: 220,
@@ -143,6 +152,10 @@ export default function TransactionsPage() {
       ),
     },
     {
+      title: 'Canal', dataIndex: 'channel', key: 'channel', width: 150,
+      render: (v: Channel, r) => <ChannelChip channel={v} posId={r.posId} />,
+    },
+    {
       title: 'Forma de Pagamento', dataIndex: 'bandeira', key: 'bandeira', width: 180,
       render: (_, r) => (
         <span style={{ display:'inline-flex', alignItems:'center', gap:8, whiteSpace:'nowrap' }}>
@@ -152,24 +165,11 @@ export default function TransactionsPage() {
       ),
     },
     {
-      title: 'Data', dataIndex: 'data', key: 'data', width: 110,
-      render: (_, r) => (
-        <div style={{ display:'flex', flexDirection:'column', gap:0 }}>
-          <span style={{ color:'rgba(0,0,0,0.85)', fontSize:13 }}>{r.data}</span>
-          <span style={{ color:'rgba(0,0,0,0.45)', fontSize:11 }}>{r.hora}</span>
-        </div>
-      ),
-    },
-    {
       title: 'Valor', dataIndex: 'valor', key: 'valor', width: 120,
       render: v => <span style={{ fontWeight:600, color:'rgba(0,0,0,0.85)', whiteSpace:'nowrap' }}>{fmt(v)}</span>,
     },
     {
       title: 'Cód. Autorização', dataIndex: 'authCode', key: 'authCode', width: 160,
-      render: v => <TruncatedMono text={v} max={14} />,
-    },
-    {
-      title: 'NSU', dataIndex: 'nsu', key: 'nsu', width: 130,
       render: v => <TruncatedMono text={v} max={14} />,
     },
     {

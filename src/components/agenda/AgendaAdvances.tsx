@@ -25,8 +25,8 @@ const recoveryFlow = [
 ]
 
 const columns = [
-  { title: 'ID', dataIndex: 'id', key: 'id', render: (v: string) => <span className="font-mono text-xs text-[#1890FF]">{v}</span> },
   { title: 'Data', key: 'data', render: () => '24/04/2026', width: 110 },
+  { title: 'ID', dataIndex: 'id', key: 'id', render: (v: string) => <span className="font-mono text-xs text-[#1890FF]">{v}</span> },
   { title: 'Merchant (EC)', dataIndex: 'merchant', key: 'merchant' },
   { title: 'Valor antecipado', dataIndex: 'valor', key: 'valor', align: 'right' as const, render: (v: string) => <span className="font-semibold text-[#FA8C16]">{v}</span> },
   { title: 'Taxa cobrada', dataIndex: 'taxa', key: 'taxa', align: 'right' as const },

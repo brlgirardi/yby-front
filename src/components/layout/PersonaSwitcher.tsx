@@ -21,7 +21,7 @@ import { usePersonaStore } from '@/stores/personaStore'
 
 const IS_DEV = process.env.NODE_ENV !== 'production'
 
-const PERSONA_ORDER: Persona[] = ['estabelecimento', 'subadquirente']
+const PERSONA_ORDER: Persona[] = ['estabelecimento', 'subadquirente', 'adquirente']
 
 const PERSONA_LABELS: Record<Persona, string> = {
   estabelecimento: 'Estabelecimento Comercial',

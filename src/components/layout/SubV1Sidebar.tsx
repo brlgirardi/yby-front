@@ -28,8 +28,6 @@ const moduleIconMap: Partial<Record<ModuleKey, string>> = {
   pricing:        'landmark',
   usuarios:       'users',
   settings:       'settings',
-  // V1++
-  aprovacoes:     'checkCircle',
 }
 
 const moduleLabel: Partial<Record<ModuleKey, string>> = {
@@ -42,8 +40,6 @@ const moduleLabel: Partial<Record<ModuleKey, string>> = {
   pricing:        'Custos & Precificação',
   usuarios:       'Usuários',
   settings:       'Configurações',
-  // V1++
-  aprovacoes:     'Aprovações',
 }
 
 const submenuLabels: Record<string, string> = {

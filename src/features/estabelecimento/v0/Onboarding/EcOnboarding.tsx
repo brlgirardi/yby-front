@@ -68,7 +68,7 @@ export default function EcOnboarding() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
             <div style={{ padding: '12px 14px', background: '#F6FFED', borderRadius: 2, border: '1px solid #B7EB8F', fontSize: 12, color: 'rgba(0,0,0,0.75)' }}>
               <div style={{ fontWeight: 600, color: '#52C41A', marginBottom: 4 }}>Ganho</div>
-              Recebe no mesmo dia em vez de esperar 31 dias úteis pelo crédito.
+              Recebe no mesmo dia em vez de esperar 15 dias úteis pelo crédito.
             </div>
             <div style={{ padding: '12px 14px', background: '#FFF1F0', borderRadius: 2, border: '1px solid #FFA39E', fontSize: 12, color: 'rgba(0,0,0,0.75)' }}>
               <div style={{ fontWeight: 600, color: '#FF4D4F', marginBottom: 4 }}>Ônus</div>

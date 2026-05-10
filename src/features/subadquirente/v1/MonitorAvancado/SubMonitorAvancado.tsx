@@ -236,10 +236,9 @@ export default function SubMonitorAvancado({ embedded = false }: { embedded?: bo
             </div>
 
             {[
-              { label: 'ID',           value: selectedAlerta.id },
               { label: 'Tipo',         value: selectedAlerta.tipo.replaceAll('-', ' ') },
               { label: 'Detectado em', value: selectedAlerta.detectadoEm },
-              ...(selectedAlerta.ec ? [{ label: 'EC envolvido', value: `${selectedAlerta.ec} (${selectedAlerta.ecId})` }] : []),
+              ...(selectedAlerta.ec ? [{ label: 'EC envolvido', value: selectedAlerta.ec }] : []),
             ].map((r, i) => (
               <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #f0f0f0', fontSize: 13 }}>
                 <span style={{ color: 'rgba(0,0,0,0.45)' }}>{r.label}</span>

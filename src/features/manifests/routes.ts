@@ -64,12 +64,17 @@ const sub: RouteMap = {
   },
   usuarios: '/users',
   settings: '/settings',
-  // V1++
-  aprovacoes:   '/aprovacoes',
 }
 
 const aq: RouteMap = {
-  dashboard: '/adquirente/dashboard', // backlog Lote AQ
+  dashboard: '/adquirente/dashboard',
+  vendas: {
+    root: '/adquirente/vendas/pricing',
+    subs: {
+      pricing:      '/adquirente/vendas/pricing',
+      platinizacao: '/adquirente/vendas/platinizacao',
+    },
+  },
 }
 
 const routesByPersona: Record<Persona, RouteMap> = {

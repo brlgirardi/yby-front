@@ -42,7 +42,6 @@ const v1 = {
     'agenda',
     'financeiro',
     'reconciliation',
-    'aprovacoes',
     'pricing',
     'usuarios',
   ],

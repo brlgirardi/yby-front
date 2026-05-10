@@ -28,7 +28,6 @@ export default function EcEmpresas() {
   }, [search])
 
   const columns: ColumnType<Empresa>[] = [
-    { title: 'ID',             dataIndex: 'id',           key: 'id',           width: 90 },
     { title: 'Razão social',   dataIndex: 'razaoSocial',  key: 'razaoSocial' },
     { title: 'Nome fantasia',  dataIndex: 'nomeFantasia', key: 'nomeFantasia' },
     { title: 'CNPJ',           dataIndex: 'cnpj',         key: 'cnpj',         width: 180 },
@@ -88,7 +87,6 @@ export default function EcEmpresas() {
               <Tag status={selected.status === 'Ativa' ? 'Ativo' : 'Inativo'} label={selected.status} />
             </div>
             {[
-              { label: 'ID',             value: selected.id },
               { label: 'Razão social',   value: selected.razaoSocial },
               { label: 'Nome fantasia',  value: selected.nomeFantasia },
               { label: 'CNPJ',           value: selected.cnpj },

@@ -22,6 +22,8 @@ interface PageHeaderProps {
   tabs?: Tab[]
   activeTab?: string
   onTabChange?: (key: string) => void
+  /** Remove a linha divisória inferior — use quando há tabs externas logo abaixo do header */
+  noBorder?: boolean
 }
 
 /**
@@ -30,13 +32,13 @@ interface PageHeaderProps {
  * Botão Voltar aparece por default (Nielsen #3: controle do usuário).
  * Use `onBack={null}` para ocultar em pages-raiz onde voltar não faz sentido.
  */
-export default function PageHeader({ title, breadcrumb, extra, onBack, tabs, activeTab, onTabChange }: PageHeaderProps) {
+export default function PageHeader({ title, breadcrumb, extra, onBack, tabs, activeTab, onTabChange, noBorder }: PageHeaderProps) {
   const router = useRouter()
   const showBack = onBack !== null
   const handleBack = onBack ?? (() => router.back())
 
   return (
-    <div style={{ width:'100%', background:'#fff', borderBottom:'1px solid #f0f0f0', flexShrink:0 }}>
+    <div style={{ width:'100%', background:'#fff', borderBottom: noBorder ? 'none' : '1px solid #f0f0f0', flexShrink:0 }}>
       {breadcrumb && (
         <div style={{ padding:'12px 24px 0', fontSize:12, color:'rgba(0,0,0,0.45)' }}>{breadcrumb}</div>
       )}

@@ -13,10 +13,8 @@ import KpiCard from '@/components/ui/KpiCard'
 import DataTable, { type ColumnType } from '@/components/ui/DataTable'
 import PageHeader from '@/components/shared/PageHeader'
 import Button from '@/components/shared/Button'
-import Tag from '@/components/shared/Tag'
 import Icon from '@/components/shared/Icon'
 import BrandLogo from '@/components/shared/BrandLogo'
-import Tooltip from '@/components/shared/Tooltip'
 import SimulacaoDrawer from '@/features/estabelecimento/v0/shared/SimulacaoDrawer'
 import Drawer from '@/components/shared/Drawer'
 import { ecAntecipacaoKpis, ecAntecipacoes, type AntecipacaoOperacao, type ParcelaAntecipada } from '@/mocks/ec/financeiro'
@@ -36,25 +34,13 @@ export default function EcAntecipacoes() {
   }, [search])
 
   const columns: ColumnType<AntecipacaoOperacao>[] = [
-    { title: 'Operação',              dataIndex: 'id',                   key: 'id',                   width: 160 },
-    { title: 'Data de pagamento',     dataIndex: 'dataPagamento',        key: 'dataPagamento',        width: 160 },
+    { title: 'Data de liquidação',    dataIndex: 'dataPagamento',        key: 'dataPagamento',        width: 180 },
     {
       title:  'Parcelas',
       key:    'qtd',
       width:  90,
       align:  'center',
       render: (_: unknown, row: AntecipacaoOperacao) => row.parcelas.length,
-    },
-    {
-      title:  'Parciais',
-      key:    'parciais',
-      width:  100,
-      align:  'center',
-      render: (_: unknown, row: AntecipacaoOperacao) => {
-        const parciais = row.parcelas.filter((p) => p.parcial).length
-        if (parciais === 0) return <span style={{ color: 'rgba(0,0,0,0.25)' }}>—</span>
-        return <Tag status="Antecipado" label={`${parciais} parcial`} showIcon={false} />
-      },
     },
     { title: 'Valor bruto',           dataIndex: 'valorBruto',           key: 'valorBruto',           align: 'right', width: 140, render: (v: number) => fmtBRL(v) },
     {
@@ -117,14 +103,7 @@ export default function EcAntecipacoes() {
       align:  'right',
       width:  150,
       render: (_: unknown, row: ParcelaAntecipada) => (
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 500 }}>
-          {fmtBRL(row.valorAntecipado)}
-          {row.parcial && (
-            <Tooltip bare text={`Parcial: foram antecipados ${fmtBRL(row.valorAntecipado)} de ${fmtBRL(row.valorOriginal)}. O restante (${fmtBRL(row.valorOriginal - row.valorAntecipado)}) continua previsto pra ${row.dataPrevistaOriginal}.`}>
-              <Tag status="Antecipado" />
-            </Tooltip>
-          )}
-        </span>
+        <span style={{ fontWeight: 500 }}>{fmtBRL(row.valorAntecipado)}</span>
       ),
     },
     { title: 'Taxa',          key: 'taxa',          align: 'right', width: 100, render: (_: unknown, row: ParcelaAntecipada) => <span style={{ color: '#FF4D4F' }}>{fmtBRL(row.taxa)}</span> },
@@ -150,7 +129,7 @@ export default function EcAntecipacoes() {
           columns={columns}
           dataSource={data}
           rowKey="id"
-          searchPlaceholder="Pesquise por operação ou NSU"
+          searchPlaceholder="Pesquise por data ou NSU"
           searchValue={search}
           onSearch={setSearch}
           periodOptions={[
@@ -183,7 +162,7 @@ export default function EcAntecipacoes() {
       <Drawer
         open={selected !== null}
         onClose={() => setSelected(null)}
-        title="Detalhes da antecipação"
+        title="Detalhes da liquidação antecipada"
         width={480}
       >
         {selected && (

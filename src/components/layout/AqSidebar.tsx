@@ -1,23 +1,81 @@
 'use client'
-// Sidebar do Adquirente — V0 (stub mínimo).
-// Visual idêntico ao Sidebar legacy do Sub-adquirente.
+// Sidebar do Adquirente — V0 (demo cliente).
+// Lê do manifest `manifests.adquirente.v0`. IA enxuta (Pixel/Hick): 2 itens raiz.
+// Cores derivam do themeStore (Tupi/Vero) — accent reage ao tema selecionado.
 
 import { useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import Icon from '@/components/shared/Icon'
+import { manifests } from '@/features/manifests'
+import { getModuleRoute, getSubmenuRoute } from '@/features/manifests/routes'
+import type { ModuleKey, PersonaManifest, Version } from '@/features/manifests/types'
 import { useNavStore } from '@/store/nav.store'
 import { useAuthStore } from '@/store/auth.store'
 import { logout as apiLogout } from '@/services/authService'
+import { useTheme } from '@/stores/themeStore'
 
-const NAV = [{ key: 'dashboard', icon: 'dashboard', label: 'Dashboard', route: '/adquirente/dashboard' }]
+const moduleIconMap: Partial<Record<ModuleKey, string>> = {
+  dashboard: 'dashboard',
+  vendas:    'trendingUp',
+}
+
+const moduleLabel: Partial<Record<ModuleKey, string>> = {
+  dashboard: 'Dashboard Financeiro',
+  vendas:    'Ferramentas de Vendas',
+}
+
+const submenuLabels: Record<string, string> = {
+  pricing:      'IA de Precificação',
+  platinizacao: 'Análise de Platinização',
+}
 
 export default function AqSidebar() {
   const router = useRouter()
   const pathname = usePathname()
   const sidebarOpen = useNavStore((s) => s.sidebarOpen)
   const clearAuth = useAuthStore((s) => s.clearAuth)
+  const theme = useTheme()
+  const softBg = theme.primaryBg
+  const softerBg = theme.primaryBg.replace(/0\.\d+\)$/, '0.04)')
+
+  const aqManifests = manifests.adquirente as Partial<Record<Version, PersonaManifest>>
+  const manifest = aqManifests.v0
+
+  const [expanded, setExpanded] = useState<Record<string, boolean>>(() => {
+    const init: Record<string, boolean> = {}
+    if (manifest?.defaultExpanded) init[manifest.defaultExpanded] = true
+    const subMap = manifest?.submenus as Partial<Record<ModuleKey, string[]>> | undefined
+    if (subMap) {
+      manifest?.modules.forEach((m) => {
+        const route = getModuleRoute('adquirente', m)
+        if (route && pathname.startsWith(route.split('?')[0])) init[m] = true
+      })
+    }
+    return init
+  })
   const [hoveredKey, setHoveredKey] = useState<string | null>(null)
+  const [hoveredSubKey, setHoveredSubKey] = useState<string | null>(null)
   const [hoveredLogout, setHoveredLogout] = useState(false)
+
+  if (!manifest) return null
+
+  const submenusMap = manifest.submenus as Partial<Record<ModuleKey, string[]>>
+
+  const items = manifest.modules.map((m) => ({
+    key:      m,
+    label:    moduleLabel[m] ?? m,
+    icon:     moduleIconMap[m] ?? 'dashboard',
+    route:    getModuleRoute('adquirente', m),
+    submenus: (submenusMap[m] ?? []).map((sub: string) => ({
+      key:   sub,
+      label: submenuLabels[sub] ?? sub,
+      route: getSubmenuRoute('adquirente', m, sub),
+    })),
+  }))
+
+  const isActiveRoute = (route: string | null) => !!route && pathname === route
+
+  const toggle = (k: string) => setExpanded((p) => ({ ...p, [k]: !p[k] }))
 
   const handleLogout = async () => {
     try { await apiLogout() } catch { /* ignore */ }
@@ -40,45 +98,91 @@ export default function AqSidebar() {
       }}
     >
       <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingTop: 8 }}>
-        {NAV.map((item) => {
-          const isActive = pathname === item.route
+        {items.map((item) => {
+          const hasSubs = item.submenus.length > 0
+          const isExp = expanded[item.key] ?? false
           const isHovered = hoveredKey === item.key
-          const accent = isActive || isHovered
+          const isOwnRouteActive = !hasSubs && isActiveRoute(item.route)
+          const accent = isOwnRouteActive || isHovered
+
+          const parentColor = accent ? theme.primary : 'rgba(0,0,0,0.65)'
+          const parentBg = accent ? softBg : 'transparent'
+          const parentBorder = accent ? `3px solid ${theme.primary}` : '3px solid transparent'
+
           return (
-            <div
-              key={item.key}
-              onClick={() => router.push(item.route)}
-              onMouseEnter={() => setHoveredKey(item.key)}
-              onMouseLeave={() => setHoveredKey(null)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-                padding: sidebarOpen ? '0 16px' : '0 14px',
-                height: 40,
-                cursor: 'pointer',
-                background: accent ? 'rgba(24,144,255,0.08)' : 'transparent',
-                borderRight: accent ? '3px solid #1890FF' : '3px solid transparent',
-                color: accent ? '#1890FF' : 'rgba(0,0,0,0.65)',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-              }}
-            >
-              <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', color: accent ? '#1890FF' : 'rgba(0,0,0,0.45)' }}>
-                <Icon name={item.icon} size={16} />
+            <div key={item.key}>
+              <div
+                onClick={() => {
+                  if (hasSubs) {
+                    const firstSub = item.submenus[0]
+                    const childActive = item.submenus.some((s) => isActiveRoute(s.route))
+                    if (childActive && isExp) {
+                      toggle(item.key)
+                    } else {
+                      if (!isExp) toggle(item.key)
+                      if (firstSub?.route) router.push(firstSub.route)
+                    }
+                  } else if (item.route) {
+                    router.push(item.route)
+                  }
+                }}
+                onMouseEnter={() => setHoveredKey(item.key)}
+                onMouseLeave={() => setHoveredKey(null)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  padding: sidebarOpen ? '0 16px' : '0 14px',
+                  height: 40,
+                  cursor: 'pointer',
+                  background: parentBg,
+                  borderRight: parentBorder,
+                  color: parentColor,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                }}
+              >
+                <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', color: accent ? theme.primary : 'rgba(0,0,0,0.45)' }}>
+                  <Icon name={item.icon} size={16} />
+                </div>
+                {sidebarOpen && (
+                  <>
+                    <span style={{ flex: 1, fontSize: 13, fontWeight: accent ? 500 : 400 }}>{item.label}</span>
+                    {hasSubs && <Icon name={isExp ? 'chevronUp' : 'chevronDown'} size={12} color="rgba(0,0,0,0.35)" />}
+                  </>
+                )}
               </div>
-              {sidebarOpen && (
-                <span style={{ flex: 1, fontSize: 13, fontWeight: accent ? 500 : 400 }}>{item.label}</span>
-              )}
+
+              {sidebarOpen && hasSubs && isExp && item.submenus.map((sub) => {
+                const subKey = `${item.key}-${sub.key}`
+                const subActive = isActiveRoute(sub.route)
+                const subHovered = hoveredSubKey === subKey
+                return (
+                  <div
+                    key={subKey}
+                    onClick={() => sub.route && router.push(sub.route)}
+                    onMouseEnter={() => setHoveredSubKey(subKey)}
+                    onMouseLeave={() => setHoveredSubKey(null)}
+                    style={{
+                      paddingLeft: 42,
+                      height: 36,
+                      display: 'flex',
+                      alignItems: 'center',
+                      fontSize: 13,
+                      cursor: 'pointer',
+                      color: subActive || subHovered ? theme.primary : 'rgba(0,0,0,0.65)',
+                      background: subActive ? softBg : subHovered ? softerBg : 'transparent',
+                      borderRight: subActive ? `3px solid ${theme.primary}` : '3px solid transparent',
+                      fontWeight: subActive ? 500 : 400,
+                    }}
+                  >
+                    <span style={{ flex: 1 }}>{sub.label}</span>
+                  </div>
+                )
+              })}
             </div>
           )
         })}
-        {sidebarOpen && (
-          <div style={{ padding: '24px 16px', fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>
-            Adquirente · v0 stub<br />
-            Mais módulos virão em fases futuras.
-          </div>
-        )}
       </div>
 
       <div style={{ padding: '12px 0', borderTop: '1px solid #f0f0f0' }}>
@@ -93,9 +197,9 @@ export default function AqSidebar() {
             padding: sidebarOpen ? '0 16px' : '0 14px',
             height: 40,
             cursor: 'pointer',
-            color: hoveredLogout ? '#1890FF' : 'rgba(0,0,0,0.45)',
-            background: hoveredLogout ? 'rgba(24,144,255,0.08)' : 'transparent',
-            borderRight: hoveredLogout ? '3px solid #1890FF' : '3px solid transparent',
+            color: hoveredLogout ? theme.primary : 'rgba(0,0,0,0.45)',
+            background: hoveredLogout ? softBg : 'transparent',
+            borderRight: hoveredLogout ? `3px solid ${theme.primary}` : '3px solid transparent',
             whiteSpace: 'nowrap',
             overflow: 'hidden',
           }}

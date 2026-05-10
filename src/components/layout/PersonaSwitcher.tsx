@@ -1,15 +1,11 @@
 'use client'
 // Switcher de persona/versão exibido no GlobalHeader.
 //
-// O switcher é INTERATIVO sempre — esse projeto é uma demo navegável de
-// produto, não tem JWT/auth real ainda. O usuário precisa conseguir trocar
-// entre Estabelecimento / Sub-adquirente / Adquirente para ver os 3 fluxos.
-// Override ativo (isDevOverride=true) muda visual pra amarelo + borda tracejada
-// (heurística do enquadramento — Pixel/Rian Enviesados cap. 6) deixando claro
-// que está em modo forçado.
+// Demo navegável (sem JWT real) — usuário troca livremente entre as personas
+// Estabelecimento / Sub-adquirente / Adquirente para ver os 3 fluxos. Sempre
+// visível e sempre interativo.
 
 import { useEffect, useRef, useState } from 'react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import Icon from '@/components/shared/Icon'
 import { manifests } from '@/features/manifests'
@@ -71,22 +67,13 @@ const defaultTagStyle = {
   border: '1px solid #91d5ff',
 }
 
-const overrideTagStyle = {
-  ...baseTagStyle,
-  background: 'rgba(250,173,20,0.12)',
-  color: '#D48806',
-  border: '1px dashed #FAAD14',
-}
-
 // ───────── component ─────────
 
 export default function PersonaSwitcher() {
   const router = useRouter()
   const persona = usePersonaStore((s) => s.persona)
   const version = usePersonaStore((s) => s.version)
-  const isDevOverride = usePersonaStore((s) => s.isDevOverride)
   const setPersona = usePersonaStore((s) => s.setPersona)
-  const resetToDefault = usePersonaStore((s) => s.resetToDefault)
 
   const [open, setOpen] = useState(false)
   const wrapperRef = useRef<HTMLDivElement>(null)
@@ -111,7 +98,6 @@ export default function PersonaSwitcher() {
   }, [open])
 
   const personaShort = PERSONA_SHORT[persona] ?? 'Sub-adquirente'
-  const tagStyle = isDevOverride ? overrideTagStyle : defaultTagStyle
   const available = buildAvailable()
 
   return (
@@ -121,9 +107,9 @@ export default function PersonaSwitcher() {
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
-        title={isDevOverride ? 'Persona alterada manualmente — clique para trocar' : 'Clique para trocar de persona (Estabelecimento / Sub-adquirente / Adquirente)'}
+        title="Clique para trocar de persona (Estabelecimento / Sub-adquirente / Adquirente)"
         style={{
-          ...tagStyle,
+          ...defaultTagStyle,
           cursor: 'pointer',
           font: 'inherit',
           letterSpacing: 'inherit',
@@ -205,45 +191,6 @@ export default function PersonaSwitcher() {
               </button>
             )
           })}
-
-          <div style={{ borderTop: '1px solid rgba(0,0,0,0.04)', marginTop: 6, paddingTop: 6 }}>
-            {isDevOverride && (
-              <button
-                onClick={() => {
-                  resetToDefault()
-                  setOpen(false)
-                  router.push(getDefaultRouteForPersona('subadquirente'))
-                  // back to default v0
-                }}
-                style={{
-                  display: 'block',
-                  width: '100%',
-                  background: 'transparent',
-                  border: 'none',
-                  textAlign: 'left',
-                  padding: '8px 12px',
-                  fontSize: 13,
-                  color: '#D48806',
-                  cursor: 'pointer',
-                }}
-              >
-                ↺ Resetar (Sub-adquirente · v0)
-              </button>
-            )}
-            <Link
-              href="/settings/dev"
-              onClick={() => setOpen(false)}
-              style={{
-                display: 'block',
-                padding: '8px 12px',
-                fontSize: 12,
-                color: 'rgba(0,0,0,0.55)',
-                textDecoration: 'none',
-              }}
-            >
-              Configurar mais →
-            </Link>
-          </div>
         </div>
       )}
     </div>

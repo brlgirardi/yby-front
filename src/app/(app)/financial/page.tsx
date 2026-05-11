@@ -205,9 +205,14 @@ const Drawer = ({ open, onClose, title, width = 480, children, footer }: {
 }
 
 const DrawerLiquidacaoDetalhes = ({ open, onClose, liq }: { open: boolean; onClose: () => void; liq: LiqEvento | null }) => {
+  const [pageIndex, setPageIndex] = useState(0)
+  const PAGE_SIZE = 10
+  useEffect(() => { setPageIndex(0) }, [liq?.loteId])
   if (!liq) return null
+  const totalPaginas = Math.max(1, Math.ceil(liq.parcelas.length / PAGE_SIZE))
+  const parcelasPaginadas = liq.parcelas.slice(pageIndex * PAGE_SIZE, (pageIndex + 1) * PAGE_SIZE)
   return (
-    <Drawer open={open} onClose={onClose} title="Detalhes da liquidação" width={480}
+    <Drawer open={open} onClose={onClose} title="Detalhes da liquidação" width={560}
       footer={<>
         <button style={{ flex:1, border:'1px solid #d9d9d9', background:'#fff', borderRadius:2, padding:'8px 0', fontSize:13, cursor:'pointer', color:'rgba(0,0,0,0.65)' }}>Baixar comprovante</button>
         {liq.status!=='Liquidado' && <button style={{ flex:1, border:'1px solid #ff4d4f', background:'#fff1f0', borderRadius:2, padding:'8px 0', fontSize:13, cursor:'pointer', color:'#ff4d4f' }}>Estornar</button>}
@@ -245,6 +250,305 @@ const DrawerLiquidacaoDetalhes = ({ open, onClose, liq }: { open: boolean; onClo
           ))}
         </div>
       </div>
+
+      <section aria-labelledby="liq-parcelas-heading" style={{ marginTop:20, paddingTop:20, borderTop:'1px solid #f0f0f0' }}>
+        <div id="liq-parcelas-heading" style={{ fontSize:13, fontWeight:600, color:'rgba(0,0,0,0.85)', marginBottom:4 }}>
+          Parcelas do lote {liq.loteId}
+        </div>
+        <div style={{ fontSize:11, color:'rgba(0,0,0,0.55)', marginBottom:12 }}>
+          {liq.parcelas.length === 1 ? '1 parcela neste lote' : `${liq.parcelas.length} parcelas neste lote`}
+        </div>
+
+        {liq.parcelas.length === 0 ? (
+          <div role="status" style={{ fontSize:12, color:'rgba(0,0,0,0.55)', padding:'24px 0', textAlign:'center' }}>
+            Nenhuma parcela disponível para este lote.
+          </div>
+        ) : (
+          <>
+            <ul role="list" style={{ listStyle:'none', padding:0, margin:0 }}>
+              {parcelasPaginadas.map((p, idx) => {
+                const numero = pageIndex * PAGE_SIZE + idx + 1
+                return (
+                  <li key={`${p.nsu}-${idx}`} role="listitem" style={{ borderBottom:'1px solid #f0f0f0', padding:'12px 0' }}>
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                      <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                        <span style={{ fontSize:13, fontWeight:600, color:'rgba(0,0,0,0.85)' }}>
+                          {numero}. Parcela {p.parcela}
+                        </span>
+                        <Tag status={p.status} />
+                      </div>
+                      <span style={{ fontWeight:600, color:'#52c41a', fontSize:14 }}>{fmt(p.liquido)}</span>
+                    </div>
+                    <div style={{ display:'flex', justifyContent:'space-between', marginTop:4, fontSize:11, color:'rgba(0,0,0,0.55)' }}>
+                      <span style={{ fontFamily:'Roboto Mono' }}>NSU {p.nsu}</span>
+                      <span>EC {p.ec}</span>
+                    </div>
+                    <div style={{ display:'flex', justifyContent:'space-between', marginTop:2, fontSize:11, color:'rgba(0,0,0,0.55)' }}>
+                      <span>Bruto {fmt(p.valor)}</span>
+                      <span style={{ color:'#ff4d4f' }}>MDR {fmt(p.mdr)}</span>
+                    </div>
+                    {(p.antecip > 0 || p.travado > 0) && (
+                      <div style={{ display:'flex', justifyContent:'space-between', marginTop:2, fontSize:11, color:'rgba(0,0,0,0.55)' }}>
+                        <span style={{ color: p.antecip > 0 ? '#fa8c16' : 'rgba(0,0,0,0.3)' }}>
+                          Antecipação {p.antecip > 0 ? fmt(p.antecip) : '—'}
+                        </span>
+                        <span style={{ color: p.travado > 0 ? '#722ED1' : 'rgba(0,0,0,0.3)' }}>
+                          Travado {p.travado > 0 ? fmt(p.travado) : '—'}
+                        </span>
+                      </div>
+                    )}
+                  </li>
+                )
+              })}
+            </ul>
+
+            {totalPaginas > 1 && (
+              <nav aria-label="Paginação de parcelas" style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:12, marginTop:16 }}>
+                <button type="button" onClick={() => setPageIndex(i => Math.max(0, i - 1))} disabled={pageIndex === 0}
+                  style={{ height:32, minWidth:88, padding:'0 12px', fontSize:12, borderRadius:2, border:'1px solid #d9d9d9', background:'#fff', color:'rgba(0,0,0,0.85)', cursor: pageIndex === 0 ? 'not-allowed' : 'pointer', opacity: pageIndex === 0 ? 0.4 : 1 }}>
+                  Anterior
+                </button>
+                <span aria-live="polite" aria-atomic="true" style={{ fontSize:12, color:'rgba(0,0,0,0.65)' }}>
+                  Página {pageIndex + 1} de {totalPaginas}
+                </span>
+                <button type="button" onClick={() => setPageIndex(i => Math.min(totalPaginas - 1, i + 1))} disabled={pageIndex >= totalPaginas - 1}
+                  style={{ height:32, minWidth:88, padding:'0 12px', fontSize:12, borderRadius:2, border:'1px solid #d9d9d9', background:'#fff', color:'rgba(0,0,0,0.85)', cursor: pageIndex >= totalPaginas - 1 ? 'not-allowed' : 'pointer', opacity: pageIndex >= totalPaginas - 1 ? 0.4 : 1 }}>
+                  Próximo
+                </button>
+              </nav>
+            )}
+          </>
+        )}
+      </section>
+    </Drawer>
+  )
+}
+
+type RepDrawerTx = { nsu: string; data: string; adq: string; bandeira: string; parcela: string; valor: number; mdr: number; antecip: number; liquido: number }
+type RepDrawerRow = { repId: string; name: string; cnpj: string; data: string; bruto: number; taxa: number; antecipRecolhida: number; rep: number; conta: string; status: string; transacoes: RepDrawerTx[] }
+
+const DrawerRepasseDetalhes = ({ open, onClose, rep }: { open: boolean; onClose: () => void; rep: RepDrawerRow | null }) => {
+  const [pageIndex, setPageIndex] = useState(0)
+  const PAGE_SIZE = 10
+  useEffect(() => { setPageIndex(0) }, [rep?.repId])
+  if (!rep) return null
+  const totalPaginas = Math.max(1, Math.ceil(rep.transacoes.length / PAGE_SIZE))
+  const txPaginadas = rep.transacoes.slice(pageIndex * PAGE_SIZE, (pageIndex + 1) * PAGE_SIZE)
+  return (
+    <Drawer open={open} onClose={onClose} title="Detalhes do repasse" width={560}
+      footer={<button onClick={onClose} style={{ flex:1, border:'1px solid #d9d9d9', background:'#fff', borderRadius:2, padding:'8px 0', fontSize:13, cursor:'pointer', color:'rgba(0,0,0,0.65)' }}>Fechar</button>}>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
+        <span style={{ fontSize:14, fontWeight:600, color:'rgba(0,0,0,0.85)' }}>Dados do repasse</span>
+        <Tag status={rep.status} />
+      </div>
+      {[
+        { label:'Repasse',     value: rep.repId },
+        { label:'Merchant',    value: rep.name },
+        { label:'CNPJ',        value: rep.cnpj },
+        { label:'Data',        value: rep.data },
+        { label:'Conta destino', value: rep.conta },
+      ].map((r,i) => (
+        <div key={i} style={{ display:'flex', justifyContent:'space-between', padding:'10px 0', borderBottom:'1px solid #f0f0f0', fontSize:13 }}>
+          <span style={{ color:'rgba(0,0,0,0.45)' }}>{r.label}</span>
+          <span style={{ color:'rgba(0,0,0,0.85)', fontWeight:500 }}>{r.value}</span>
+        </div>
+      ))}
+
+      <div style={{ marginTop:20 }}>
+        <div style={{ fontSize:13, fontWeight:600, color:'rgba(0,0,0,0.85)', marginBottom:12 }}>Resumo financeiro</div>
+        <div style={{ display:'flex', gap:8 }}>
+          {[
+            { l:'Bruto vendas', v:fmt(rep.bruto), c:'#1890FF' },
+            { l:'MDR retido', v:fmt(rep.taxa), c:'#ff4d4f' },
+            { l:'Antecip. recolhida', v:rep.antecipRecolhida>0?fmt(rep.antecipRecolhida):'—', c:'#fa8c16' },
+            { l:'Valor repassado', v:fmt(rep.rep), c:'#52c41a' },
+          ].map((s,i) => (
+            <div key={i} style={{ flex:1, background:'#fff', border:'1px solid #f0f0f0', borderRadius:2, padding:'10px 8px', textAlign:'center' }}>
+              <div style={{ fontSize:11, color:'rgba(0,0,0,0.45)', marginBottom:4 }}>{s.l}</div>
+              <div style={{ fontSize:13, fontWeight:700, color:s.c }}>{s.v}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <section aria-labelledby="rep-tx-heading" style={{ marginTop:20, paddingTop:20, borderTop:'1px solid #f0f0f0' }}>
+        <div id="rep-tx-heading" style={{ fontSize:13, fontWeight:600, color:'rgba(0,0,0,0.85)', marginBottom:4 }}>
+          Transações que compõem este repasse
+        </div>
+        <div style={{ fontSize:11, color:'rgba(0,0,0,0.55)', marginBottom:12 }}>
+          {rep.transacoes.length === 1 ? '1 transação' : `${rep.transacoes.length} transações`}
+        </div>
+
+        {rep.transacoes.length === 0 ? (
+          <div role="status" style={{ fontSize:12, color:'rgba(0,0,0,0.55)', padding:'24px 0', textAlign:'center' }}>
+            Nenhuma transação disponível para este repasse.
+          </div>
+        ) : (
+          <>
+            <ul role="list" style={{ listStyle:'none', padding:0, margin:0 }}>
+              {txPaginadas.map((t, idx) => {
+                const numero = pageIndex * PAGE_SIZE + idx + 1
+                return (
+                  <li key={`${t.nsu}-${idx}`} role="listitem" style={{ borderBottom:'1px solid #f0f0f0', padding:'12px 0' }}>
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                      <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                        <span style={{ fontSize:13, fontWeight:600, color:'rgba(0,0,0,0.85)' }}>
+                          {numero}. Parcela {t.parcela}
+                        </span>
+                        <span aria-hidden="true"><BrandLogo brand={t.bandeira} size={16} /></span>
+                      </div>
+                      <span style={{ fontWeight:600, color:'#52c41a', fontSize:14 }}>{fmt(t.liquido)}</span>
+                    </div>
+                    <div style={{ display:'flex', justifyContent:'space-between', marginTop:4, fontSize:11, color:'rgba(0,0,0,0.55)' }}>
+                      <span style={{ fontFamily:'Roboto Mono' }}>NSU {t.nsu}</span>
+                      <span>Adquirente {t.adq}</span>
+                    </div>
+                    <div style={{ display:'flex', justifyContent:'space-between', marginTop:2, fontSize:11, color:'rgba(0,0,0,0.55)' }}>
+                      <span>Bruto {fmt(t.valor)}</span>
+                      <span style={{ color:'#ff4d4f' }}>MDR {fmt(t.mdr)}</span>
+                    </div>
+                    {t.antecip > 0 && (
+                      <div style={{ marginTop:2, fontSize:11, color:'#fa8c16', textAlign:'right' }}>
+                        Antecipação {fmt(t.antecip)}
+                      </div>
+                    )}
+                  </li>
+                )
+              })}
+            </ul>
+
+            {totalPaginas > 1 && (
+              <nav aria-label="Paginação de transações" style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:12, marginTop:16 }}>
+                <button type="button" onClick={() => setPageIndex(i => Math.max(0, i - 1))} disabled={pageIndex === 0}
+                  style={{ height:32, minWidth:88, padding:'0 12px', fontSize:12, borderRadius:2, border:'1px solid #d9d9d9', background:'#fff', color:'rgba(0,0,0,0.85)', cursor: pageIndex === 0 ? 'not-allowed' : 'pointer', opacity: pageIndex === 0 ? 0.4 : 1 }}>
+                  Anterior
+                </button>
+                <span aria-live="polite" aria-atomic="true" style={{ fontSize:12, color:'rgba(0,0,0,0.65)' }}>
+                  Página {pageIndex + 1} de {totalPaginas}
+                </span>
+                <button type="button" onClick={() => setPageIndex(i => Math.min(totalPaginas - 1, i + 1))} disabled={pageIndex >= totalPaginas - 1}
+                  style={{ height:32, minWidth:88, padding:'0 12px', fontSize:12, borderRadius:2, border:'1px solid #d9d9d9', background:'#fff', color:'rgba(0,0,0,0.85)', cursor: pageIndex >= totalPaginas - 1 ? 'not-allowed' : 'pointer', opacity: pageIndex >= totalPaginas - 1 ? 0.4 : 1 }}>
+                  Próximo
+                </button>
+              </nav>
+            )}
+          </>
+        )}
+      </section>
+    </Drawer>
+  )
+}
+
+type AntecipDrawerParcela = { nsu: string; parcela: string; vencOriginal: string; bruto: number; juros: number; liquido: number; recuperado: number; status: 'A recuperar' | 'Recuperado' }
+type AntecipDrawerRow = { id: string; data: string; merchant: string; valor: number; taxa: string; juros: number; venc: string; recuperar: number; status: string; parcelas: AntecipDrawerParcela[] }
+
+const DrawerAntecipECDetalhes = ({ open, onClose, ant }: { open: boolean; onClose: () => void; ant: AntecipDrawerRow | null }) => {
+  const [pageIndex, setPageIndex] = useState(0)
+  const PAGE_SIZE = 10
+  useEffect(() => { setPageIndex(0) }, [ant?.id])
+  if (!ant) return null
+  const totalPaginas = Math.max(1, Math.ceil(ant.parcelas.length / PAGE_SIZE))
+  const parcelasPaginadas = ant.parcelas.slice(pageIndex * PAGE_SIZE, (pageIndex + 1) * PAGE_SIZE)
+  return (
+    <Drawer open={open} onClose={onClose} title="Detalhes da antecipação concedida" width={560}
+      footer={<button onClick={onClose} style={{ flex:1, border:'1px solid #d9d9d9', background:'#fff', borderRadius:2, padding:'8px 0', fontSize:13, cursor:'pointer', color:'rgba(0,0,0,0.65)' }}>Fechar</button>}>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
+        <span style={{ fontSize:14, fontWeight:600, color:'rgba(0,0,0,0.85)' }}>Dados da operação</span>
+        <Tag status={ant.status} />
+      </div>
+      {[
+        { label:'Operação',         value: ant.id },
+        { label:'Merchant',         value: ant.merchant },
+        { label:'Data antecipação', value: ant.data },
+        { label:'Taxa aplicada',    value: ant.taxa },
+        { label:'Vencimento',       value: ant.venc },
+      ].map((r,i) => (
+        <div key={i} style={{ display:'flex', justifyContent:'space-between', padding:'10px 0', borderBottom:'1px solid #f0f0f0', fontSize:13 }}>
+          <span style={{ color:'rgba(0,0,0,0.45)' }}>{r.label}</span>
+          <span style={{ color:'rgba(0,0,0,0.85)', fontWeight:500 }}>{r.value}</span>
+        </div>
+      ))}
+
+      <div style={{ marginTop:20 }}>
+        <div style={{ fontSize:13, fontWeight:600, color:'rgba(0,0,0,0.85)', marginBottom:12 }}>Resumo financeiro</div>
+        <div style={{ display:'flex', gap:8 }}>
+          {[
+            { l:'Antecipado',  v:fmt(ant.valor),  c:'#1890FF' },
+            { l:'Juros',       v:fmt(ant.juros),  c:'#52c41a' },
+            { l:'A recuperar', v:ant.recuperar>0?fmt(ant.recuperar):'—', c:ant.recuperar>0?'#fa8c16':'rgba(0,0,0,0.45)' },
+          ].map((s,i) => (
+            <div key={i} style={{ flex:1, background:'#fff', border:'1px solid #f0f0f0', borderRadius:2, padding:'10px 8px', textAlign:'center' }}>
+              <div style={{ fontSize:11, color:'rgba(0,0,0,0.45)', marginBottom:4 }}>{s.l}</div>
+              <div style={{ fontSize:13, fontWeight:700, color:s.c }}>{s.v}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <section aria-labelledby="ant-parcelas-heading" style={{ marginTop:20, paddingTop:20, borderTop:'1px solid #f0f0f0' }}>
+        <div id="ant-parcelas-heading" style={{ fontSize:13, fontWeight:600, color:'rgba(0,0,0,0.85)', marginBottom:4 }}>
+          Parcelas a recuperar
+        </div>
+        <div style={{ fontSize:11, color:'rgba(0,0,0,0.55)', marginBottom:12 }}>
+          {ant.parcelas.length === 1 ? '1 parcela nesta antecipação' : `${ant.parcelas.length} parcelas nesta antecipação`}
+        </div>
+
+        {ant.parcelas.length === 0 ? (
+          <div role="status" style={{ fontSize:12, color:'rgba(0,0,0,0.55)', padding:'24px 0', textAlign:'center' }}>
+            Nenhuma parcela disponível para esta antecipação.
+          </div>
+        ) : (
+          <>
+            <ul role="list" style={{ listStyle:'none', padding:0, margin:0 }}>
+              {parcelasPaginadas.map((p, idx) => {
+                const numero = pageIndex * PAGE_SIZE + idx + 1
+                return (
+                  <li key={`${p.nsu}-${idx}`} role="listitem" style={{ borderBottom:'1px solid #f0f0f0', padding:'12px 0' }}>
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                      <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                        <span style={{ fontSize:13, fontWeight:600, color:'rgba(0,0,0,0.85)' }}>
+                          {numero}. Parcela {p.parcela}
+                        </span>
+                        <Tag status={p.status} />
+                      </div>
+                      <span style={{ fontWeight:600, color:'#1890FF', fontSize:14 }}>{fmt(p.liquido)}</span>
+                    </div>
+                    <div style={{ display:'flex', justifyContent:'space-between', marginTop:4, fontSize:11, color:'rgba(0,0,0,0.55)' }}>
+                      <span style={{ fontFamily:'Roboto Mono' }}>NSU {p.nsu}</span>
+                      <span>Vencimento {p.vencOriginal}</span>
+                    </div>
+                    <div style={{ display:'flex', justifyContent:'space-between', marginTop:2, fontSize:11, color:'rgba(0,0,0,0.55)' }}>
+                      <span>Bruto {fmt(p.bruto)}</span>
+                      <span style={{ color:'#52c41a' }}>Juros {fmt(p.juros)}</span>
+                    </div>
+                    {p.recuperado > 0 && (
+                      <div style={{ marginTop:2, fontSize:11, color:'#52c41a', textAlign:'right', fontWeight:500 }}>
+                        Recuperado {fmt(p.recuperado)}
+                      </div>
+                    )}
+                  </li>
+                )
+              })}
+            </ul>
+
+            {totalPaginas > 1 && (
+              <nav aria-label="Paginação de parcelas" style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:12, marginTop:16 }}>
+                <button type="button" onClick={() => setPageIndex(i => Math.max(0, i - 1))} disabled={pageIndex === 0}
+                  style={{ height:32, minWidth:88, padding:'0 12px', fontSize:12, borderRadius:2, border:'1px solid #d9d9d9', background:'#fff', color:'rgba(0,0,0,0.85)', cursor: pageIndex === 0 ? 'not-allowed' : 'pointer', opacity: pageIndex === 0 ? 0.4 : 1 }}>
+                  Anterior
+                </button>
+                <span aria-live="polite" aria-atomic="true" style={{ fontSize:12, color:'rgba(0,0,0,0.65)' }}>
+                  Página {pageIndex + 1} de {totalPaginas}
+                </span>
+                <button type="button" onClick={() => setPageIndex(i => Math.min(totalPaginas - 1, i + 1))} disabled={pageIndex >= totalPaginas - 1}
+                  style={{ height:32, minWidth:88, padding:'0 12px', fontSize:12, borderRadius:2, border:'1px solid #d9d9d9', background:'#fff', color:'rgba(0,0,0,0.85)', cursor: pageIndex >= totalPaginas - 1 ? 'not-allowed' : 'pointer', opacity: pageIndex >= totalPaginas - 1 ? 0.4 : 1 }}>
+                  Próximo
+                </button>
+              </nav>
+            )}
+          </>
+        )}
+      </section>
     </Drawer>
   )
 }
@@ -696,6 +1000,8 @@ export default function FinancialPage() {
   const tab = financialTab
 
   const [drawerLiq, setDrawerLiq] = useState<LiqEvento | null>(null)
+  const [drawerRep, setDrawerRep] = useState<RepDrawerRow | null>(null)
+  const [drawerAntecip, setDrawerAntecip] = useState<AntecipDrawerRow | null>(null)
   const [drawerSim, setDrawerSim] = useState(false)
   const [drawerImport, setDrawerImport] = useState(false)
   const [drawerArquivo, setDrawerArquivo] = useState<ArquivoRow | null>(null)
@@ -973,39 +1279,6 @@ export default function FinancialPage() {
               </div>
             )
 
-            // Render expandido — parcelas dentro do lote
-            const expandedRowRender = (record: LiqEvento) => (
-              <div style={{ padding:'8px 0 8px 24px', background:'#fafafa' }}>
-                <div style={{ fontSize:11, fontWeight:600, color:'rgba(0,0,0,0.45)', textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:8 }}>
-                  Parcelas que compõem o lote {record.loteId} ({record.parcelas.length})
-                </div>
-                <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12, background:'#fff', border:'1px solid #f0f0f0' }}>
-                  <thead>
-                    <tr style={{ background:'#fafafa' }}>
-                      {['NSU','EC','Parcela','Valor','MDR','Antecip.','Travado','Líquido','Status'].map(h => (
-                        <th key={h} style={{ padding:'8px 12px', textAlign:'left', fontWeight:500, color:'rgba(0,0,0,0.65)', borderBottom:'1px solid #f0f0f0', fontSize:11, textTransform:'uppercase', letterSpacing:'0.4px' }}>{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {record.parcelas.map((p,i) => (
-                      <tr key={i} style={{ borderBottom:'1px solid #f5f5f5' }}>
-                        <td style={{ padding:'8px 12px', fontFamily:'Roboto Mono', fontSize:11, color:'rgba(0,0,0,0.55)' }}>{p.nsu}</td>
-                        <td style={{ padding:'8px 12px', fontWeight:500, color:'rgba(0,0,0,0.85)' }}>{p.ec}</td>
-                        <td style={{ padding:'8px 12px', fontFamily:'Roboto Mono', fontSize:11 }}>{p.parcela}</td>
-                        <td style={{ padding:'8px 12px', color:'rgba(0,0,0,0.85)' }}>{fmt(p.valor)}</td>
-                        <td style={{ padding:'8px 12px', color:'#ff4d4f' }}>{fmt(p.mdr)}</td>
-                        <td style={{ padding:'8px 12px', color:p.antecip>0?'#fa8c16':'rgba(0,0,0,0.2)' }}>{p.antecip>0?fmt(p.antecip):'—'}</td>
-                        <td style={{ padding:'8px 12px', color:p.travado>0?'#722ED1':'rgba(0,0,0,0.2)', fontWeight:p.travado>0?500:400 }}>{p.travado>0?fmt(p.travado):'—'}</td>
-                        <td style={{ padding:'8px 12px', fontWeight:600, color:'#52c41a' }}>{fmt(p.liquido)}</td>
-                        <td style={{ padding:'8px 12px' }}><Tag status={p.status} /></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )
-
             return (
               <>
                 {liqViewMode === 'lote' ? (
@@ -1018,7 +1291,6 @@ export default function FinancialPage() {
                     onExport={()=>{}}
                     periodOptions={PERIOD_OPTIONS}
                     defaultPeriod="mes"
-                    expandable={{ expandedRowRender, rowExpandable: r => r.parcelas.length > 0 }}
                   />
                 ) : (
                   <DataTable<ParcelaFlat>
@@ -1118,6 +1390,11 @@ export default function FinancialPage() {
               ? <Tooltip text={tip} delay={1000} bare><Tag status={v} /></Tooltip>
               : <Tag status={v} />
           }},
+          { title:'', key:'acao', width:56, render: (_,r) => (
+            <button onClick={()=>setDrawerRep(r)} title="Ver detalhes" style={{ border:'none', background:'none', color:'rgba(0,0,0,0.35)', cursor:'pointer', padding:4, display:'flex', alignItems:'center', borderRadius:4 }} onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.color='#1890FF';(e.currentTarget as HTMLElement).style.background='#f5f5f5'}} onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.color='rgba(0,0,0,0.35)';(e.currentTarget as HTMLElement).style.background='none'}}>
+              <Icon name="eye" size={14} color="currentColor" />
+            </button>
+          ) },
         ]
 
         type TxFlat = RepTx & { repId: string; name: string; cnpj: string; data: string }
@@ -1153,37 +1430,6 @@ export default function FinancialPage() {
           </div>
         )
 
-        const expandedRowRender = (record: PRow) => (
-          <div style={{ padding:'8px 0 8px 24px', background:'#fafafa' }}>
-            <div style={{ fontSize:11, fontWeight:600, color:'rgba(0,0,0,0.45)', textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:8 }}>
-              Transações que compõem o repasse {record.repId} ({record.transacoes.length})
-            </div>
-            <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12, background:'#fff', border:'1px solid #f0f0f0' }}>
-              <thead>
-                <tr style={{ background:'#fafafa' }}>
-                  {['NSU','Adquirente','Bandeira','Parcela','Valor','MDR','Antecip.','Líquido'].map(h => (
-                    <th key={h} style={{ padding:'8px 12px', textAlign:'left', fontWeight:500, color:'rgba(0,0,0,0.65)', borderBottom:'1px solid #f0f0f0', fontSize:11, textTransform:'uppercase', letterSpacing:'0.4px' }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {record.transacoes.map((t,i) => (
-                  <tr key={i} style={{ borderBottom:'1px solid #f5f5f5' }}>
-                    <td style={{ padding:'8px 12px', fontFamily:'Roboto Mono', fontSize:11, color:'rgba(0,0,0,0.55)' }}>{t.nsu}</td>
-                    <td style={{ padding:'8px 12px' }}><BrandLogo brand={t.adq} size={18} showLabel /></td>
-                    <td style={{ padding:'8px 12px' }}><BrandLogo brand={t.bandeira} size={18} showLabel /></td>
-                    <td style={{ padding:'8px 12px', fontFamily:'Roboto Mono', fontSize:11 }}>{t.parcela}</td>
-                    <td style={{ padding:'8px 12px', color:'rgba(0,0,0,0.85)' }}>{fmt(t.valor)}</td>
-                    <td style={{ padding:'8px 12px', color:'#ff4d4f' }}>{fmt(t.mdr)}</td>
-                    <td style={{ padding:'8px 12px', color:t.antecip>0?'#fa8c16':'rgba(0,0,0,0.2)' }}>{t.antecip>0?fmt(t.antecip):'—'}</td>
-                    <td style={{ padding:'8px 12px', fontWeight:600, color:'#52c41a' }}>{fmt(t.liquido)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )
-
         return (
           <div style={{ padding:24, display:'flex', flexDirection:'column', gap:16 }}>
             {repViewMode === 'lote' ? (
@@ -1196,7 +1442,6 @@ export default function FinancialPage() {
                 onExport={()=>{}}
                 periodOptions={PERIOD_OPTIONS}
                 defaultPeriod="mes"
-                expandable={{ expandedRowRender, rowExpandable: r => r.transacoes.length > 0 }}
               />
             ) : (
               <DataTable<TxFlat>
@@ -1386,37 +1631,12 @@ export default function FinancialPage() {
                   ? <Tooltip text={tip} delay={1000} bare><Tag status={v} /></Tooltip>
                   : <Tag status={v} />
               }},
+              { title:'', key:'acao', width:56, render: (_,r) => (
+                <button onClick={()=>setDrawerAntecip(r)} title="Ver detalhes" style={{ border:'none', background:'none', color:'rgba(0,0,0,0.35)', cursor:'pointer', padding:4, display:'flex', alignItems:'center', borderRadius:4 }} onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.color='#1890FF';(e.currentTarget as HTMLElement).style.background='#f5f5f5'}} onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.color='rgba(0,0,0,0.35)';(e.currentTarget as HTMLElement).style.background='none'}}>
+                  <Icon name="eye" size={14} color="currentColor" />
+                </button>
+              ) },
             ]
-            const antecipExpandedRow = (record: AntecipEC) => (
-              <div style={{ padding:'8px 0 8px 24px', background:'#fafafa' }}>
-                <div style={{ fontSize:11, fontWeight:600, color:'rgba(0,0,0,0.45)', textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:8 }}>
-                  Parcelas da antecipação {record.id} — {record.merchant}
-                </div>
-                <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12, background:'#fff', border:'1px solid #f0f0f0' }}>
-                  <thead>
-                    <tr style={{ background:'#fafafa' }}>
-                      {['NSU','Parcela','Venc. original','Bruto','Juros','Líquido','Recuperado','Status'].map(h => (
-                        <th key={h} style={{ padding:'8px 12px', textAlign:'left', fontWeight:500, color:'rgba(0,0,0,0.65)', borderBottom:'1px solid #f0f0f0', fontSize:11, textTransform:'uppercase', letterSpacing:'0.4px' }}>{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {record.parcelas.map((p, i) => (
-                      <tr key={i} style={{ borderBottom:'1px solid #f5f5f5' }}>
-                        <td style={{ padding:'8px 12px', fontFamily:'Roboto Mono', fontSize:11, color:'rgba(0,0,0,0.55)' }}>{p.nsu}</td>
-                        <td style={{ padding:'8px 12px', fontFamily:'Roboto Mono', fontSize:11 }}>{p.parcela}</td>
-                        <td style={{ padding:'8px 12px', color:'rgba(0,0,0,0.65)' }}>{p.vencOriginal}</td>
-                        <td style={{ padding:'8px 12px', color:'rgba(0,0,0,0.85)' }}>{fmt(p.bruto)}</td>
-                        <td style={{ padding:'8px 12px', color:'#52c41a', fontWeight:500 }}>{fmt(p.juros)}</td>
-                        <td style={{ padding:'8px 12px', color:'#1890FF', fontWeight:500 }}>{fmt(p.liquido)}</td>
-                        <td style={{ padding:'8px 12px', color:p.recuperado>0?'#52c41a':'rgba(0,0,0,0.25)', fontWeight:p.recuperado>0?500:400 }}>{p.recuperado>0?fmt(p.recuperado):'—'}</td>
-                        <td style={{ padding:'8px 12px' }}><Tag status={p.status} /></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )
 
             return (
               <>
@@ -1428,7 +1648,6 @@ export default function FinancialPage() {
                   onExport={()=>{}}
                   periodOptions={PERIOD_OPTIONS}
                   defaultPeriod="mes"
-                  expandable={{ expandedRowRender: antecipExpandedRow, rowExpandable: r => r.parcelas.length > 0 }}
                 />
                 <div style={{ padding:'12px 16px', background:'#f6ffed', border:'1px solid #b7eb8f', borderRadius:2, display:'flex', gap:24, justifyContent:'flex-end', alignItems:'center' }}>
                   <span style={{ fontSize:12, fontWeight:600, color:'#52c41a', flex:1 }}>Resumo das operações</span>
@@ -1636,6 +1855,8 @@ export default function FinancialPage() {
       )}
 
       <DrawerLiquidacaoDetalhes open={!!drawerLiq} onClose={()=>setDrawerLiq(null)} liq={drawerLiq} />
+      <DrawerRepasseDetalhes open={!!drawerRep} onClose={()=>setDrawerRep(null)} rep={drawerRep} />
+      <DrawerAntecipECDetalhes open={!!drawerAntecip} onClose={()=>setDrawerAntecip(null)} ant={drawerAntecip} />
       <DrawerSimulacaoAntecipacao open={drawerSim} onClose={()=>setDrawerSim(false)} />
       <DrawerImportarLiquidacao open={drawerImport} onClose={()=>setDrawerImport(false)} />
       <DrawerArquivoTimeline open={!!drawerArquivo} onClose={()=>setDrawerArquivo(null)} arq={drawerArquivo} />

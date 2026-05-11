@@ -11,15 +11,22 @@
 
 export type ApiMode = 'mock' | 'real'
 
+function readEnv(key: string): string | undefined {
+  if (typeof process !== 'undefined' && process.env && process.env[key] !== undefined) {
+    return process.env[key]
+  }
+  return undefined
+}
+
 export const apiMode: ApiMode = (() => {
-  const forced = process.env.NEXT_PUBLIC_API_MODE
+  const forced = readEnv('NEXT_PUBLIC_API_MODE')
   if (forced === 'mock' || forced === 'real') return forced
-  return process.env.NEXT_PUBLIC_API_BASE_URL ? 'real' : 'mock'
+  return readEnv('NEXT_PUBLIC_API_BASE_URL') ? 'real' : 'mock'
 })()
 
-export const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? ''
+export const apiBaseUrl = readEnv('NEXT_PUBLIC_API_BASE_URL') ?? ''
 
-export const isReadOnly = process.env.NEXT_PUBLIC_READ_ONLY !== 'false'
+export const isReadOnly = readEnv('NEXT_PUBLIC_READ_ONLY') !== 'false'
 
 export class ApiError extends Error {
   status: number

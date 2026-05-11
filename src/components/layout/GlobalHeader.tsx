@@ -78,17 +78,25 @@ export default function GlobalHeader() {
       width: '100%', height: 48, background: '#fff',
       borderBottom: '1px solid #f0f0f0', display: 'flex',
       alignItems: 'center', justifyContent: 'space-between',
-      padding: '0 24px', flexShrink: 0,
+      paddingRight: 24, flexShrink: 0,
       boxShadow: '0 1px 4px rgba(0,0,0,0.08)', zIndex: 100,
     }}>
-      {/* Esquerda: menu + logo + badge */}
+      {/* Esquerda: menu + logo + badge
+          Hamburger ocupa 48px (mesma largura da sidebar colapsada) e fica
+          centralizado pra alinhar com os ícones da sidebar (todos no centro
+          dessa coluna de 48px). */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
         <button
           onClick={toggleSidebar}
           aria-label="Alternar menu lateral"
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center' }}
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            color: 'rgba(0,0,0,0.45)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            width: 48, height: 48, flexShrink: 0,
+          }}
         >
-          <Icon name="menu" size={18} />
+          <Icon name="menu" size={16} />
         </button>
         <img
           src={theme.logoSrc}

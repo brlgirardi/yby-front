@@ -1,0 +1,175 @@
+{/* src/stories/foundations/RegrasDeNegocio.mdx */}
+
+import { Meta } from '@storybook/blocks'
+import Tag from '../../components/shared/Tag'
+
+<Meta title="Foundations/Regras de Negócio/Status & Tags" />
+
+# Regras de Negócio — Status & Tags
+
+<div className="bg-info-bg border border-info-border rounded-xs p-4 text-text-secondary text-sm">
+  Este documento reflete o estado atual do código em <code>src/components/shared/Tag.tsx</code>. Toda mudança em statuses (adição, remoção, retoning) deve atualizar esta página. Os previews renderizam o componente real — não são screenshots.
+</div>
+
+Na classificação Atomic Design (Brad Frost, 2016, atomicdesign.bradfrost.com), `Tag` é um **átomo** — elemento indivisível usado por moléculas e organismos. Ver `Foundations/Atomic Design` para o restante da classificação. Este documento descreve a regra de negócio que esse átomo carrega: o vocabulário de status do domínio sub-adquirência e como cada nome se mapeia para tom visual, ícone e ação esperada do usuário.
+
+A interface usa **um único átomo de status semântico**, o `Tag`, parametrizado pelo nome do status. O componente resolve internamente:
+
+- **Tom semântico** (sucesso, processamento, futuro, aviso, erro, neutro)
+- **Cor de fundo, texto e borda** (paleta AntD adotada)
+- **Ícone correspondente** (check, loader, clock, alert, x, minus, info)
+
+Essa decisão é deliberada: o backend e os mocks descrevem status em **português, livre de cor**. A regra de cor vive no front, no `STATUS_MAP` de `Tag.tsx`. Isso evita acoplar a semântica visual à API.
+
+## Sistema semântico — 6 tons
+
+| Tom | Quando usar | Paleta (bg / texto / borda) | Ícone padrão |
+|---|---|---|---|
+| **success** | Operação concluída, nada a fazer | `#F6FFED` / `#237804` / `#B7EB8F` | check |
+| **processing** | Sistema executando, usuário aguarda | `#E6F7FF` / `#003A8C` / `#91D5FF` | loader |
+| **future** | Evento previsto ou agendado, sem ação | `#F9F0FF` / `#531DAB` / `#D3ADF7` | clock |
+| **warning** | Requer atenção ou decisão do usuário | `#FFFBE6` / `#874D00` / `#FFE58F` | alert |
+| **error** | Falha ou bloqueio definitivo | `#FFF1F0` / `#820014` / `#FFCCC7` | x |
+| **neutral** | Operação encerrada sem efeito | `#F5F5F5` / `rgba(0,0,0,0.55)` / `#D9D9D9` | minus |
+
+> Tons baseados nas paletas AntD (Polar Green, DayBreak Blue, Geek Purple, Calendula Gold, Dust Red, Neutral). A escolha foi feita para alinhar com o `globals.css` (variantes `.kpi-*`) e com a paleta Tupi.
+
+## Catálogo de statuses por tom
+
+### Sucesso
+
+Operações concluídas. Nada a fazer pelo usuário.
+
+| Status | Significado | Tela / fluxo | Preview |
+|---|---|---|---|
+| Aprovado | Cadastro/operação aprovada | Dashboard adquirente (variações positivas) | <Tag status="Aprovado" /> |
+| Aprovada | Variação feminina de "Aprovado" | (não usado ativamente; presente no tipo) | <Tag status="Aprovada" /> |
+| Pago | Cobrança/transação paga | EC Cobranças, EC Liquidações, Chargeback Form | <Tag status="Pago" /> |
+| Liquidado | Lote liquidado pela adquirente | Settlements (financeiro), Links de Pagamento (mapeado de "Concluído") | <Tag status="Liquidado" /> |
+| Quitado | Dívida quitada (alias semântico) | (não usado ativamente; presente no tipo) | <Tag status="Quitado" /> |
+| Recuperado | Recebível recuperado | (não usado ativamente; presente no tipo) | <Tag status="Recuperado" /> |
+| Repassado | Valor repassado ao EC | (não usado ativamente; presente no tipo) | <Tag status="Repassado" /> |
+| Publicado | Conteúdo publicado | (não usado ativamente; presente no tipo) | <Tag status="Publicado" /> |
+| Ativo | Cadastro/operação habilitada | Empresas, Maquininhas, Antecipação Programada, Pricing, Usuários | <Tag status="Ativo" /> |
+| Reconciliado | Conciliação Tupi: estado terminal positivo | InterchangeDetailModal | <Tag status="Reconciliado" /> |
+| Conciliado | Alias curto de "Reconciliado" | Conciliação (vocabulário Tupi) | <Tag status="Conciliado" /> |
+
+### Processamento
+
+Sistema executando. Usuário aguarda — não há ação que deva tomar agora.
+
+| Status | Significado | Tela / fluxo | Preview |
+|---|---|---|---|
+| Pendente | Operação iniciada, aguardando resolução | EC Liquidações, EC Cobranças, Agenda Funding, Chargeback Form | <Tag status="Pendente" /> |
+| Em processamento | Processamento ativo do back | (presente no tipo, uso pontual) | <Tag status="Em processamento" /> |
+| Em análise | Análise manual em curso (chargeback, etc.) | Chargeback Form, Advances Tab | <Tag status="Em análise" /> |
+
+### Futuro / temporal
+
+Evento agendado, previsto ou em janela aberta. Sem ação imediata.
+
+| Status | Significado | Tela / fluxo | Preview |
+|---|---|---|---|
+| Previsto | Recebível previsto na agenda | Agenda (recebíveis) | <Tag status="Previsto" /> |
+| Agendado | Operação agendada | Antecipação Programada | <Tag status="Agendado" /> |
+| A recuperar | Recebível futuro disponível para recuperar | Agenda | <Tag status="A recuperar" /> |
+| Em aberto | Linha em aberto | Agenda Funding, AgendaLots | <Tag status="Em aberto" /> |
+| Antecipado | Recebível já antecipado | EC Liquidações (label "Já antecipado"), AgendaAdvances | <Tag status="Antecipado" /> |
+
+### Aviso
+
+Requer atenção ou decisão do usuário.
+
+| Status | Significado | Tela / fluxo | Preview |
+|---|---|---|---|
+| Parcialmente liquidado | Lote parcialmente liquidado | Financeiro | <Tag status="Parcialmente liquidado" /> |
+| Parc. Conciliado | Conciliação parcial (forma curta Tupi) | Conciliação | <Tag status="Parc. Conciliado" /> |
+| Parcialmente conciliado | Conciliação parcial (forma longa) | Conciliação | <Tag status="Parcialmente conciliado" /> |
+| Suspenso | Cadastro/serviço suspenso | Settlements, EC Maquininhas | <Tag status="Suspenso" /> |
+| Estorno | Movimento de estorno | Financeiro / Cobranças | <Tag status="Estorno" /> |
+| Estornada | Variação feminina de "Estorno" | Financeiro / Cobranças | <Tag status="Estornada" /> |
+
+### Erro
+
+Falha ou bloqueio definitivo. Requer ação corretiva.
+
+| Status | Significado | Tela / fluxo | Preview |
+|---|---|---|---|
+| Recusado | Operação recusada | (não usado ativamente; presente no tipo) | <Tag status="Recusado" /> |
+| Recusada | Variação feminina de "Recusado" | (não usado ativamente; presente no tipo) | <Tag status="Recusada" /> |
+| Reprovado | Cadastro reprovado | (não usado ativamente; presente no tipo) | <Tag status="Reprovado" /> |
+| Chargeback | Transação contestada | Chargeback Form (mapeado), EC Cobranças | <Tag status="Chargeback" /> |
+| Crédito bloqueado | Crédito bloqueado por regra | (não usado ativamente; presente no tipo) | <Tag status="Crédito bloqueado" /> |
+| Bloqueado | Recurso bloqueado | (não usado ativamente; presente no tipo) | <Tag status="Bloqueado" /> |
+| Erro | Falha genérica de processamento | EC Cobranças (mapeado de "Falha") | <Tag status="Erro" /> |
+| Divergência | Conciliação Tupi: divergência detectada | InterchangeDetailModal | <Tag status="Divergência" /> |
+| Não Conciliado | Conciliação Tupi: não conciliado | Conciliação | <Tag status="Não Conciliado" /> |
+| Mismatch | Conciliação Tupi: mismatch técnico | Conciliação | <Tag status="Mismatch" /> |
+
+### Neutro
+
+Operação encerrada sem efeito. Não exige atenção.
+
+| Status | Significado | Tela / fluxo | Preview |
+|---|---|---|---|
+| Cancelado | Operação cancelada | EC LinksPagamento, Cobranças | <Tag status="Cancelado" /> |
+| Cancelada | Variação feminina de "Cancelado" | Cobranças | <Tag status="Cancelada" /> |
+| Inativo | Cadastro desativado | Pricing, Empresas, LinksPagamento, Antecipação | <Tag status="Inativo" /> |
+
+### Informação
+
+Tag genérica para metadados que não são status temporais.
+
+| Status | Significado | Tela / fluxo | Preview |
+|---|---|---|---|
+| Info | Tag informativa (categoria, canal, persona, MDR vs Interchange+) | PersonaBadge, InterchangeRateCard, AcquirerPriceCard, AcquirerCostCard, AqDashboard | <Tag status="Info" label="Categoria" /> |
+
+## Galeria — todos os tons lado a lado
+
+<div className="flex flex-wrap gap-2 p-4 bg-surface">
+  <Tag status="Aprovado" />
+  <Tag status="Pago" />
+  <Tag status="Liquidado" />
+  <Tag status="Ativo" />
+  <Tag status="Reconciliado" />
+  <Tag status="Pendente" />
+  <Tag status="Em análise" />
+  <Tag status="Previsto" />
+  <Tag status="Antecipado" />
+  <Tag status="Agendado" />
+  <Tag status="Parcialmente liquidado" />
+  <Tag status="Suspenso" />
+  <Tag status="Estorno" />
+  <Tag status="Recusado" />
+  <Tag status="Chargeback" />
+  <Tag status="Divergência" />
+  <Tag status="Erro" />
+  <Tag status="Cancelado" />
+  <Tag status="Inativo" />
+  <Tag status="Info" label="Info" />
+</div>
+
+## Inconsistências detectadas
+
+Pontos a normalizar — não bloqueiam uso, mas pedem atenção do time:
+
+- **Duplicação masculino/feminino:** `Aprovado`/`Aprovada`, `Recusado`/`Recusada`, `Cancelado`/`Cancelada`, `Estorno`/`Estornada`. O `STATUS_MAP` resolve via aliases, mas a API/mocks deveriam padronizar.
+- **Conciliação com 3 formas para "parcial":** `Parc. Conciliado`, `Parcialmente conciliado`, `Parcialmente liquidado`. Origem é o vocabulário Tupi de conciliação. Recomendado escolher uma forma canônica por contexto.
+- **Mapeamento ad-hoc em features:** vários componentes traduzem `row.status` (string vinda do mock) para um status Tupi (`Sucesso → Pago`, `Falha → Erro`, `Concluído → Liquidado`, `Crédito Vendido → Antecipado`). Esse mapeamento está espalhado (`EcCobrancas.tsx`, `EcLinksPagamento.tsx`, `EcLiquidacoes.tsx`). Centralizar num utilitário (ex.: `src/lib/status/translate.ts`) reduz divergência.
+- **"Em processamento" vs "Em análise":** semanticamente próximos. "Em análise" indica revisão manual; "Em processamento" indica execução automática. Confirmar uso antes de unificar.
+- **`Tag` da AntD vs `Tag` shared:** `SettlementsTab`, `StatementTab`, `AgendaFunding`, `AgendaInstallments` importam o `Tag` da AntD (label sem semântica) e o `StatusTag` (alias para o `Tag` shared) lado a lado. A migração completa para o `Tag` shared está pendente.
+
+## Como adicionar um status novo
+
+1. Defina o **tom semântico** apropriado (success / processing / future / warning / error / neutral).
+2. Adicione a entrada em `STATUS_MAP` em `src/components/shared/Tag.tsx`, mapeando para o tom e ícone.
+3. Adicione o nome ao tipo `TagVariant` no topo do arquivo.
+4. Atualize esta página com nome, significado, telas onde aparece e preview.
+5. Atualize a story `Design System/Atoms/Tag` adicionando o status na galeria.
+
+## Referências
+
+- Tag (átomo): `src/components/shared/Tag.tsx`
+- Story do átomo: `Design System/Atoms/Tag`
+- Brain Harrison `harrison-brain/wiki/ux.md` — heurística Nielsen 1 ("visibilidade do status do sistema") e 5 ("prevenção de erros") aplicadas à granularidade dos statuses.
+- Brain Harrison `harrison-brain/agents/pixel/taste-profile.md` — diretriz "no máximo 2 badges de mesmo peso por card" deve ser respeitada quando o `Tag` é combinado com outros badges.

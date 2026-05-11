@@ -1,0 +1,159 @@
+{/* src/stories/foundations/AtomicDesign.mdx */}
+
+import { Meta } from '@storybook/blocks'
+
+<Meta title="Foundations/Atomic Design" />
+
+# Atomic Design
+
+A metodologia Atomic Design (Brad Frost, 2016) organiza a interface em **cinco camadas hierárquicas**, do menor elemento indivisível ao layout completo de uma página. O Yby Front adota essa estrutura como linguagem comum entre design e engenharia: quando o time discute "Tag", está no nível dos átomos; quando discute "DataTable", está no nível dos organismos. Este documento descreve cada camada, os critérios de classificação adotados pelo projeto, e mapeia os componentes existentes nas pastas `src/components/`.
+
+> "Atoms, molecules, organisms, templates, and pages concurrently working together to create effective interface design systems." — Brad Frost, *Atomic Design* (atomicdesign.bradfrost.com, 2016)
+
+## Por que adotar
+
+- **Vocabulário compartilhado** — design e engenharia falam a mesma língua ao discutir um componente.
+- **Reuso explícito** — átomos são compostos em moléculas; moléculas em organismos. A árvore deixa óbvio onde reutilizar.
+- **Storybook como verdade única** — cada átomo, molécula e organismo tem sua story; templates e páginas referenciam essas stories.
+- **Refatoração guiada** — quando um átomo muda (ex.: `Tag`), o impacto sobe a cadeia (moléculas → organismos) de forma previsível.
+
+## Critérios de classificação
+
+A classificação no Yby segue regras objetivas, não interpretação subjetiva:
+
+| Camada | Regra de inclusão | Sinais práticos |
+|---|---|---|
+| **Átomo** | Elemento de UI indivisível. Não compõe outros componentes do projeto. | Renderiza HTML/SVG primitivo ou wrapper fino de AntD. Sem estado complexo. Sem fetch. |
+| **Molécula** | Combina 2+ átomos para criar uma unidade funcional pequena. | Costuma ter um label + input, ou um título + ação, ou cabeçalho + corpo. |
+| **Organismo** | Composição complexa de moléculas e átomos que entrega uma fatia funcional. | Tabela com filtros + paginação + ações; formulário inteiro; sidebar inteira. |
+| **Template** | Layout estrutural reutilizável que define onde organismos aparecem. | Define grid/regiões, mas o conteúdo é placeholder. |
+| **Página** | Instância concreta de um template, com dados reais (mocks por enquanto). | Vive em `src/app/` (App Router) ou `src/features/`. |
+
+Regras adicionais adotadas pelo projeto:
+
+- Componentes que envolvem apenas estilização visual de um AntD primitivo continuam como **átomos** (ex.: `Button`, `Tooltip`).
+- Componentes de layout estrutural (`AppShell`, `ScreenRouter`) são **templates**, não organismos, mesmo compondo muitas peças — sua função é orquestrar regiões, não entregar conteúdo.
+- Rotas em `src/app/(app)/` e features em `src/features/{persona}/{version}/` são **páginas**.
+
+## Camada 1 — Átomos
+
+Elementos de UI indivisíveis. São a base de todo o sistema visual.
+
+| Componente | Caminho | Story |
+|---|---|---|
+| Tag | `src/components/shared/Tag.tsx` | `Design System/Atoms/Tag` |
+| Badge | `src/components/shared/Badge.tsx` | `src/components/shared/Badge.stories.tsx` |
+| Button | `src/components/shared/Button.tsx` | `src/components/shared/Button.stories.tsx` |
+| Input | `src/components/shared/Input.tsx` | `src/components/shared/Input.stories.tsx` |
+| Icon | `src/components/shared/Icon.tsx` | `src/components/shared/Icon.stories.tsx` |
+| BrandLogo | `src/components/shared/BrandLogo.tsx` | `Domain/BrandLogo` |
+| Loading | `src/components/shared/Loading.tsx` | `src/components/shared/Loading.stories.tsx` |
+| Skeleton | `src/components/shared/Skeleton.tsx` | `src/components/shared/Skeleton.stories.tsx` |
+| Sparkline | `src/components/shared/Sparkline.tsx` | `src/components/shared/Sparkline.stories.tsx` |
+| Tooltip | `src/components/shared/Tooltip.tsx` | `src/components/shared/Tooltip.stories.tsx` |
+| ShiftInput | `src/components/shared/ShiftInput.tsx` | `src/components/shared/ShiftInput.stories.tsx` |
+| ChannelChip | `src/components/shared/ChannelChip.tsx` | sem story |
+| ConciliationBadge | `src/components/conciliation/ConciliationBadge.tsx` | `src/components/conciliation/ConciliationBadge.stories.tsx` |
+| PersonaBadge | `src/components/layout/PersonaBadge.tsx` | `src/components/layout/PersonaBadge.stories.tsx` |
+
+## Camada 2 — Moléculas
+
+Pequenas composições funcionais de 2+ átomos.
+
+| Componente | Caminho | Story |
+|---|---|---|
+| PageHeader (shared) | `src/components/shared/PageHeader.tsx` | `src/components/shared/PageHeader.stories.tsx` |
+| PageHeader (ui) | `src/components/ui/PageHeader.tsx` | sem story |
+| AppSelect | `src/components/ui/AppSelect.tsx` | `src/components/ui/AppSelect.stories.tsx` |
+| KpiCard | `src/components/ui/KpiCard.tsx` | `src/components/ui/KpiCard.stories.tsx` |
+| CardSection | `src/components/shared/CardSection.tsx` | `src/components/shared/CardSection.stories.tsx` |
+| AccordionCard | `src/components/shared/AccordionCard.tsx` | sem story |
+| EmptyState | `src/components/shared/EmptyState.tsx` | `src/components/shared/EmptyState.stories.tsx` |
+| Drawer | `src/components/shared/Drawer.tsx` | sem story |
+| DateScroller | `src/components/conciliation/DateScroller.tsx` | `src/components/conciliation/DateScroller.stories.tsx` |
+| Metric | `src/components/conciliation/Metric.tsx` | `src/components/conciliation/Metric.stories.tsx` |
+| BoxPrice | `src/components/pricing/BoxPrice.tsx` | `src/components/pricing/BoxPrice.stories.tsx` |
+| TableTabsBar | `src/components/pricing/TableTabsBar.tsx` | `src/components/pricing/TableTabsBar.stories.tsx` |
+| WhiteCardPattern (referência) | `src/stories/WhiteCardPattern.stories.tsx` | story-only (padrão visual documentado) |
+
+> **Observação:** há dois `PageHeader` no projeto (`shared` e `ui`). A consolidação deve ser endereçada na Fase 2 do plano de reorganização (ver `docs/atomic-design-plan.md`).
+
+## Camada 3 — Organismos
+
+Composições complexas que entregam uma fatia funcional inteira.
+
+| Componente | Caminho | Story |
+|---|---|---|
+| DataTable | `src/components/ui/DataTable.tsx` | `src/components/ui/DataTable.stories.tsx` |
+| ChargebackForm | `src/components/chargeback/ChargebackForm.tsx` | sem story |
+| LoginForm | `src/components/auth/LoginForm.tsx` | `src/components/auth/LoginForm.stories.tsx` |
+| SendEmailStep | `src/components/auth/SendEmailStep.tsx` | `src/components/auth/SendEmailStep.stories.tsx` |
+| VerifyCodeStep | `src/components/auth/VerifyCodeStep.tsx` | `src/components/auth/VerifyCodeStep.stories.tsx` |
+| RedefinePasswordStep | `src/components/auth/RedefinePasswordStep.tsx` | `src/components/auth/RedefinePasswordStep.stories.tsx` |
+| TransactionsTable | `src/components/conciliation/TransactionsTable.tsx` | `src/components/conciliation/TransactionsTable.stories.tsx` |
+| BrandSummaryCard | `src/components/conciliation/BrandSummaryCard.tsx` | `src/components/conciliation/BrandSummaryCard.stories.tsx` |
+| AcquirerSummaryCard | `src/components/conciliation/AcquirerSummaryCard.tsx` | `src/components/conciliation/AcquirerSummaryCard.stories.tsx` |
+| BrandDetail | `src/components/conciliation/BrandDetail.tsx` | `src/components/conciliation/BrandDetail.stories.tsx` |
+| InterchangeDropdownTable | `src/components/conciliation/InterchangeDropdownTable.tsx` | `src/components/conciliation/InterchangeDropdownTable.stories.tsx` |
+| InterchangeDetailModal | `src/components/conciliation/InterchangeDetailModal.tsx` | `src/components/conciliation/InterchangeDetailModal.stories.tsx` |
+| ConciliationOverview | `src/components/conciliation/ConciliationOverview.tsx` | `src/components/conciliation/ConciliationOverview.stories.tsx` |
+| ConciliationSkeleton | `src/components/conciliation/ConciliationSkeleton.tsx` | `src/components/conciliation/ConciliationSkeleton.stories.tsx` |
+| InterchangeRateCard | `src/components/interchange/InterchangeRateCard.tsx` | `src/components/interchange/InterchangeRateCard.stories.tsx` |
+| AcquirerPriceCard | `src/components/pricing/AcquirerPriceCard.tsx` | `src/components/pricing/AcquirerPriceCard.stories.tsx` |
+| AcquirerCostCard | `src/components/pricing/AcquirerCostCard.tsx` | `src/components/pricing/AcquirerCostCard.stories.tsx` |
+| AcquirerPriceSection | `src/components/pricing/AcquirerPriceSection.tsx` | sem story |
+| BrandSection | `src/components/pricing/BrandSection.tsx` | `src/components/pricing/BrandSection.stories.tsx` |
+| BrandPriceSection | `src/components/pricing/BrandPriceSection.tsx` | sem story |
+| ChannelSection | `src/components/pricing/ChannelSection.tsx` | `src/components/pricing/ChannelSection.stories.tsx` |
+| ChannelPriceSection | `src/components/pricing/ChannelPriceSection.tsx` | sem story |
+| AcquirerSection | `src/components/pricing/AcquirerSection.tsx` | sem story |
+| MethodTable | `src/components/pricing/MethodTable.tsx` | `src/components/pricing/MethodTable.stories.tsx` |
+| PricingSkeleton | `src/components/pricing/PricingSkeleton.tsx` | `src/components/pricing/PricingSkeleton.stories.tsx` |
+| AgendaCalendar | `src/components/agenda/AgendaCalendar.tsx` | sem story |
+| AgendaFunding | `src/components/agenda/AgendaFunding.tsx` | sem story |
+| AgendaInstallments | `src/components/agenda/AgendaInstallments.tsx` | sem story |
+| AgendaAdvances | `src/components/agenda/AgendaAdvances.tsx` | sem story |
+| AgendaLots | `src/components/agenda/AgendaLots.tsx` | sem story |
+| AgendaPayments | `src/components/agenda/AgendaPayments.tsx` | sem story |
+| SettlementsTab | `src/components/financial/SettlementsTab.tsx` | sem story |
+| StatementTab | `src/components/financial/StatementTab.tsx` | sem story |
+| AdvancesTab | `src/components/financial/AdvancesTab.tsx` | sem story |
+| Charts (set) | `src/components/charts/index.tsx` | `src/components/charts/Charts.stories.tsx` |
+| GlobalHeader | `src/components/layout/GlobalHeader.tsx` | `src/components/layout/GlobalHeader.stories.tsx` |
+| Sidebar | `src/components/layout/Sidebar.tsx` | `src/components/layout/Sidebar.stories.tsx` |
+| EcSidebar | `src/components/layout/EcSidebar.tsx` | sem story |
+| AqSidebar | `src/components/layout/AqSidebar.tsx` | sem story |
+| SubV1Sidebar | `src/components/layout/SubV1Sidebar.tsx` | sem story |
+| ChangelogModal | `src/components/layout/ChangelogModal.tsx` | sem story |
+| PersonaSwitcher | `src/components/layout/PersonaSwitcher.tsx` | `src/components/layout/PersonaSwitcher.stories.tsx` |
+
+## Camada 4 — Templates
+
+Layouts estruturais que orquestram regiões e onde os organismos aparecem. Não carregam dados de domínio.
+
+| Componente | Caminho | Função |
+|---|---|---|
+| AppShell | `src/components/layout/AppShell.tsx` | Header + Sidebar + área de conteúdo. Template raiz da área autenticada. |
+| ScreenRouter | `src/components/layout/ScreenRouter.tsx` | Decide qual feature renderiza dentro do shell para a persona/versão ativa. |
+| SidebarRouter | `src/components/layout/SidebarRouter.tsx` | Decide qual sidebar (`EcSidebar`/`AqSidebar`/`SubV1Sidebar`) renderiza por persona. |
+| AuthGuard | `src/components/layout/AuthGuard.tsx` | Template de proteção — redireciona se não autenticado. |
+
+## Camada 5 — Páginas
+
+Instâncias reais dos templates, com dados (mocks hoje, API no modo real).
+
+- **Rotas Next.js (App Router):** `src/app/(app)/agenda/`, `src/app/(app)/financeiro/`, `src/app/(app)/merchants/`, `src/app/(app)/conciliacao/`, `src/app/(app)/pricing/`, `src/app/login/`, `src/app/forgot-password/`, `src/app/redefine-temporary-password/`.
+- **Features por persona:** `src/features/estabelecimento/v0/`, `src/features/estabelecimento/v1/`, `src/features/adquirente/v0/`, `src/features/subadquirente/v0/`, `src/features/subadquirente/v1/`.
+
+## Como adicionar um novo componente
+
+1. **Decida a camada** — aplique a regra de inclusão da tabela acima.
+2. **Crie o arquivo no domínio adequado** — hoje a estrutura é por domínio (`shared`, `ui`, `layout`, `chargeback`, etc.); a Fase 2 do plano move para `atoms/molecules/organisms/templates`.
+3. **Crie a story junto** — toda peça nova entra no Storybook como verdade única.
+4. **Documente status novos aqui** — se o componente introduz um status que ainda não existe em `Tag`, atualize também `Foundations/Regras de Negócio/Status & Tags`.
+
+## Referências
+
+- Frost, Brad. *Atomic Design*. atomicdesign.bradfrost.com. 2016. Capítulos 2 (Atomic Design Methodology) e 3 (Tools of the Trade).
+- Brain Harrison: `harrison-brain/wiki/ux.md` — heurísticas Nielsen aplicadas ao Yby e Tupi, com referência ao princípio de hierarquia visual em ≤ 3 níveis (Krug, *Don't Make Me Think*).
+- Brain Harrison: `harrison-brain/agents/pixel/taste-profile.md` — diretrizes de hierarquia, ação primária e tokens evitar/preferir.

@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react'
 import Icon from '@/components/atoms/Icon'
 
 const meta: Meta = {
-  title: 'Layout/GlobalHeader',
+  title: 'Design System/Organisms/Layout/GlobalHeader',
   tags: ['autodocs'],
   parameters: {
     layout: 'fullscreen',

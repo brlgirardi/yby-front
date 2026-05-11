@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react'
 import Metric from './Metric'
 
 const meta: Meta<typeof Metric> = {
-  title: 'Conciliation/Metric',
+  title: 'Design System/Molecules/Metric',
   component: Metric,
   parameters: {
     layout: 'centered',

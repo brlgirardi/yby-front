@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react'
 import BrandLogo, { BRAND_CATEGORIES } from './BrandLogo'
 
 const meta: Meta<typeof BrandLogo> = {
-  title: 'Domain/BrandLogo',
+  title: 'Design System/Atoms/BrandLogo',
   component: BrandLogo,
   parameters: {
     layout: 'padded',

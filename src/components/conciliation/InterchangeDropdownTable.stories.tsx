@@ -3,7 +3,7 @@ import InterchangeDropdownTable from './InterchangeDropdownTable'
 import type { InterchangeRecord } from '@/services/types/brandDetail.types'
 
 const meta: Meta<typeof InterchangeDropdownTable> = {
-  title: 'Conciliation/InterchangeDropdownTable',
+  title: 'Design System/Organisms/Conciliation/InterchangeDropdownTable',
   component: InterchangeDropdownTable,
   parameters: {
     layout: 'padded',

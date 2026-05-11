@@ -5,7 +5,7 @@ import InterchangeDetailModal from './InterchangeDetailModal'
 import type { InterchangeRecord } from '@/services/types/brandDetail.types'
 
 const meta: Meta<typeof InterchangeDetailModal> = {
-  title: 'Conciliation/InterchangeDetailModal',
+  title: 'Design System/Organisms/Conciliation/InterchangeDetailModal',
   component: InterchangeDetailModal,
   parameters: {
     layout: 'centered',

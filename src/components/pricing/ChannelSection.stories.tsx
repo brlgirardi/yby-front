@@ -3,7 +3,7 @@ import ChannelSection, { CHANNELS } from './ChannelSection'
 import type { Installment, CostBlueprintTable } from '@/services/types/pricing.types'
 
 const meta: Meta<typeof ChannelSection> = {
-  title: 'Pricing/ChannelSection',
+  title: 'Design System/Organisms/Pricing/ChannelSection',
   component: ChannelSection,
   parameters: {
     layout: 'padded',

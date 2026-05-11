@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react'
 import InterchangeRateCard from './InterchangeRateCard'
 
 const meta: Meta<typeof InterchangeRateCard> = {
-  title: 'Interchange/InterchangeRateCard',
+  title: 'Design System/Organisms/Interchange/InterchangeRateCard',
   component: InterchangeRateCard,
   parameters: {
     layout: 'padded',

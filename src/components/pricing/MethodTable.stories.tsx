@@ -4,7 +4,7 @@ import MethodTable, { type CostRow, buildDefaultRows, buildPaymentMethodOptions 
 import type { Installment, PricingModel } from '@/services/types/pricing.types'
 
 const meta: Meta<typeof MethodTable> = {
-  title: 'Pricing/MethodTable',
+  title: 'Design System/Organisms/Pricing/MethodTable',
   component: MethodTable,
   parameters: {
     layout: 'padded',

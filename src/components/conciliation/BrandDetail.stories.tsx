@@ -4,7 +4,7 @@ import BrandDetail from './BrandDetail'
 import type { BrandData } from '@/services/types/acquirerSummary.types'
 
 const meta: Meta<typeof BrandDetail> = {
-  title: 'Conciliation/BrandDetail',
+  title: 'Design System/Organisms/Conciliation/BrandDetail',
   component: BrandDetail,
   parameters: {
     layout: 'fullscreen',

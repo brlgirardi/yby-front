@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react'
 import Icon from '@/components/atoms/Icon'
 
 const meta: Meta = {
-  title: 'Layout/Sidebar',
+  title: 'Design System/Organisms/Layout/Sidebar',
   tags: ['autodocs'],
   parameters: {
     layout: 'fullscreen',

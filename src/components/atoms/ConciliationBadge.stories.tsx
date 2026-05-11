@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react'
 import ConciliationBadge from './ConciliationBadge'
 
 const meta: Meta<typeof ConciliationBadge> = {
-  title: 'Conciliation/ConciliationBadge',
+  title: 'Design System/Atoms/ConciliationBadge',
   component: ConciliationBadge,
   parameters: {
     layout: 'centered',

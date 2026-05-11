@@ -3,7 +3,7 @@ import TransactionsTable from './TransactionsTable'
 import type { TransactionDetail } from '@/services/types/brandDetail.types'
 
 const meta: Meta<typeof TransactionsTable> = {
-  title: 'Conciliation/TransactionsTable',
+  title: 'Design System/Organisms/Conciliation/TransactionsTable',
   component: TransactionsTable,
   parameters: {
     layout: 'padded',

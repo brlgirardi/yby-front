@@ -3,7 +3,7 @@ import { useState } from 'react'
 import TableTabsBar, { type TableTab } from './TableTabsBar'
 
 const meta: Meta<typeof TableTabsBar> = {
-  title: 'Pricing/TableTabsBar',
+  title: 'Design System/Molecules/TableTabsBar',
   component: TableTabsBar,
   parameters: {
     layout: 'padded',

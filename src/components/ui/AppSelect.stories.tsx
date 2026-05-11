@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react'
 import AppSelect from './AppSelect'
 
 const meta: Meta<typeof AppSelect> = {
-  title: 'Design System/Atoms/AppSelect',
+  title: 'Design System/Molecules/AppSelect',
   component: AppSelect,
   tags: ['autodocs'],
   argTypes: {

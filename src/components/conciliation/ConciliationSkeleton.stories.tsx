@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react'
 import ConciliationSkeleton from './ConciliationSkeleton'
 
 const meta: Meta<typeof ConciliationSkeleton> = {
-  title: 'Conciliation/ConciliationSkeleton',
+  title: 'Design System/Organisms/Conciliation/ConciliationSkeleton',
   component: ConciliationSkeleton,
   parameters: {
     layout: 'fullscreen',

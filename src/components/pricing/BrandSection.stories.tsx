@@ -3,7 +3,7 @@ import BrandSection from './BrandSection'
 import type { Installment } from '@/services/types/pricing.types'
 
 const meta: Meta<typeof BrandSection> = {
-  title: 'Pricing/BrandSection',
+  title: 'Design System/Organisms/Pricing/BrandSection',
   component: BrandSection,
   parameters: {
     layout: 'padded',

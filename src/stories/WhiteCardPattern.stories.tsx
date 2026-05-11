@@ -50,7 +50,7 @@ const subtitleStyle: React.CSSProperties = {
 }
 
 const meta = {
-  title: 'Design System/Atoms/WhiteCard',
+  title: 'Design System/Patterns/WhiteCard',
   tags: ['autodocs'],
   parameters: {
     layout: 'fullscreen',

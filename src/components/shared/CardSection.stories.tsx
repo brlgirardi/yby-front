@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react'
 import CardSection from './CardSection'
 
 const meta: Meta<typeof CardSection> = {
-  title: 'Shared / CardSection',
+  title: 'Design System/Molecules/CardSection',
   component: CardSection,
   parameters: {
     docs: {

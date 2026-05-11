@@ -3,7 +3,7 @@ import AcquirerCostCard from './AcquirerCostCard'
 import type { CostItem, Installment } from '@/services/types/pricing.types'
 
 const meta: Meta<typeof AcquirerCostCard> = {
-  title: 'Pricing/AcquirerCostCard',
+  title: 'Design System/Organisms/Pricing/AcquirerCostCard',
   component: AcquirerCostCard,
   parameters: {
     layout: 'padded',

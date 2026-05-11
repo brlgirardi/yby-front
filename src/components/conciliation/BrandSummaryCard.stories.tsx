@@ -3,7 +3,7 @@ import BrandSummaryCard from './BrandSummaryCard'
 import type { BrandData } from '@/services/types/acquirerSummary.types'
 
 const meta: Meta<typeof BrandSummaryCard> = {
-  title: 'Conciliation/BrandSummaryCard',
+  title: 'Design System/Organisms/Conciliation/BrandSummaryCard',
   component: BrandSummaryCard,
   parameters: {
     layout: 'padded',

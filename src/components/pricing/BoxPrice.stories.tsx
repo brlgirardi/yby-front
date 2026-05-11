@@ -3,7 +3,7 @@ import BoxPrice from './BoxPrice'
 import type { CostRow } from './MethodTable'
 
 const meta: Meta<typeof BoxPrice> = {
-  title: 'Pricing/BoxPrice',
+  title: 'Design System/Molecules/BoxPrice',
   component: BoxPrice,
   parameters: {
     layout: 'padded',

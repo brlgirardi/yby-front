@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react'
 import PricingSkeleton from './PricingSkeleton'
 
 const meta: Meta<typeof PricingSkeleton> = {
-  title: 'Pricing/PricingSkeleton',
+  title: 'Design System/Organisms/Pricing/PricingSkeleton',
   component: PricingSkeleton,
   parameters: {
     layout: 'fullscreen',

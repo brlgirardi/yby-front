@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react'
 import RedefinePasswordStep from './RedefinePasswordStep'
 
 const meta: Meta<typeof RedefinePasswordStep> = {
-  title: 'Auth/RedefinePasswordStep',
+  title: 'Design System/Organisms/Auth/RedefinePasswordStep',
   component: RedefinePasswordStep,
   parameters: {
     layout: 'centered',

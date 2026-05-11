@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react'
 import SendEmailStep from './SendEmailStep'
 
 const meta: Meta<typeof SendEmailStep> = {
-  title: 'Auth/SendEmailStep',
+  title: 'Design System/Organisms/Auth/SendEmailStep',
   component: SendEmailStep,
   parameters: {
     layout: 'centered',

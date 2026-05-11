@@ -4,7 +4,7 @@ import { usePersonaStore } from '@/stores/personaStore'
 import type { Persona, Version } from '@/features/manifests/types'
 
 const meta: Meta<typeof PersonaSwitcher> = {
-  title: 'Domain/PersonaSwitcher',
+  title: 'Design System/Organisms/Layout/PersonaSwitcher',
   component: PersonaSwitcher,
   tags: ['autodocs'],
   parameters: {

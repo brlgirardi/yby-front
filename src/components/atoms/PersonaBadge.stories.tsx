@@ -4,7 +4,7 @@ import { usePersonaStore } from '@/stores/personaStore'
 import type { Persona, Version } from '@/features/manifests/types'
 
 const meta: Meta<typeof PersonaBadge> = {
-  title: 'Domain/PersonaBadge',
+  title: 'Design System/Atoms/PersonaBadge',
   component: PersonaBadge,
   tags: ['autodocs'],
   parameters: {

@@ -3,7 +3,7 @@ import { useState } from 'react'
 import DateScroller from './DateScroller'
 
 const meta: Meta<typeof DateScroller> = {
-  title: 'Conciliation/DateScroller',
+  title: 'Design System/Molecules/DateScroller',
   component: DateScroller,
   parameters: {
     layout: 'padded',

@@ -10,7 +10,7 @@ import {
 import CardSection from '../shared/CardSection'
 
 const meta: Meta = {
-  title: 'Charts / Recharts wrappers',
+  title: 'Design System/Organisms/Charts/Recharts wrappers',
   parameters: {
     docs: {
       description: {

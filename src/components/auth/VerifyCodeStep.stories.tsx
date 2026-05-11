@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react'
 import VerifyCodeStep from './VerifyCodeStep'
 
 const meta: Meta<typeof VerifyCodeStep> = {
-  title: 'Auth/VerifyCodeStep',
+  title: 'Design System/Organisms/Auth/VerifyCodeStep',
   component: VerifyCodeStep,
   parameters: {
     layout: 'centered',

@@ -6,7 +6,7 @@
 
 import { useState } from 'react'
 import { Drawer, Form, InputNumber } from 'antd'
-import Button from '@/components/shared/Button'
+import Button from '@/components/atoms/Button'
 import AppSelect from '@/components/ui/AppSelect'
 
 interface SimulacaoDrawerProps {

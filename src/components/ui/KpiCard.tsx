@@ -1,7 +1,7 @@
 'use client'
 
-import Tooltip from '@/components/shared/Tooltip'
-import Icon from '@/components/shared/Icon'
+import Tooltip from '@/components/atoms/Tooltip'
+import Icon from '@/components/atoms/Icon'
 
 export type KpiVariant = 'info' | 'orange' | 'error' | 'success' | 'warning' | 'neutral'
 

@@ -1,10 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import BrandLogo from '@/components/shared/BrandLogo'
-import Icon from '@/components/shared/Icon'
-import Loading from '@/components/shared/Loading'
-import Tag from '@/components/shared/Tag'
+import BrandLogo from '@/components/atoms/BrandLogo'
+import Icon from '@/components/atoms/Icon'
+import Loading from '@/components/atoms/Loading'
+import Tag from '@/components/atoms/Tag'
 import { fetchInterchangeRates } from '@/services/interchangeRateService'
 import type { InterchangeRateBrandSummary, InterchangeRateRecord } from '@/services/types/interchangeRate.types'
 

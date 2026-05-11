@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Table, type TableProps } from 'antd'
 import type { ColumnType } from 'antd/es/table'
-import Icon from '@/components/shared/Icon'
+import Icon from '@/components/atoms/Icon'
 
 export type { ColumnType }
 

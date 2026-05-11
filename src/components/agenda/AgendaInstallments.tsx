@@ -4,8 +4,8 @@ import { useState, useMemo } from 'react'
 import { Switch, Button, Table, Tag, Empty } from 'antd'
 import { Search, X, ChevronDown, ChevronRight } from 'lucide-react'
 import KpiCard from '@/components/ui/KpiCard'
-import StatusTag from '@/components/shared/Tag'
-import Input from '@/components/shared/Input'
+import StatusTag from '@/components/atoms/Tag'
+import Input from '@/components/atoms/Input'
 import AppSelect, { Option } from '@/components/ui/AppSelect'
 
 interface Row {

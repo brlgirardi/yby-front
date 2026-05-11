@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import KpiCard from '@/components/ui/KpiCard'
-import Icon from '@/components/shared/Icon'
+import Icon from '@/components/atoms/Icon'
 import AcquirerSummaryCard from './AcquirerSummaryCard'
 import ConciliationSkeleton from './ConciliationSkeleton'
 import DateScroller from './DateScroller'

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Typography } from 'antd'
 import { ChevronDown, ChevronUp, Clock } from 'lucide-react'
-import BrandLogo from '@/components/shared/BrandLogo'
+import BrandLogo from '@/components/atoms/BrandLogo'
 import type { CardBrand, CostBlueprintTable, Installment, PricingModel } from '@/services/types/pricing.types'
 import BrandSection from './BrandSection'
 import type { CostRow } from './MethodTable'

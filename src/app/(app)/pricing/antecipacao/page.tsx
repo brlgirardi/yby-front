@@ -6,7 +6,7 @@ import dayjs from 'dayjs'
 import { Info } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import PageHeader from '@/components/shared/PageHeader'
-import Icon from '@/components/shared/Icon'
+import Icon from '@/components/atoms/Icon'
 import TableTabsBar from '@/components/pricing/TableTabsBar'
 
 // ── Tipos ──────────────────────────────────────────────────────────────────

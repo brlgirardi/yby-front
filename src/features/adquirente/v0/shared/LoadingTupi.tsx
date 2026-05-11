@@ -3,7 +3,7 @@
 // Visual AI-first com gradient roxo + spinner + steps rotativos.
 
 import { useEffect, useState } from 'react'
-import Icon from '@/components/shared/Icon'
+import Icon from '@/components/atoms/Icon'
 import { useTheme } from '@/stores/themeStore'
 import { LOADING_STEPS } from '@/mocks/adquirente/resultado-ia'
 

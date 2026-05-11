@@ -1,10 +1,10 @@
 'use client'
 
 import React, { useState } from 'react'
-import Input from '@/components/shared/Input'
+import Input from '@/components/atoms/Input'
 import AppSelect from '@/components/ui/AppSelect'
-import Button from '@/components/shared/Button'
-import Tag from '@/components/shared/Tag'
+import Button from '@/components/atoms/Button'
+import Tag from '@/components/atoms/Tag'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 

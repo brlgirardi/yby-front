@@ -3,8 +3,8 @@
 import { useState } from 'react'
 import { Table, Button, Drawer, Form, InputNumber } from 'antd'
 import AppSelect, { Option } from '@/components/ui/AppSelect'
-import Tooltip from '@/components/shared/Tooltip'
-import Tag from '@/components/shared/Tag'
+import Tooltip from '@/components/atoms/Tooltip'
+import Tag from '@/components/atoms/Tag'
 import { PlusCircle, X, RefreshCw, ChevronDown, ChevronUp, Info } from 'lucide-react'
 import KpiCard from '@/components/ui/KpiCard'
 

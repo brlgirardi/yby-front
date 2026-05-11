@@ -6,9 +6,9 @@
 import { useMemo, useState } from 'react'
 import DataTable, { type ColumnType } from '@/components/ui/DataTable'
 import PageHeader from '@/components/shared/PageHeader'
-import Tag from '@/components/shared/Tag'
-import Button from '@/components/shared/Button'
-import Icon from '@/components/shared/Icon'
+import Tag from '@/components/atoms/Tag'
+import Button from '@/components/atoms/Button'
+import Icon from '@/components/atoms/Icon'
 import Drawer from '@/components/shared/Drawer'
 import { ecEmpresas, type Empresa } from '@/mocks/ec/configuracoes'
 

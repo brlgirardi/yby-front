@@ -7,7 +7,7 @@
 //
 // Atomic Design: Molecule.
 
-import Icon from './Icon'
+import Icon from '@/components/atoms/Icon'
 
 export interface DrawerProps {
   open: boolean

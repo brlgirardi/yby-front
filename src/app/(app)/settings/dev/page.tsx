@@ -6,7 +6,7 @@
 import { useState } from 'react'
 import { notFound } from 'next/navigation'
 import PageHeader from '@/components/shared/PageHeader'
-import Button from '@/components/shared/Button'
+import Button from '@/components/atoms/Button'
 import { manifests } from '@/features/manifests'
 import type { Persona, Version } from '@/features/manifests/types'
 import { usePersonaStore } from '@/stores/personaStore'

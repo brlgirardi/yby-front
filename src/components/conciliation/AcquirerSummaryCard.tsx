@@ -2,10 +2,10 @@
 
 import { Card, Col, Row } from 'antd'
 import { ChevronRight } from 'lucide-react'
-import BrandLogo from '@/components/shared/BrandLogo'
+import BrandLogo from '@/components/atoms/BrandLogo'
 import { formatCurrency } from '@/lib/conciliation/formatters'
 import type { BrandData } from '@/services/types/acquirerSummary.types'
-import ConciliationBadge from './ConciliationBadge'
+import ConciliationBadge from '@/components/atoms/ConciliationBadge'
 import Metric from './Metric'
 
 export interface AcquirerSummaryCardProps {

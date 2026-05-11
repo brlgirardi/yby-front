@@ -1,6 +1,6 @@
 'use client'
 
-import Icon from '@/components/shared/Icon'
+import Icon from '@/components/atoms/Icon'
 import { formatCurrency } from '@/lib/conciliation/formatters'
 import type { InterchangeRecord } from '@/services/types/brandDetail.types'
 

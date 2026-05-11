@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import PageHeader from '@/components/shared/PageHeader'
-import Tag from '@/components/shared/Tag'
+import Tag from '@/components/atoms/Tag'
 import KpiCard from '@/components/ui/KpiCard'
 import DataTable, { type ColumnType } from '@/components/ui/DataTable'
 

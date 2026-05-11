@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react'
-import BrandLogo, { BRAND_CATEGORIES } from '@/components/shared/BrandLogo'
+import BrandLogo, { BRAND_CATEGORIES } from '@/components/atoms/BrandLogo'
 
 /**
  * Foundations / Logos

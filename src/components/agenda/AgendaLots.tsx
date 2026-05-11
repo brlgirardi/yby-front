@@ -1,6 +1,6 @@
 'use client'
 
-import Tag from '@/components/shared/Tag'
+import Tag from '@/components/atoms/Tag'
 import KpiCard from '@/components/ui/KpiCard'
 
 const statusBar: Record<string, string> = {

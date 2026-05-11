@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import Icon from '@/components/shared/Icon'
+import Icon from '@/components/atoms/Icon'
 
 export type LoginFormProps = {
   /** Mensagem de erro vinda do parent (ex: ApiError.body.message). */

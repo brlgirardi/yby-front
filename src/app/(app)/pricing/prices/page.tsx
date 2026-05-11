@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { App, Button } from 'antd'
 import { useRouter } from 'next/navigation'
-import Icon from '@/components/shared/Icon'
+import Icon from '@/components/atoms/Icon'
 import PageHeader from '@/components/shared/PageHeader'
 import EmptyState from '@/components/shared/EmptyState'
 import ChannelPriceSection, { CHANNELS } from '@/components/pricing/ChannelPriceSection'

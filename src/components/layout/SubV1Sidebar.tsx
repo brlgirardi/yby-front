@@ -9,7 +9,7 @@
 
 import { useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import Icon from '@/components/shared/Icon'
+import Icon from '@/components/atoms/Icon'
 import { manifests } from '@/features/manifests'
 import { getModuleRoute, getSubmenuRoute } from '@/features/manifests/routes'
 import type { ModuleKey, PersonaManifest, Version } from '@/features/manifests/types'

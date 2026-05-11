@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Switch, Table, Typography } from 'antd'
-import ShiftInput from '@/components/shared/ShiftInput'
+import ShiftInput from '@/components/atoms/ShiftInput'
 import type { CostRow } from './MethodTable'
 
 const { Text, Link } = Typography

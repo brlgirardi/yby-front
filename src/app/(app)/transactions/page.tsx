@@ -2,10 +2,10 @@
 
 import { useState } from 'react'
 import PageHeader from '@/components/shared/PageHeader'
-import Icon from '@/components/shared/Icon'
-import Tag from '@/components/shared/Tag'
-import Tooltip from '@/components/shared/Tooltip'
-import BrandLogo from '@/components/shared/BrandLogo'
+import Icon from '@/components/atoms/Icon'
+import Tag from '@/components/atoms/Tag'
+import Tooltip from '@/components/atoms/Tooltip'
+import BrandLogo from '@/components/atoms/BrandLogo'
 import DataTable, { type ColumnType, PERIOD_OPTIONS } from '@/components/ui/DataTable'
 
 const fmt = (v: number) => 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })

@@ -2,7 +2,7 @@
 
 import { Table } from 'antd'
 import KpiCard from '@/components/ui/KpiCard'
-import Tag from '@/components/shared/Tag'
+import Tag from '@/components/atoms/Tag'
 
 const data = [
   { key: '1', merchant: 'Restaurante Bom Sabor', cnpj: '12.345.678/0001-90', data: '24/04/2026', bruto: 'R$ 14.320', taxas: 'R$ 430', repassado: 'R$ 13.890', conta: 'Itaú ...8821', status: 'Pago' },

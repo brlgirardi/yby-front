@@ -4,7 +4,7 @@ import type { Meta, StoryObj } from '@storybook/react'
 import { useState } from 'react'
 import DataTable, { PERIOD_OPTIONS } from './DataTable'
 import type { ColumnType } from './DataTable'
-import Tag from '@/components/shared/Tag'
+import Tag from '@/components/atoms/Tag'
 
 // ─── Tipos de dados mock ────────────────────────────────────────────────────
 

@@ -13,8 +13,8 @@
 import { useState } from 'react'
 import KpiCard from '@/components/ui/KpiCard'
 import PageHeader from '@/components/shared/PageHeader'
-import Icon from '@/components/shared/Icon'
-import Tooltip from '@/components/shared/Tooltip'
+import Icon from '@/components/atoms/Icon'
+import Tooltip from '@/components/atoms/Tooltip'
 import { ecAgendaKpis, ecAgendaJanuary, ecAgendaDay11 } from '@/mocks/ec/agenda'
 
 const fmtBRL = (v: number) =>

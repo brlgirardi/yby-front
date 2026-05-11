@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 import PageHeader from '@/components/shared/PageHeader'
 import EmptyState from '@/components/shared/EmptyState'
 import AccordionCard from '@/components/shared/AccordionCard'
-import Icon from '@/components/shared/Icon'
+import Icon from '@/components/atoms/Icon'
 
 interface AreaConfig {
   id: string

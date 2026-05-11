@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react'
 import { fn } from '@storybook/test'
 import PageHeader from './PageHeader'
-import Button from './Button'
+import Button from '@/components/atoms/Button'
 
 const meta: Meta<typeof PageHeader> = {
   title: 'Design System/Molecules/PageHeader',

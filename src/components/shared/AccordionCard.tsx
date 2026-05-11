@@ -6,7 +6,7 @@
 // Atomic Design: Molecule.
 
 import { useState } from 'react'
-import Icon from './Icon'
+import Icon from '@/components/atoms/Icon'
 
 export interface AccordionCardProps {
   /** Conteúdo do header — pode ser string ou ReactNode (ícone + label + tags) */

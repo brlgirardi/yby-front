@@ -6,8 +6,8 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import PageHeader from '@/components/shared/PageHeader'
-import Button from '@/components/shared/Button'
-import Icon from '@/components/shared/Icon'
+import Button from '@/components/atoms/Button'
+import Icon from '@/components/atoms/Icon'
 import LoadingTupi from '@/features/adquirente/v0/shared/LoadingTupi'
 import { useTheme } from '@/stores/themeStore'
 

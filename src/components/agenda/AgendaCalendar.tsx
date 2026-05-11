@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Segmented, Checkbox } from 'antd'
-import Tooltip from '@/components/shared/Tooltip'
+import Tooltip from '@/components/atoms/Tooltip'
 import { Info, ChevronLeft, ChevronRight } from 'lucide-react'
 import KpiCard from '@/components/ui/KpiCard'
 

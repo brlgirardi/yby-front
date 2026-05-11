@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Space, Switch, Typography } from 'antd'
 import { ChevronDown, ChevronUp } from 'lucide-react'
-import BrandLogo from '@/components/shared/BrandLogo'
+import BrandLogo from '@/components/atoms/BrandLogo'
 import { MCC_GROUPS, type MCC, type MCCGroup } from '@/lib/pricing/mccGroups'
 import type { CardBrand, CostItem, Installment, PriceItem } from '@/services/types/pricing.types'
 import { CARD_BRAND_LABELS } from '@/services/types/pricing.types'

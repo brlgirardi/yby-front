@@ -9,7 +9,7 @@
 // repetidos em N telas — agora basta `<CardSection title="..." icon="...">`.
 
 import React from 'react'
-import Icon from './Icon'
+import Icon from '@/components/atoms/Icon'
 import { useTheme } from '@/stores/themeStore'
 
 export interface CardSectionProps {

@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import { Table } from 'antd'
-import Tooltip from '@/components/shared/Tooltip'
-import Tag from '@/components/shared/Tag'
+import Tooltip from '@/components/atoms/Tooltip'
+import Tag from '@/components/atoms/Tag'
 import { Info, ChevronDown, ChevronUp } from 'lucide-react'
 import KpiCard from '@/components/ui/KpiCard'
 

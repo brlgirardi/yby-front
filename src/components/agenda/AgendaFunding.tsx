@@ -2,7 +2,7 @@
 
 import { Table, Tag } from 'antd'
 import KpiCard from '@/components/ui/KpiCard'
-import StatusTag from '@/components/shared/Tag'
+import StatusTag from '@/components/atoms/Tag'
 
 const dreItems = [
   { label: 'Entradas (liquidações previstas)', value: 'R$ 193.420', color: '#52C41A' },

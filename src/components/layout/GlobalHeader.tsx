@@ -2,8 +2,8 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import Icon from '@/components/shared/Icon'
-import Badge from '@/components/shared/Badge'
+import Icon from '@/components/atoms/Icon'
+import Badge from '@/components/atoms/Badge'
 import { useNavStore } from '@/store/nav.store'
 import { useAuthStore } from '@/store/auth.store'
 import { logout as apiLogout } from '@/services/authService'

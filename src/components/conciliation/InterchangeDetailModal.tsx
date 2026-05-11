@@ -2,9 +2,9 @@
 
 import { useState } from 'react'
 import { Drawer } from 'antd'
-import Icon from '@/components/shared/Icon'
-import Loading from '@/components/shared/Loading'
-import Tag from '@/components/shared/Tag'
+import Icon from '@/components/atoms/Icon'
+import Loading from '@/components/atoms/Loading'
+import Tag from '@/components/atoms/Tag'
 import { formatCurrency } from '@/lib/conciliation/formatters'
 import { useInterchangeDetail } from '@/hooks/conciliation/useInterchangeDetail'
 import { isFullyReconciled } from '@/lib/conciliation/statusUtils'

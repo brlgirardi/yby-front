@@ -7,7 +7,7 @@ import KpiCard from '@/components/ui/KpiCard'
 import PageHeader from '@/components/shared/PageHeader'
 import CardSection from '@/components/shared/CardSection'
 import EmptyState from '@/components/shared/EmptyState'
-import BrandLogo from '@/components/shared/BrandLogo'
+import BrandLogo from '@/components/atoms/BrandLogo'
 import { LineKPI, BarList } from '@/components/charts'
 import {
   ecDashboardKpis,

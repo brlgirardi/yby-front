@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import Loading from '@/components/shared/Loading'
+import Loading from '@/components/atoms/Loading'
 import { formatCurrency } from '@/lib/conciliation/formatters'
 import type { TransactionDetail } from '@/services/types/brandDetail.types'
 

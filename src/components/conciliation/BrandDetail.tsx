@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import Icon from '@/components/shared/Icon'
+import Icon from '@/components/atoms/Icon'
 import { useInterchangeList } from '@/hooks/conciliation/useInterchangeList'
 import { exportInterchangeListToCSV } from '@/lib/conciliation/csvExport'
 import { isFullyReconciled } from '@/lib/conciliation/statusUtils'

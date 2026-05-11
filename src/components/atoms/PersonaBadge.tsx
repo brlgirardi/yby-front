@@ -1,7 +1,7 @@
 'use client'
 // Badge compacto para exibir o override dev da persona ativa.
 
-import Tag from '@/components/shared/Tag'
+import Tag from '@/components/atoms/Tag'
 import { getManifest } from '@/features/manifests'
 import { usePersonaStore } from '@/stores/personaStore'
 

@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import PageHeader from '@/components/shared/PageHeader'
-import Button from '@/components/shared/Button'
-import Input from '@/components/shared/Input'
+import Button from '@/components/atoms/Button'
+import Input from '@/components/atoms/Input'
 import AppSelect from '@/components/ui/AppSelect'
 
 function Section({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {

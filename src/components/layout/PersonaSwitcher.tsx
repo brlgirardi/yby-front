@@ -7,7 +7,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Icon from '@/components/shared/Icon'
+import Icon from '@/components/atoms/Icon'
 import { manifests } from '@/features/manifests'
 import { getDefaultRouteForPersona } from '@/features/manifests/routes'
 import type { Persona, PersonaManifest, Version } from '@/features/manifests/types'

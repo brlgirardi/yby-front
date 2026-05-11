@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import Icon from '@/components/shared/Icon'
+import Icon from '@/components/atoms/Icon'
 
 export interface VerifyCodeStepProps {
   email: string

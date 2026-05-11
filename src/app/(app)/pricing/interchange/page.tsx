@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import PageHeader from '@/components/shared/PageHeader'
-import Icon from '@/components/shared/Icon'
-import Loading from '@/components/shared/Loading'
+import Icon from '@/components/atoms/Icon'
+import Loading from '@/components/atoms/Loading'
 import InterchangeRateCard from '@/components/interchange/InterchangeRateCard'
 import {
   CARD_BRANDS_OPTIONS,

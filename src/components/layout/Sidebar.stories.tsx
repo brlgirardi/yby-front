@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
-import Icon from '@/components/shared/Icon'
+import Icon from '@/components/atoms/Icon'
 
 const meta: Meta = {
   title: 'Layout/Sidebar',

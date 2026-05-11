@@ -1,6 +1,6 @@
 'use client'
 
-import Tooltip from '@/components/shared/Tooltip'
+import Tooltip from '@/components/atoms/Tooltip'
 
 export interface MetricProps {
   label: string

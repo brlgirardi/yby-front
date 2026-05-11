@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import Icon from '@/components/shared/Icon'
+import Icon from '@/components/atoms/Icon'
 
 export type DateScrollerMode = 'past' | 'centered'
 

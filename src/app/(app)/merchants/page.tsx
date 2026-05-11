@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import PageHeader from '@/components/shared/PageHeader'
-import Icon from '@/components/shared/Icon'
-import Tag from '@/components/shared/Tag'
+import Icon from '@/components/atoms/Icon'
+import Tag from '@/components/atoms/Tag'
 import DataTable, { type ColumnType } from '@/components/ui/DataTable'
 
 const MERCHANTS = [

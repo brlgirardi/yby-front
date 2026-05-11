@@ -9,9 +9,9 @@
 import { useState } from 'react'
 import { Switch, Checkbox } from 'antd'
 import PageHeader from '@/components/shared/PageHeader'
-import Button from '@/components/shared/Button'
-import Icon from '@/components/shared/Icon'
-import Tooltip from '@/components/shared/Tooltip'
+import Button from '@/components/atoms/Button'
+import Icon from '@/components/atoms/Icon'
+import Tooltip from '@/components/atoms/Tooltip'
 
 const sectionCard: React.CSSProperties = {
   background: '#fff',

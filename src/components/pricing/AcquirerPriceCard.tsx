@@ -1,10 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import BrandLogo from '@/components/shared/BrandLogo'
-import Tag from '@/components/shared/Tag'
-import Tooltip from '@/components/shared/Tooltip'
-import Icon from '@/components/shared/Icon'
+import BrandLogo from '@/components/atoms/BrandLogo'
+import Tag from '@/components/atoms/Tag'
+import Tooltip from '@/components/atoms/Tooltip'
+import Icon from '@/components/atoms/Icon'
 import type {
   CardBrand, CostItem, Installment, PriceItem, ProductType,
 } from '@/services/types/pricing.types'

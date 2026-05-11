@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import PageHeader from '@/components/shared/PageHeader'
-import Tag from '@/components/shared/Tag'
-import Button from '@/components/shared/Button'
+import Tag from '@/components/atoms/Tag'
+import Button from '@/components/atoms/Button'
 import DataTable, { type ColumnType } from '@/components/ui/DataTable'
 
 type User = {

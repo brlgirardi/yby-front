@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Table, Tag, Button, Drawer } from 'antd'
 import { Download, RotateCcw, X } from 'lucide-react'
 import KpiCard from '@/components/ui/KpiCard'
-import StatusTag from '@/components/shared/Tag'
+import StatusTag from '@/components/atoms/Tag'
 
 interface LiqRow {
   key: string

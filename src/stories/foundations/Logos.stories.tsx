@@ -12,7 +12,7 @@ import BrandLogo, { BRAND_CATEGORIES } from '@/components/atoms/BrandLogo'
  * de outros componentes do projeto. Ver `src/stories/foundations/AtomicDesign.mdx`
  * para o restante da classificação e os critérios de inclusão por camada.
  *
- * Reutiliza o átomo `BrandLogo` existente (`src/components/shared/BrandLogo.tsx`)
+ * Reutiliza o átomo `BrandLogo` existente (`src/components/atoms/BrandLogo.tsx`)
  * — nenhum componente novo é criado nesta fase. Cada célula carrega `aria-label`
  * para leitores de tela e usa container quadrado com `padding` interno suficiente
  * para garantir tap target ≥ 44×44px mesmo quando o logo é renderizado em 16px.
@@ -146,7 +146,7 @@ export const Catalogo: Story = {
     docs: {
       description: {
         story:
-          'Visão geral de todas as categorias de logos disponíveis hoje. Sub-adquirentes ainda não têm logos próprios — quando entrarem, devem ser adicionados a `BRAND_CATEGORIES` em `src/components/shared/BrandLogo.tsx`.',
+          'Visão geral de todas as categorias de logos disponíveis hoje. Sub-adquirentes ainda não têm logos próprios — quando entrarem, devem ser adicionados a `BRAND_CATEGORIES` em `src/components/atoms/BrandLogo.tsx`.',
       },
     },
   },

@@ -1,14 +1,14 @@
 {/* src/stories/foundations/RegrasDeNegocio.mdx */}
 
 import { Meta } from '@storybook/blocks'
-import Tag from '../../components/shared/Tag'
+import Tag from '../../components/atoms/Tag'
 
 <Meta title="Foundations/Regras de Negócio/Status & Tags" />
 
 # Regras de Negócio — Status & Tags
 
 <div className="bg-info-bg border border-info-border rounded-xs p-4 text-text-secondary text-sm">
-  Este documento reflete o estado atual do código em <code>src/components/shared/Tag.tsx</code>. Toda mudança em statuses (adição, remoção, retoning) deve atualizar esta página. Os previews renderizam o componente real — não são screenshots.
+  Este documento reflete o estado atual do código em <code>src/components/atoms/Tag.tsx</code>. Toda mudança em statuses (adição, remoção, retoning) deve atualizar esta página. Os previews renderizam o componente real — não são screenshots.
 </div>
 
 Na classificação Atomic Design (Brad Frost, 2016, atomicdesign.bradfrost.com), `Tag` é um **átomo** — elemento indivisível usado por moléculas e organismos. Ver `Foundations/Atomic Design` para o restante da classificação. Este documento descreve a regra de negócio que esse átomo carrega: o vocabulário de status do domínio sub-adquirência e como cada nome se mapeia para tom visual, ícone e ação esperada do usuário.
@@ -162,14 +162,14 @@ Pontos a normalizar — não bloqueiam uso, mas pedem atenção do time:
 ## Como adicionar um status novo
 
 1. Defina o **tom semântico** apropriado (success / processing / future / warning / error / neutral).
-2. Adicione a entrada em `STATUS_MAP` em `src/components/shared/Tag.tsx`, mapeando para o tom e ícone.
+2. Adicione a entrada em `STATUS_MAP` em `src/components/atoms/Tag.tsx`, mapeando para o tom e ícone.
 3. Adicione o nome ao tipo `TagVariant` no topo do arquivo.
 4. Atualize esta página com nome, significado, telas onde aparece e preview.
 5. Atualize a story `Design System/Atoms/Tag` adicionando o status na galeria.
 
 ## Referências
 
-- Tag (átomo): `src/components/shared/Tag.tsx`
+- Tag (átomo): `src/components/atoms/Tag.tsx`
 - Story do átomo: `Design System/Atoms/Tag`
 - Brain Harrison `harrison-brain/wiki/ux.md` — heurística Nielsen 1 ("visibilidade do status do sistema") e 5 ("prevenção de erros") aplicadas à granularidade dos statuses.
 - Brain Harrison `harrison-brain/agents/pixel/taste-profile.md` — diretriz "no máximo 2 badges de mesmo peso por card" deve ser respeitada quando o `Tag` é combinado com outros badges.

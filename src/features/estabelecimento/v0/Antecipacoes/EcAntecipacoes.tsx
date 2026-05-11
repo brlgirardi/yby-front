@@ -8,7 +8,7 @@
 // automática ligada por default; o botão "Simular antecipação" permite
 // explorar cenários sem se comprometer (cap. 4 — não cria custo afundado).
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import KpiCard from '@/components/ui/KpiCard'
 import DataTable, { type ColumnType } from '@/components/ui/DataTable'
 import PageHeader from '@/components/shared/PageHeader'
@@ -17,7 +17,9 @@ import Icon from '@/components/shared/Icon'
 import BrandLogo from '@/components/shared/BrandLogo'
 import SimulacaoDrawer from '@/features/estabelecimento/v0/shared/SimulacaoDrawer'
 import Drawer from '@/components/shared/Drawer'
-import { ecAntecipacaoKpis, ecAntecipacoes, type AntecipacaoOperacao, type ParcelaAntecipada } from '@/mocks/ec/financeiro'
+import { ecAntecipacaoKpis, ecAntecipacoes, type AntecipacaoOperacao } from '@/mocks/ec/financeiro'
+
+const PAGE_SIZE = 10
 
 const fmtBRL = (v: number) =>
   v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2 })
@@ -26,12 +28,20 @@ export default function EcAntecipacoes() {
   const [search, setSearch] = useState('')
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [selected, setSelected] = useState<AntecipacaoOperacao | null>(null)
+  const [pageIndex, setPageIndex] = useState(0)
+
+  useEffect(() => { setPageIndex(0) }, [selected?.id])
 
   const data = useMemo(() => {
     const term = search.trim().toLowerCase()
     if (!term) return ecAntecipacoes
     return ecAntecipacoes.filter((a) => a.dataPagamento.includes(term))
   }, [search])
+
+  const totalPaginas = selected ? Math.max(1, Math.ceil(selected.parcelas.length / PAGE_SIZE)) : 0
+  const parcelasPaginadas = selected
+    ? selected.parcelas.slice(pageIndex * PAGE_SIZE, (pageIndex + 1) * PAGE_SIZE)
+    : []
 
   const columns: ColumnType<AntecipacaoOperacao>[] = [
     { title: 'Data de liquidação',    dataIndex: 'dataPagamento',        key: 'dataPagamento',        width: 180 },
@@ -77,39 +87,6 @@ export default function EcAntecipacoes() {
     },
   ]
 
-  // Tabela aninhada — parcelas da operação expandida
-  const parcelaColumns: ColumnType<ParcelaAntecipada>[] = [
-    { title: 'NSU',          dataIndex: 'transacaoId',         key: 'transacaoId',         width: 130, render: (v: string) => <span style={{ fontFamily: 'ui-monospace, monospace', fontSize: 12 }}>{v}</span> },
-    { title: 'Parcela',      dataIndex: 'parcela',             key: 'parcela',             width: 90 },
-    {
-      title:  'Bandeira',
-      key:    'bandeira',
-      width:  100,
-      render: (_: unknown, row: ParcelaAntecipada) => <BrandLogo brand={row.bandeira} size={20} />,
-    },
-    { title: 'Data prevista', dataIndex: 'dataPrevistaOriginal', key: 'dataPrevistaOriginal', width: 130 },
-    {
-      title:  'Valor original',
-      key:    'valorOriginal',
-      align:  'right',
-      width:  130,
-      render: (_: unknown, row: ParcelaAntecipada) => (
-        <span style={{ color: 'rgba(0,0,0,0.65)' }}>{fmtBRL(row.valorOriginal)}</span>
-      ),
-    },
-    {
-      title:  'Antecipado',
-      key:    'valorAntecipado',
-      align:  'right',
-      width:  150,
-      render: (_: unknown, row: ParcelaAntecipada) => (
-        <span style={{ fontWeight: 500 }}>{fmtBRL(row.valorAntecipado)}</span>
-      ),
-    },
-    { title: 'Taxa',          key: 'taxa',          align: 'right', width: 100, render: (_: unknown, row: ParcelaAntecipada) => <span style={{ color: '#FF4D4F' }}>{fmtBRL(row.taxa)}</span> },
-    { title: 'Valor líquido', key: 'valorLiquido',  align: 'right', width: 130, render: (_: unknown, row: ParcelaAntecipada) => <span style={{ color: '#1890FF' }}>{fmtBRL(row.valorLiquido)}</span> },
-  ]
-
   return (
     <div style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
       <PageHeader
@@ -139,22 +116,6 @@ export default function EcAntecipacoes() {
           defaultPeriod="7d"
           onExport={() => undefined}
           onAdvancedFilter={() => undefined}
-          expandable={{
-            expandedRowRender: (record: AntecipacaoOperacao) => (
-              <div style={{ padding: '8px 0' }}>
-                <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', padding: '0 0 8px' }}>
-                  Parcelas antecipadas nesta operação · valores parciais marcados com a tag "Antecipado"
-                </div>
-                <DataTable<ParcelaAntecipada>
-                  columns={parcelaColumns}
-                  dataSource={record.parcelas}
-                  rowKey="transacaoId"
-                  showPagination={false}
-                />
-              </div>
-            ),
-            rowExpandable: (record: AntecipacaoOperacao) => record.parcelas.length > 0,
-          }}
         />
       </div>
       <SimulacaoDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
@@ -163,7 +124,7 @@ export default function EcAntecipacoes() {
         open={selected !== null}
         onClose={() => setSelected(null)}
         title="Detalhes da liquidação antecipada"
-        width={480}
+        width={520}
       >
         {selected && (
           <>
@@ -194,6 +155,160 @@ export default function EcAntecipacoes() {
                 </div>
               </div>
             </div>
+
+            <section
+              aria-labelledby="parcelas-heading"
+              style={{ marginTop: 20, paddingTop: 20, borderTop: '1px solid #f0f0f0' }}
+            >
+              <div
+                id="parcelas-heading"
+                style={{ fontSize: 13, fontWeight: 600, color: 'rgba(0,0,0,0.85)', marginBottom: 4 }}
+              >
+                Parcelas antecipadas
+              </div>
+              <div style={{ fontSize: 11, color: 'rgba(0,0,0,0.55)', marginBottom: 12 }}>
+                {selected.parcelas.length === 1
+                  ? '1 parcela nesta operação'
+                  : `${selected.parcelas.length} parcelas nesta operação`}
+              </div>
+
+              {selected.parcelas.length === 0 ? (
+                <div
+                  role="status"
+                  style={{ fontSize: 12, color: 'rgba(0,0,0,0.55)', padding: '24px 0', textAlign: 'center' }}
+                >
+                  Nenhuma parcela disponível para esta operação.
+                </div>
+              ) : (
+                <>
+                  <ul role="list" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                    {parcelasPaginadas.map((p, idx) => {
+                      const numero = pageIndex * PAGE_SIZE + idx + 1
+                      return (
+                        <li
+                          key={p.transacaoId}
+                          role="listitem"
+                          style={{ borderBottom: '1px solid #f0f0f0', padding: '12px 0' }}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <span style={{ fontSize: 13, fontWeight: 600, color: 'rgba(0,0,0,0.85)' }}>
+                                Parcela {numero}/{selected.parcelas.length}
+                              </span>
+                              <span aria-hidden="true">
+                                <BrandLogo brand={p.bandeira} size={16} />
+                              </span>
+                              {p.parcial && (
+                                <span
+                                  aria-label="Antecipação parcial"
+                                  style={{
+                                    background: '#FFF7E6',
+                                    border: '1px solid #FFE58F',
+                                    color: '#D48806',
+                                    padding: '2px 6px',
+                                    borderRadius: 2,
+                                    fontSize: 10,
+                                    fontWeight: 500,
+                                  }}
+                                >
+                                  Parcial
+                                </span>
+                              )}
+                            </div>
+                            <span style={{ fontWeight: 600, color: '#1890FF', fontSize: 14 }}>
+                              {fmtBRL(p.valorAntecipado)}
+                            </span>
+                          </div>
+                          <div
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              marginTop: 4,
+                              fontSize: 11,
+                              color: 'rgba(0,0,0,0.55)',
+                            }}
+                          >
+                            <span style={{ fontFamily: 'ui-monospace, monospace' }}>NSU {p.transacaoId}</span>
+                            <span>Prevista {p.dataPrevistaOriginal}</span>
+                          </div>
+                          <div
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              marginTop: 2,
+                              fontSize: 11,
+                              color: 'rgba(0,0,0,0.55)',
+                            }}
+                          >
+                            <span>Valor original {fmtBRL(p.valorOriginal)}</span>
+                            <span style={{ color: '#FF4D4F' }}>Taxa {fmtBRL(p.taxa)}</span>
+                          </div>
+                        </li>
+                      )
+                    })}
+                  </ul>
+
+                  {totalPaginas > 1 && (
+                    <nav
+                      aria-label="Paginação de parcelas"
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        gap: 12,
+                        marginTop: 16,
+                      }}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => setPageIndex((i) => Math.max(0, i - 1))}
+                        disabled={pageIndex === 0}
+                        style={{
+                          height: 32,
+                          minWidth: 88,
+                          padding: '0 12px',
+                          fontSize: 12,
+                          borderRadius: 2,
+                          border: '1px solid #d9d9d9',
+                          background: '#fff',
+                          color: 'rgba(0,0,0,0.85)',
+                          cursor: pageIndex === 0 ? 'not-allowed' : 'pointer',
+                          opacity: pageIndex === 0 ? 0.4 : 1,
+                        }}
+                      >
+                        Anterior
+                      </button>
+                      <span
+                        aria-live="polite"
+                        aria-atomic="true"
+                        style={{ fontSize: 12, color: 'rgba(0,0,0,0.65)' }}
+                      >
+                        Página {pageIndex + 1} de {totalPaginas}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setPageIndex((i) => Math.min(totalPaginas - 1, i + 1))}
+                        disabled={pageIndex >= totalPaginas - 1}
+                        style={{
+                          height: 32,
+                          minWidth: 88,
+                          padding: '0 12px',
+                          fontSize: 12,
+                          borderRadius: 2,
+                          border: '1px solid #d9d9d9',
+                          background: '#fff',
+                          color: 'rgba(0,0,0,0.85)',
+                          cursor: pageIndex >= totalPaginas - 1 ? 'not-allowed' : 'pointer',
+                          opacity: pageIndex >= totalPaginas - 1 ? 0.4 : 1,
+                        }}
+                      >
+                        Próximo
+                      </button>
+                    </nav>
+                  )}
+                </>
+              )}
+            </section>
           </>
         )}
       </Drawer>

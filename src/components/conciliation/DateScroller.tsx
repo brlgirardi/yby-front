@@ -5,6 +5,13 @@ import Icon from '@/components/atoms/Icon'
 
 export type DateScrollerMode = 'past' | 'centered'
 
+export interface DayStatus {
+  /** Bandeiras totalmente reconciliadas no dia. */
+  reconciled: number
+  /** Total de bandeiras com dados no dia. */
+  total: number
+}
+
 export interface DateScrollerProps {
   /** Data selecionada (YYYY-MM-DD). */
   value: string
@@ -21,6 +28,8 @@ export interface DateScrollerProps {
    * 'centered' — selecionado no centro, range dias antes + range dias depois (Tupi original)
    */
   mode?: DateScrollerMode
+  /** Status de conciliação por dia (ISO date → { reconciled, total }). */
+  dayStatus?: Record<string, DayStatus>
 }
 
 const WEEKDAYS_PT = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB']
@@ -62,7 +71,7 @@ function sameDay(a: Date, b: Date): boolean {
  *
  * Setas: '<' anda 7 dias atrás. '>' em mode='past' fica oculto quando já estamos em HOJE.
  */
-export default function DateScroller({ value, onChange, range = 3, mode = 'past' }: DateScrollerProps) {
+export default function DateScroller({ value, onChange, range = 3, mode = 'past', dayStatus }: DateScrollerProps) {
   const selected = useMemo(() => parseISO(value), [value])
   const today = todayLocal()
 
@@ -149,6 +158,18 @@ export default function DateScroller({ value, onChange, range = 3, mode = 'past'
             dateWeight = 700
           }
 
+          // Barra de progresso (Opção B)
+          const ds = dayStatus?.[iso]
+          const ratio = ds && ds.total > 0 ? ds.reconciled / ds.total : null
+          const barFill = ratio === null
+            ? 'transparent'
+            : ratio >= 1 ? '#52C41A' : '#FAAD14'
+          const barWidth = ratio === null ? '0%' : `${Math.round(ratio * 100)}%`
+          // Quando botão está ativo (azul), a barra fica branca semitransparente
+          const barFillFinal = (todaySelected || otherSelected) && ratio !== null
+            ? 'rgba(255,255,255,0.85)'
+            : barFill
+
           return (
             <button key={iso} onClick={() => onChange(iso)}
               aria-pressed={isSelected}
@@ -157,7 +178,7 @@ export default function DateScroller({ value, onChange, range = 3, mode = 'past'
                 background: bg,
                 border: `1px solid ${borderColor}`,
                 borderRadius: 2,
-                padding: '10px 8px',
+                padding: '10px 8px 8px',
                 cursor: 'pointer',
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
                 fontFamily: 'Roboto', textAlign: 'center',
@@ -166,19 +187,27 @@ export default function DateScroller({ value, onChange, range = 3, mode = 'past'
               onMouseEnter={e => { if (!isSelected && !isToday) (e.currentTarget as HTMLElement).style.borderColor = '#91D5FF' }}
               onMouseLeave={e => { if (!isSelected && !isToday) (e.currentTarget as HTMLElement).style.borderColor = '#f0f0f0' }}
             >
-              <span style={{
-                fontSize: 10, fontWeight: 500,
-                color: labelColor,
-                letterSpacing: 0.5,
-              }}>
+              <span style={{ fontSize: 10, fontWeight: 500, color: labelColor, letterSpacing: 0.5 }}>
                 {isToday ? 'HOJE' : weekday}
               </span>
-              <span style={{
-                fontSize: 13, fontWeight: dateWeight,
-                color: dateColor,
-              }}>
+              <span style={{ fontSize: 13, fontWeight: dateWeight, color: dateColor }}>
                 {ddmm}
               </span>
+              {/* mini progress bar */}
+              <div style={{
+                width: '80%', height: 3, borderRadius: 99, marginTop: 4,
+                background: (todaySelected || otherSelected)
+                  ? 'rgba(255,255,255,0.25)'
+                  : 'rgba(0,0,0,0.07)',
+                overflow: 'hidden',
+              }}>
+                <div style={{
+                  height: '100%', width: barWidth,
+                  background: barFillFinal,
+                  borderRadius: 99,
+                  transition: 'width 0.3s ease',
+                }} />
+              </div>
             </button>
           )
         })}
@@ -192,8 +221,31 @@ export default function DateScroller({ value, onChange, range = 3, mode = 'past'
           <Icon name="chevronRight" size={14} />
         </button>
       ) : (
-        // Mantém o slot ocupado para não "pular" a régua
         <span aria-hidden="true" style={{ width: 32, height: 32, flexShrink: 0 }} />
+      )}
+
+      {/* Botão "↩ Hoje" — aparece só quando o usuário navegou para o passado */}
+      {mode === 'past' && !isAtToday && (
+        <button
+          onClick={() => onChange(toISO(today))}
+          aria-label="Voltar para hoje"
+          style={{
+            flexShrink: 0, height: 28,
+            padding: '0 10px',
+            border: '1px solid #BAE0FF',
+            borderRadius: 12,
+            background: '#E6F4FF',
+            color: '#1677FF',
+            fontSize: 11, fontWeight: 600,
+            cursor: 'pointer',
+            fontFamily: 'Roboto',
+            whiteSpace: 'nowrap',
+          }}
+          onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#BAE0FF'}
+          onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = '#E6F4FF'}
+        >
+          ↩ Hoje
+        </button>
       )}
     </div>
   )

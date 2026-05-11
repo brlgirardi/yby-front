@@ -48,12 +48,24 @@ export default function ConciliationOverview({ date, onDateChange, onBrandClick 
     return { totalTransactions, totalTpv, reconciled, mismatch, partialPlus, avgRate, total: brands.length }
   }, [brands])
 
+  // dayStatus: alimenta a barra de progresso do DateScroller para o dia selecionado.
+  // Dias sem dados ficam com barra vazia (ratio === null).
+  const dayStatus = useMemo(() => {
+    if (!brands.length) return undefined
+    return {
+      [date]: {
+        reconciled: brands.filter(b => b.status === 'reconciled').length,
+        total: brands.length,
+      },
+    }
+  }, [brands, date])
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16, padding: '16px 24px' }}>
       {/* Date scroller + actions */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <div style={{ flex: 1, maxWidth: 760 }}>
-          <DateScroller value={date} onChange={onDateChange} />
+          <DateScroller value={date} onChange={onDateChange} dayStatus={dayStatus} />
         </div>
         <button
           onClick={() => exportOverviewToCSV(brands, date)}

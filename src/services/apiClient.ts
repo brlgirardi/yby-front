@@ -84,14 +84,16 @@ export async function request<T = unknown>(path: string, opts: RequestOptions = 
     throw new ApiError(`Read-only mode: ${method} ${path} bloqueado`, 403, null)
   }
 
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  const isFormData = typeof FormData !== 'undefined' && data instanceof FormData
+  const headers: Record<string, string> = {}
+  if (!isFormData) headers['Content-Type'] = 'application/json'
   const token = getToken()
   if (token) headers['Authorization'] = `Bearer ${token}`
 
   const res = await fetch(buildUrl(path, params), {
     method,
     headers,
-    body: data !== undefined ? JSON.stringify(data) : undefined,
+    body: data === undefined ? undefined : isFormData ? (data as FormData) : JSON.stringify(data),
     credentials: 'include',
   })
 

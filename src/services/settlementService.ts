@@ -248,16 +248,9 @@ export async function importSettlementCSV(file: File): Promise<ImportResult> {
   }
   const form = new FormData()
   form.append('file', file)
-  return request<ImportResult>(`${BASE}/import`, { method: 'POST', data: form })
+  // upload é write-action mas backend de produção ainda não persiste — liberamos no guard read-only para validar o fluxo de UI.
+  return request<ImportResult>(`${BASE}/import`, { method: 'POST', data: form, allowWriteInReadOnly: true })
 }
 
-/** Converte DecimalValue {amount, scale} para número float. Ex: {amount:123450, scale:2} → 1234.50 */
-export function decimalToFloat(dv: { amount: number; scale: number }): number {
-  return dv.amount / Math.pow(10, dv.scale)
-}
-
-/** Formata DecimalValue como moeda BRL. */
-export function formatBRL(dv: { amount: number; scale: number } | undefined): string {
-  if (!dv) return '—'
-  return decimalToFloat(dv).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
-}
+// Helpers genéricos vivem em @/lib/format. Re-exportados aqui para preservar imports legados.
+export { formatBRL, decimalToFloat } from '@/lib/format'

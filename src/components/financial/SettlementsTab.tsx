@@ -1,18 +1,15 @@
+// src/components/financial/SettlementsTab.tsx
 'use client'
 
 import { useState } from 'react'
-import { Table, Tag, Button, Drawer, Skeleton, Alert, Tooltip } from 'antd'
+import { Table, Button, Drawer, Skeleton, Alert, Tooltip } from 'antd'
 import { Download, X } from 'lucide-react'
 import KpiCard from '@/components/ui/KpiCard'
 import StatusTag from '@/components/atoms/Tag'
+import OpTypeTag from '@/components/atoms/OpTypeTag'
 import { useSettlementData } from '@/hooks/settlement/useSettlementData'
-import { formatBRL, decimalToFloat } from '@/services/settlementService'
+import { formatBRL, decimalToFloat } from '@/lib/format'
 import type { Settlement } from '@/services/types/settlement.types'
-
-const OP_TYPE_COLOR: Record<string, string> = {
-  Credit: 'blue',
-  Debit: 'orange',
-}
 
 const STATUS_LABEL: Record<string, string> = {
   processed: 'Processado',
@@ -36,7 +33,7 @@ function formatCNPJ(cnpj: string): string {
 }
 
 export default function SettlementsTab() {
-  const { settlements, loading, error } = useSettlementData()
+  const { settlements, loading, error, reload } = useSettlementData()
   const [drawerRow, setDrawerRow] = useState<Settlement | null>(null)
 
   const totalOriginal = settlements.reduce((s, r) => s + decimalToFloat(r.originalValue), 0)
@@ -49,7 +46,8 @@ export default function SettlementsTab() {
     { label: 'Total de operações', value: String(settlements.length), variant: 'info' as const },
     { label: 'Valor original total', value: fmt(totalOriginal), variant: 'success' as const },
     { label: 'Valor líquido total', value: fmt(totalNet), variant: 'info' as const },
-    { label: 'Taxas (fees)', value: fmt(totalFee), variant: 'error' as const },
+    // Taxa é custo esperado, não erro. Vermelho em KPI financeiro dispara ansiedade e vira "wolf cry".
+    { label: 'Taxas (fees)', value: fmt(totalFee), variant: 'orange' as const },
   ]
 
   const columns = [
@@ -64,7 +62,7 @@ export default function SettlementsTab() {
       title: 'Tipo',
       dataIndex: 'operationType',
       key: 'operationType',
-      render: (v: string) => <Tag color={OP_TYPE_COLOR[v] ?? 'default'}>{v === 'Credit' ? 'Crédito' : v === 'Debit' ? 'Débito' : v}</Tag>,
+      render: (v: string) => <OpTypeTag type={v} />,
     },
     {
       title: 'Arranjo',
@@ -83,21 +81,21 @@ export default function SettlementsTab() {
       dataIndex: 'originalValue',
       key: 'originalValue',
       align: 'right' as const,
-      render: (v: Settlement['originalValue']) => <span className="font-semibold text-[#1890FF]">{formatBRL(v)}</span>,
+      render: (v: Settlement['originalValue']) => <span className="font-semibold text-accent">{formatBRL(v)}</span>,
     },
     {
       title: 'Taxa',
       dataIndex: 'feeValue',
       key: 'feeValue',
       align: 'right' as const,
-      render: (v: Settlement['feeValue']) => <span className="text-[#FF4D4F]">{formatBRL(v)}</span>,
+      render: (v: Settlement['feeValue']) => <span className="text-orange">{formatBRL(v)}</span>,
     },
     {
       title: 'Valor líquido',
       dataIndex: 'netValue',
       key: 'netValue',
       align: 'right' as const,
-      render: (v: Settlement['netValue']) => <span className="font-semibold text-[#52C41A]">{formatBRL(v)}</span>,
+      render: (v: Settlement['netValue']) => <span className="font-semibold text-success">{formatBRL(v)}</span>,
     },
     {
       title: 'Status',
@@ -113,7 +111,7 @@ export default function SettlementsTab() {
       title: 'Ações',
       key: 'acoes',
       render: (_: unknown, row: Settlement) => (
-        <Button type="link" size="small" onClick={() => setDrawerRow(row)} style={{ padding: 0, color: '#1890FF', fontSize: 12 }}>
+        <Button type="link" size="small" onClick={() => setDrawerRow(row)} className="!p-0 !text-accent !text-sm">
           Detalhes
         </Button>
       ),
@@ -121,14 +119,31 @@ export default function SettlementsTab() {
   ]
 
   if (error) {
-    return <Alert type="error" message="Erro ao carregar liquidações" description={error} showIcon />
+    return (
+      <Alert
+        type="error"
+        message="Erro ao carregar liquidações"
+        description={error}
+        showIcon
+        closable
+        action={
+          <Button
+            size="small"
+            onClick={reload}
+            aria-label="Tentar carregar liquidações novamente"
+          >
+            Tentar novamente
+          </Button>
+        }
+      />
+    )
   }
 
   return (
     <div className="space-y-4">
       {/* Banner */}
-      <div className="flex items-start gap-3 rounded-sm px-4 py-3" style={{ background: '#E6F7FF', border: '1px solid #91D5FF' }}>
-        <p className="text-sm m-0" style={{ color: 'rgba(0,0,0,0.85)' }}>
+      <div className="flex items-start gap-3 rounded-xs px-4 py-3 bg-info-bg border border-info-border">
+        <p className="text-sm m-0 text-text-primary">
           <span className="font-medium">Liquidação centralizada via Nuclea:</span>{' '}
           Registros de liquidação interbancária processados pelo sistema SLC. Valores em BRL (ISO 986).
         </p>
@@ -146,9 +161,9 @@ export default function SettlementsTab() {
       )}
 
       {/* Tabela de eventos */}
-      <div className="bg-white rounded-sm border border-[#f0f0f0]" style={{ boxShadow: '0 1px 2px rgba(0,0,0,0.03)' }}>
-        <div className="px-4 py-3 border-b border-[#f0f0f0]">
-          <h3 className="text-sm font-medium" style={{ color: 'rgba(0,0,0,0.85)' }}>Eventos de liquidação</h3>
+      <div className="bg-white rounded-xs border border-border-split shadow-card">
+        <div className="px-4 py-3 border-b border-border-split">
+          <h3 className="text-sm font-medium text-text-primary">Eventos de liquidação</h3>
         </div>
         <Table
           columns={columns}
@@ -156,20 +171,21 @@ export default function SettlementsTab() {
           size="small"
           pagination={{ pageSize: 10 }}
           loading={loading}
+          locale={{ emptyText: 'Nenhuma liquidação encontrada' }}
         />
         {!loading && settlements.length > 0 && (
-          <div className="flex justify-end gap-6 px-4 py-3 border-t border-[#f0f0f0]" style={{ background: '#E6F7FF' }}>
+          <div className="flex justify-end gap-6 px-4 py-3 border-t border-border-split bg-info-bg">
             <div className="text-right">
-              <div className="text-xs text-[rgba(0,0,0,0.65)]">Total original</div>
-              <div className="text-sm font-bold text-[#1890FF]">{fmt(totalOriginal)}</div>
+              <div className="text-xs text-text-secondary">Total original</div>
+              <div className="text-sm font-bold text-accent">{fmt(totalOriginal)}</div>
             </div>
             <div className="text-right">
-              <div className="text-xs text-[rgba(0,0,0,0.65)]">Total taxas</div>
-              <div className="text-sm font-bold text-[#FF4D4F]">{fmt(totalFee)}</div>
+              <div className="text-xs text-text-secondary">Total taxas</div>
+              <div className="text-sm font-bold text-orange">{fmt(totalFee)}</div>
             </div>
             <div className="text-right">
-              <div className="text-xs text-[rgba(0,0,0,0.65)]">Total líquido</div>
-              <div className="text-sm font-bold text-[#52C41A]">{fmt(totalNet)}</div>
+              <div className="text-xs text-text-secondary">Total líquido</div>
+              <div className="text-sm font-bold text-success">{fmt(totalNet)}</div>
             </div>
           </div>
         )}
@@ -183,7 +199,11 @@ export default function SettlementsTab() {
         title={
           <div className="flex items-center justify-between w-full">
             <span className="text-base font-semibold">Detalhes da Liquidação</span>
-            <button onClick={() => setDrawerRow(null)} aria-label="Fechar" className="text-[rgba(0,0,0,0.45)] hover:text-[rgba(0,0,0,0.85)]">
+            <button
+              onClick={() => setDrawerRow(null)}
+              aria-label="Fechar"
+              className="text-text-tertiary hover:text-text-primary"
+            >
               <X size={18} />
             </button>
           </div>
@@ -192,13 +212,13 @@ export default function SettlementsTab() {
         footer={
           <div className="flex gap-3">
             <Tooltip title="Em breve">
-              <Button icon={<Download size={14} />} style={{ borderRadius: 2 }} disabled>
+              <Button icon={<Download size={14} />} className="!rounded-xs" disabled>
                 Baixar comprovante
               </Button>
             </Tooltip>
           </div>
         }
-        footerStyle={{ padding: '14px 24px', borderTop: '1px solid #f0f0f0' }}
+        footerStyle={{ padding: '14px 24px', borderTop: '1px solid #F0F0F0' }}
       >
         {drawerRow && (
           <div className="space-y-4">
@@ -206,46 +226,50 @@ export default function SettlementsTab() {
               {drawerRow.status === 'processed' && <StatusTag status="Liquidado" />}
               {drawerRow.status === 'pending'   && <StatusTag status="Pendente" label="Pendente" />}
               {drawerRow.status === 'rejected'  && <StatusTag status="Suspenso" label="Rejeitado" />}
-              <span className="text-xs text-[rgba(0,0,0,0.45)]">{formatDate(drawerRow.settlementDate)}</span>
+              <span className="text-xs text-text-tertiary">{formatDate(drawerRow.settlementDate)}</span>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { label: 'ID da operação', value: drawerRow.operationId },
-                { label: 'Tipo', value: drawerRow.operationType === 'Credit' ? 'Crédito' : 'Débito' },
-                { label: 'Arranjo pagamento', value: drawerRow.paymentArrangement },
-                { label: 'Instrumento', value: drawerRow.instrumentType },
-                { label: 'Câmara', value: drawerRow.chamber },
-                { label: 'Destino', value: drawerRow.destination ?? '—' },
-                { label: 'Agente origem', value: formatCNPJ(drawerRow.originAgent) },
-                { label: 'Agente destino', value: drawerRow.destinationAgent },
-                { label: 'ISPB pagador', value: drawerRow.ispbPayer },
-                { label: 'ISPB recebedor', value: drawerRow.ispbReceiver },
-                { label: 'Conta pagadora', value: formatAccount(drawerRow.payerAccount) },
-                { label: 'Conta recebedora', value: formatAccount(drawerRow.receiverAccount) },
-              ].map(f => (
-                <div key={f.label}>
-                  <div className="text-xs text-[rgba(0,0,0,0.45)] mb-0.5">{f.label}</div>
-                  <div className="text-sm font-medium font-mono">{f.value}</div>
-                </div>
-              ))}
-            </div>
-
-            <div className="border-t border-[#f0f0f0] pt-4">
-              <h4 className="text-sm font-medium mb-3" style={{ color: 'rgba(0,0,0,0.85)' }}>Resumo financeiro</h4>
+            {/* Resumo financeiro primeiro: é o que o operador olha antes da metadata técnica. */}
+            <div>
+              <h4 className="text-sm font-medium mb-3 text-text-primary">Resumo financeiro</h4>
               <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-sm border p-3" style={{ background: '#E6F7FF', borderColor: '#91D5FF' }}>
-                  <div className="text-xs text-[rgba(0,0,0,0.65)]">Valor original</div>
-                  <div className="text-base font-bold text-[#1890FF]">{formatBRL(drawerRow.originalValue)}</div>
+                <div className="rounded-xs border p-3 bg-info-bg border-info-border">
+                  <div className="text-xs text-text-secondary">Valor original</div>
+                  <div className="text-md font-bold text-accent">{formatBRL(drawerRow.originalValue)}</div>
                 </div>
-                <div className="rounded-sm border p-3" style={{ background: '#FFF1F0', borderColor: '#FFCCC7' }}>
-                  <div className="text-xs text-[rgba(0,0,0,0.65)]">Taxa</div>
-                  <div className="text-base font-bold text-[#FF4D4F]">{formatBRL(drawerRow.feeValue)}</div>
+                <div className="rounded-xs border p-3 bg-orange-bg border-orange-border">
+                  <div className="text-xs text-text-secondary">Taxa</div>
+                  <div className="text-md font-bold text-orange">{formatBRL(drawerRow.feeValue)}</div>
                 </div>
-                <div className="rounded-sm border p-3 col-span-2" style={{ background: '#F6FFED', borderColor: '#B7EB8F' }}>
-                  <div className="text-xs text-[rgba(0,0,0,0.65)]">Valor líquido</div>
-                  <div className="text-base font-bold text-[#52C41A]">{formatBRL(drawerRow.netValue)}</div>
+                <div className="rounded-xs border p-3 col-span-2 bg-success-bg border-success-border">
+                  <div className="text-xs text-text-secondary">Valor líquido</div>
+                  <div className="text-md font-bold text-success">{formatBRL(drawerRow.netValue)}</div>
                 </div>
+              </div>
+            </div>
+
+            <div className="border-t border-border-split pt-4">
+              <h4 className="text-sm font-medium mb-3 text-text-primary">Detalhes técnicos</h4>
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { label: 'ID da operação', value: drawerRow.operationId },
+                  { label: 'Tipo', value: drawerRow.operationType === 'Credit' ? 'Crédito' : 'Débito' },
+                  { label: 'Arranjo de pagamento', value: drawerRow.paymentArrangement },
+                  { label: 'Instrumento', value: drawerRow.instrumentType },
+                  { label: 'Câmara', value: drawerRow.chamber },
+                  { label: 'Destino', value: drawerRow.destination ?? '—' },
+                  { label: 'Agente origem', value: formatCNPJ(drawerRow.originAgent) },
+                  { label: 'Agente destino', value: drawerRow.destinationAgent },
+                  { label: 'ISPB pagador', value: drawerRow.ispbPayer },
+                  { label: 'ISPB recebedor', value: drawerRow.ispbReceiver },
+                  { label: 'Conta pagadora', value: formatAccount(drawerRow.payerAccount) },
+                  { label: 'Conta recebedora', value: formatAccount(drawerRow.receiverAccount) },
+                ].map(f => (
+                  <div key={f.label}>
+                    <div className="text-xs text-text-tertiary mb-0.5">{f.label}</div>
+                    <div className="text-sm font-medium font-mono">{f.value}</div>
+                  </div>
+                ))}
               </div>
             </div>
 

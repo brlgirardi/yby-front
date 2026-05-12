@@ -5,6 +5,7 @@ import PageHeader from '@/components/shared/PageHeader'
 import Icon from '@/components/atoms/Icon'
 import Tag from '@/components/atoms/Tag'
 import DataTable, { type ColumnType } from '@/components/ui/DataTable'
+import MerchantOnboarding from '@/features/subadquirente/v1/MerchantOnboarding/MerchantOnboarding'
 
 const MERCHANTS = [
   { id:'MCH-001', name:'Americanas S.A.', cnpj:'00.776.574/0001-56', mcc:'5912', status:'Ativo',    volume:'R$ 1.240.500,00', txns:8420  },
@@ -37,6 +38,7 @@ export default function MerchantsPage() {
   const [statusFilter, setStatusFilter] = useState<string[]>(['Ativo', 'Suspenso', 'Inativo'])
   const [detail, setDetail] = useState<Merchant | null>(null)
   const [detailTab, setDetailTab] = useState('geral')
+  const [onboardingOpen, setOnboardingOpen] = useState(false)
 
   const filtered = MERCHANTS.filter(m =>
     statusFilter.includes(m.status) &&
@@ -94,10 +96,15 @@ export default function MerchantsPage() {
   return (
     <div style={{ flex:1, overflow:'auto', display:'flex', flexDirection:'column' }}>
       <PageHeader title="Lista de Merchants" breadcrumb="Sub-adquirente / Merchants" onBack={null} extra={
-        <button style={{ border:'none', background:'#1890FF', color:'#fff', borderRadius:2, padding:'6px 16px', fontSize:14, cursor:'pointer', display:'flex', alignItems:'center', gap:6 }}>
-          <Icon name="plus" size={14} color="#fff" /> Novo Merchant
+        <button
+          onClick={() => setOnboardingOpen(true)}
+          style={{ border:'none', background:'#1890FF', color:'#fff', borderRadius:2, padding:'6px 16px', fontSize:14, cursor:'pointer', display:'flex', alignItems:'center', gap:6 }}
+        >
+          <Icon name="plus" size={14} color="#fff" /> Novo estabelecimento
         </button>
       } />
+
+      <MerchantOnboarding open={onboardingOpen} onClose={() => setOnboardingOpen(false)} />
 
       <div style={{ padding:24, display:'flex', flexDirection:'column', gap:16 }}>
         <DataTable<Merchant>

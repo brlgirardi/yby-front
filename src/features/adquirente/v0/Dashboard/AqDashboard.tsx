@@ -3,7 +3,7 @@
 // Usa CardSection padrão + wrappers Recharts tematáveis (Tupi/Vero).
 // Sem mais SVG inline manual: tudo via @/components/charts.
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import PageHeader from '@/components/shared/PageHeader'
 import CardSection from '@/components/shared/CardSection'
 import Tag from '@/components/atoms/Tag'
@@ -24,7 +24,8 @@ import {
   bandeiraTimeline,
   platinizacaoTop15,
   itcPorBandeiraModalidade,
-  mixCartoesPorCategoria,
+  mixCategoriaPorBandeira,
+  itcTimeline,
   itcKpis,
   coberturaWaterfall,
   conciliacaoVsDivergencia,
@@ -113,78 +114,26 @@ export default function AqDashboard() {
               </CardSection>
 
               <CardSection
-                title="Mix de cartões por categoria"
-                subtitle="Use para precificar — quanto mais premium, maior o ITC"
+                title="Mix de cartões por bandeira e categoria"
+                subtitle="Use para precificar — % dentro de cada bandeira"
                 icon="creditCard"
+                noBodyPadding
               >
-                {(() => {
-                  const tierColors: Record<string, string> = {
-                    'Entry Level':   '#E6E6E6',
-                    'Mid-Tier':      '#BFBFBF',
-                    'Premium Core':  '#8C8C8C',
-                    'Ultra Premium': '#595959',
-                    'Corporate':     '#262626',
-                  }
-                  return (
-                    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'space-between', gap: 16 }}>
-                      <div style={{ display: 'flex', height: 32, borderRadius: 2, overflow: 'hidden' }}>
-                        {mixCartoesPorCategoria.map((m) => {
-                          const bg = tierColors[m.categoria]
-                          const dark = ['Ultra Premium', 'Corporate'].includes(m.categoria)
-                          return (
-                            <div
-                              key={m.categoria}
-                              title={`${m.categoria}: ${m.pct}%`}
-                              style={{
-                                flexBasis: `${m.pct}%`,
-                                background: bg,
-                                color: dark ? '#fff' : 'rgba(0,0,0,0.85)',
-                                fontSize: 11,
-                                fontWeight: 600,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontVariantNumeric: 'tabular-nums',
-                              }}
-                            >
-                              {m.pct >= 8 ? `${m.pct}%` : ''}
-                            </div>
-                          )
-                        })}
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                        {mixCartoesPorCategoria.map((m) => (
-                          <div
-                            key={m.categoria}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'space-between',
-                              fontSize: 12,
-                              color: 'rgba(0,0,0,0.85)',
-                            }}
-                          >
-                            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                              <span
-                                style={{
-                                  width: 10,
-                                  height: 10,
-                                  background: tierColors[m.categoria],
-                                  borderRadius: 2,
-                                  display: 'inline-block',
-                                }}
-                              />
-                              {m.categoria}
-                            </span>
-                            <span style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{m.pct}%</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )
-                })()}
+                <HeatmapGrid
+                  data={mixCategoriaPorBandeira.map((c) => ({
+                    row: c.bandeira,
+                    col: c.categoria,
+                    value: c.pct,
+                  }))}
+                  columns={['Entry Level', 'Mid-Tier', 'Premium Core', 'Ultra Premium', 'Corporate']}
+                  rows={['Visa', 'Mastercard', 'Elo', 'Amex', 'Hipercard']}
+                  formatValue={(v) => (v === 0 ? '—' : `${v}%`)}
+                />
               </CardSection>
             </div>
+
+            <ItcTimelineCard />
+
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, alignItems: 'stretch' }}>
               <CardSection title="Distribuição de contagem por bandeira" icon="filter">
@@ -370,5 +319,60 @@ export default function AqDashboard() {
         )}
       </div>
     </div>
+  )
+}
+
+// ── Card: Timeline ITC mensal com seletores bandeira × modalidade ────
+const BANDEIRAS_ITC = ['Visa', 'Mastercard', 'Elo', 'Amex', 'Hipercard'] as const
+const MODALIDADES_ITC = ['Débito', 'Crédito à vista', 'Crédito 2-6x', 'Crédito 6-12x'] as const
+
+function ItcTimelineCard() {
+  const [bandeira, setBandeira] = useState<string>('Visa')
+  const [modalidade, setModalidade] = useState<string>('Crédito à vista')
+
+  const serie = useMemo(
+    () =>
+      itcTimeline
+        .filter((p) => p.bandeira === bandeira && p.modalidade === modalidade)
+        .map((p) => ({ label: p.mes, value: p.pct })),
+    [bandeira, modalidade],
+  )
+
+  const hasData = serie.some((s) => s.value > 0)
+
+  return (
+    <CardSection
+      title="Evolução do ITC ao longo do tempo"
+      subtitle="Use para precificar — selecione bandeira e prazo para ver a oscilação"
+      icon="trendingUp"
+      extra={
+        <div style={{ display: 'flex', gap: 8 }}>
+          <AppSelect
+            value={bandeira}
+            onChange={(v) => setBandeira(v as string)}
+            style={{ width: 140 }}
+            options={BANDEIRAS_ITC.map((b) => ({ value: b, label: b }))}
+          />
+          <AppSelect
+            value={modalidade}
+            onChange={(v) => setModalidade(v as string)}
+            style={{ width: 170 }}
+            options={MODALIDADES_ITC.map((m) => ({ value: m, label: m }))}
+          />
+        </div>
+      }
+    >
+      {hasData ? (
+        <LineKPI
+          data={serie}
+          area={false}
+          formatValue={(v) => `${v.toFixed(2).replace('.', ',')}%`}
+        />
+      ) : (
+        <div style={{ padding: '40px 0', textAlign: 'center', color: 'rgba(0,0,0,0.45)', fontSize: 13 }}>
+          {bandeira} não opera {modalidade.toLowerCase()}.
+        </div>
+      )}
+    </CardSection>
   )
 }

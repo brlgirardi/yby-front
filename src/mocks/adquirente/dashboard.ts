@@ -94,17 +94,102 @@ export const itcPorBandeiraModalidade: ItcBandeiraModalidadeCell[] = [
   { bandeira: 'Hipercard',  modalidade: 'Crédito 6-12x',   pct: 2.60 },
 ]
 
-// % de cartões por categoria — apoio à precificação por mix de portfólio.
-// TODO(backend): substituir mock por endpoint /adquirente/mix-cartoes-categoria.
+// % de cartões por categoria, por bandeira — apoio à precificação por mix.
+// Cada linha (bandeira) soma 100%.
+// TODO(backend): substituir mock por endpoint /adquirente/mix-categoria-por-bandeira.
 export type CategoriaTier = 'Entry Level' | 'Mid-Tier' | 'Premium Core' | 'Ultra Premium' | 'Corporate'
-export interface MixCategoriaItem { categoria: CategoriaTier; pct: number }
-export const mixCartoesPorCategoria: MixCategoriaItem[] = [
-  { categoria: 'Entry Level',   pct: 42 },
-  { categoria: 'Mid-Tier',      pct: 28 },
-  { categoria: 'Premium Core',  pct: 18 },
-  { categoria: 'Ultra Premium', pct:  7 },
-  { categoria: 'Corporate',     pct:  5 },
+export interface MixCategoriaBandeiraCell { bandeira: string; categoria: CategoriaTier; pct: number }
+export const mixCategoriaPorBandeira: MixCategoriaBandeiraCell[] = [
+  // Visa — soma 100
+  { bandeira: 'Visa',       categoria: 'Entry Level',   pct: 38 },
+  { bandeira: 'Visa',       categoria: 'Mid-Tier',      pct: 30 },
+  { bandeira: 'Visa',       categoria: 'Premium Core',  pct: 20 },
+  { bandeira: 'Visa',       categoria: 'Ultra Premium', pct:  8 },
+  { bandeira: 'Visa',       categoria: 'Corporate',     pct:  4 },
+  // Mastercard — soma 100
+  { bandeira: 'Mastercard', categoria: 'Entry Level',   pct: 40 },
+  { bandeira: 'Mastercard', categoria: 'Mid-Tier',      pct: 28 },
+  { bandeira: 'Mastercard', categoria: 'Premium Core',  pct: 18 },
+  { bandeira: 'Mastercard', categoria: 'Ultra Premium', pct:  9 },
+  { bandeira: 'Mastercard', categoria: 'Corporate',     pct:  5 },
+  // Elo — soma 100
+  { bandeira: 'Elo',        categoria: 'Entry Level',   pct: 56 },
+  { bandeira: 'Elo',        categoria: 'Mid-Tier',      pct: 28 },
+  { bandeira: 'Elo',        categoria: 'Premium Core',  pct: 12 },
+  { bandeira: 'Elo',        categoria: 'Ultra Premium', pct:  3 },
+  { bandeira: 'Elo',        categoria: 'Corporate',     pct:  1 },
+  // Amex — soma 100
+  { bandeira: 'Amex',       categoria: 'Entry Level',   pct: 12 },
+  { bandeira: 'Amex',       categoria: 'Mid-Tier',      pct: 22 },
+  { bandeira: 'Amex',       categoria: 'Premium Core',  pct: 30 },
+  { bandeira: 'Amex',       categoria: 'Ultra Premium', pct: 22 },
+  { bandeira: 'Amex',       categoria: 'Corporate',     pct: 14 },
+  // Hipercard — soma 100
+  { bandeira: 'Hipercard',  categoria: 'Entry Level',   pct: 62 },
+  { bandeira: 'Hipercard',  categoria: 'Mid-Tier',      pct: 26 },
+  { bandeira: 'Hipercard',  categoria: 'Premium Core',  pct:  9 },
+  { bandeira: 'Hipercard',  categoria: 'Ultra Premium', pct:  2 },
+  { bandeira: 'Hipercard',  categoria: 'Corporate',     pct:  1 },
 ]
+
+// Timeline de ITC mensal, por bandeira × modalidade.
+// TODO(backend): substituir mock por endpoint /adquirente/itc-timeline?bandeira=&modalidade=.
+export interface ItcTimelinePoint { mes: string; bandeira: string; modalidade: ModalidadeITC; pct: number }
+const _MESES_ITC = ['Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez', 'Jan', 'Fev', 'Mar', 'Abr', 'Mai']
+function _buildTimeline(base: number, drift: number[]): number[] {
+  return drift.map((d) => Number((base + d).toFixed(2)))
+}
+const _drifts: Record<string, Record<ModalidadeITC, number[]>> = {
+  Visa: {
+    'Débito':          [-0.04, -0.02,  0.00,  0.01,  0.02,  0.00, -0.01,  0.01,  0.02,  0.03,  0.02,  0.00],
+    'Crédito à vista': [-0.10, -0.06, -0.03,  0.00,  0.02,  0.04,  0.05,  0.06,  0.08,  0.07,  0.05,  0.03],
+    'Crédito 2-6x':    [-0.12, -0.08, -0.04,  0.00,  0.05,  0.08,  0.10,  0.12,  0.10,  0.08,  0.06,  0.04],
+    'Crédito 6-12x':   [-0.15, -0.10, -0.05,  0.02,  0.06,  0.10,  0.14,  0.18,  0.16,  0.12,  0.08,  0.05],
+  },
+  Mastercard: {
+    'Débito':          [-0.03, -0.01,  0.01,  0.02,  0.03,  0.02,  0.01,  0.02,  0.03,  0.04,  0.03,  0.02],
+    'Crédito à vista': [-0.08, -0.05, -0.02,  0.01,  0.03,  0.05,  0.06,  0.08,  0.09,  0.07,  0.06,  0.04],
+    'Crédito 2-6x':    [-0.10, -0.06, -0.03,  0.02,  0.06,  0.09,  0.12,  0.14,  0.12,  0.10,  0.08,  0.06],
+    'Crédito 6-12x':   [-0.13, -0.09, -0.04,  0.03,  0.07,  0.12,  0.16,  0.20,  0.18,  0.14,  0.10,  0.07],
+  },
+  Elo: {
+    'Débito':          [-0.05, -0.03, -0.01,  0.01,  0.02,  0.01, -0.01,  0.00,  0.02,  0.03,  0.02,  0.00],
+    'Crédito à vista': [-0.09, -0.05, -0.02,  0.01,  0.03,  0.05,  0.07,  0.09,  0.10,  0.08,  0.06,  0.04],
+    'Crédito 2-6x':    [-0.11, -0.07, -0.03,  0.01,  0.05,  0.09,  0.12,  0.14,  0.12,  0.10,  0.08,  0.06],
+    'Crédito 6-12x':   [-0.14, -0.10, -0.05,  0.02,  0.06,  0.11,  0.15,  0.19,  0.17,  0.13,  0.09,  0.06],
+  },
+  Amex: {
+    'Débito':          [ 0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00],
+    'Crédito à vista': [-0.12, -0.08, -0.04,  0.00,  0.04,  0.07,  0.10,  0.13,  0.14,  0.10,  0.07,  0.05],
+    'Crédito 2-6x':    [-0.15, -0.10, -0.04,  0.02,  0.07,  0.11,  0.14,  0.17,  0.15,  0.12,  0.09,  0.06],
+    'Crédito 6-12x':   [-0.18, -0.12, -0.05,  0.03,  0.09,  0.14,  0.18,  0.22,  0.20,  0.16,  0.11,  0.08],
+  },
+  Hipercard: {
+    'Débito':          [-0.04, -0.02,  0.00,  0.02,  0.03,  0.02,  0.01,  0.02,  0.03,  0.04,  0.03,  0.01],
+    'Crédito à vista': [-0.09, -0.05, -0.02,  0.01,  0.03,  0.06,  0.07,  0.09,  0.10,  0.08,  0.06,  0.03],
+    'Crédito 2-6x':    [-0.11, -0.07, -0.03,  0.01,  0.05,  0.09,  0.12,  0.14,  0.12,  0.10,  0.07,  0.05],
+    'Crédito 6-12x':   [-0.14, -0.09, -0.04,  0.02,  0.07,  0.11,  0.15,  0.19,  0.17,  0.13,  0.09,  0.06],
+  },
+}
+const _baseline: Record<string, Record<ModalidadeITC, number>> = {
+  Visa:       { 'Débito': 0.49, 'Crédito à vista': 1.32, 'Crédito 2-6x': 1.98, 'Crédito 6-12x': 2.45 },
+  Mastercard: { 'Débito': 0.52, 'Crédito à vista': 1.38, 'Crédito 2-6x': 2.05, 'Crédito 6-12x': 2.52 },
+  Elo:        { 'Débito': 0.58, 'Crédito à vista': 1.45, 'Crédito 2-6x': 2.18, 'Crédito 6-12x': 2.68 },
+  Amex:       { 'Débito': 0.00, 'Crédito à vista': 1.65, 'Crédito 2-6x': 2.40, 'Crédito 6-12x': 2.95 },
+  Hipercard:  { 'Débito': 0.55, 'Crédito à vista': 1.42, 'Crédito 2-6x': 2.10, 'Crédito 6-12x': 2.60 },
+}
+export const itcTimeline: ItcTimelinePoint[] = (() => {
+  const out: ItcTimelinePoint[] = []
+  for (const bandeira of Object.keys(_drifts)) {
+    for (const modalidade of Object.keys(_drifts[bandeira]) as ModalidadeITC[]) {
+      const serie = _buildTimeline(_baseline[bandeira][modalidade], _drifts[bandeira][modalidade])
+      serie.forEach((pct, i) => {
+        out.push({ mes: _MESES_ITC[i], bandeira, modalidade, pct })
+      })
+    }
+  }
+  return out
+})()
 
 export interface BandeiraDist { bandeira: string; pct: number; color: string }
 export const bandeiraDistribuicao: BandeiraDist[] = [

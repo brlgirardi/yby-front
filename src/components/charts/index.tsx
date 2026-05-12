@@ -15,7 +15,7 @@
 //   <WaterfallChart />— variação ↑/↓ com barras lado a lado
 //   <HeatmapGrid />   — matriz X×Y com intensidade por cor
 
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import {
   LineChart, Line,
   AreaChart, Area,
@@ -340,8 +340,10 @@ interface HeatmapProps {
   formatValue?: (v: number) => string
   /** Render customizado do label da linha (ex: logo de bandeira). */
   renderRow?: (row: string) => ReactNode
+  /** Conteúdo customizado do tooltip por célula. Quando definido, substitui o title nativo. */
+  renderCellTooltip?: (row: string, col: string, value: number) => ReactNode
 }
-export function HeatmapGrid({ data, columns, rows, color, formatValue = (v) => `${v}%`, renderRow }: HeatmapProps) {
+export function HeatmapGrid({ data, columns, rows, color, formatValue = (v) => `${v}%`, renderRow, renderCellTooltip }: HeatmapProps) {
   const theme = useTheme()
   const baseColor = color ?? theme.primary
   const cols = columns ?? Array.from(new Set(data.map((d) => d.col)))
@@ -372,26 +374,81 @@ export function HeatmapGrid({ data, columns, rows, color, formatValue = (v) => `
               const intensity = Math.min(v / max, 1)
               const alpha = Math.round(intensity * 220 + 20).toString(16).padStart(2, '0')
               return (
-                <td
+                <HeatCell
                   key={c}
-                  style={{
-                    padding: '10px 12px',
-                    textAlign: 'center',
-                    background: `${baseColor}${alpha}`,
-                    color: intensity > 0.55 ? '#fff' : 'rgba(0,0,0,0.85)',
-                    fontWeight: 600,
-                    borderTop: '1px solid #f5f5f5',
-                    transition: 'background 0.2s',
-                  }}
-                  title={`${r} × ${c}: ${formatValue(v)}`}
-                >
-                  {formatValue(v)}
-                </td>
+                  row={r}
+                  col={c}
+                  value={v}
+                  bg={`${baseColor}${alpha}`}
+                  fg={intensity > 0.55 ? '#fff' : 'rgba(0,0,0,0.85)'}
+                  formatValue={formatValue}
+                  renderCellTooltip={renderCellTooltip}
+                />
               )
             })}
           </tr>
         ))}
       </tbody>
     </table>
+  )
+}
+
+interface HeatCellProps {
+  row: string
+  col: string
+  value: number
+  bg: string
+  fg: string
+  formatValue: (v: number) => string
+  renderCellTooltip?: (row: string, col: string, value: number) => ReactNode
+}
+function HeatCell({ row, col, value, bg, fg, formatValue, renderCellTooltip }: HeatCellProps) {
+  const [hover, setHover] = useState(false)
+  const hasCustomTooltip = !!renderCellTooltip
+  return (
+    <td
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={{
+        padding: '10px 12px',
+        textAlign: 'center',
+        background: bg,
+        color: fg,
+        fontWeight: 600,
+        borderTop: '1px solid #f5f5f5',
+        transition: 'background 0.2s',
+        position: 'relative',
+      }}
+      title={hasCustomTooltip ? undefined : `${row} × ${col}: ${formatValue(value)}`}
+    >
+      {formatValue(value)}
+      {hasCustomTooltip && hover && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '100%',
+            left: '50%',
+            transform: 'translate(-50%, 8px)',
+            zIndex: 20,
+            background: '#fff',
+            color: 'rgba(0,0,0,0.85)',
+            border: '1px solid #f0f0f0',
+            borderRadius: 4,
+            padding: '10px 12px',
+            fontSize: 12,
+            fontWeight: 400,
+            lineHeight: 1.5,
+            minWidth: 220,
+            maxWidth: 280,
+            textAlign: 'left',
+            boxShadow: '0 6px 16px rgba(0,0,0,0.12)',
+            pointerEvents: 'none',
+            whiteSpace: 'normal',
+          }}
+        >
+          {renderCellTooltip!(row, col, value)}
+        </div>
+      )}
+    </td>
   )
 }

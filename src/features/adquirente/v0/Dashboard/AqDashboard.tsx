@@ -46,6 +46,33 @@ const fmtBRLcompact = (v: number) =>
   : Math.abs(v) >= 1_000   ? `R$ ${(v / 1_000).toFixed(0)}k`
   : `R$ ${v.toLocaleString('pt-BR')}`
 
+// Margem padrão usada nas sugestões de preço dos chips (+0,20 p.p. sobre o ITC).
+const MARGEM_PADRAO_PP = 0.20
+
+// Share de cada bandeira no portfólio (estimativa baseada em bandeiraDistribuicao
+// + complemento ficcional para Amex/Hipercard que não estão no donut).
+const BANDEIRA_SHARE_TOTAL: Record<string, number> = {
+  Visa:       37.4,
+  Mastercard: 54.8,
+  Elo:         5.5,
+  Amex:        1.5,
+  Hipercard:   0.8,
+}
+
+// ITC médio por categoria — heurística para o chip do Card B.
+// TODO(backend): substituir por endpoint /adquirente/itc-medio-por-categoria.
+const ITC_MEDIO_POR_CATEGORIA: Record<string, number> = {
+  'Entry Level':   1.05,
+  'Mid-Tier':      1.42,
+  'Premium Core':  1.85,
+  'Ultra Premium': 2.30,
+  'Corporate':     2.55,
+}
+
+function fmtPct(v: number, casas = 2): string {
+  return `${v.toFixed(casas).replace('.', ',')}%`
+}
+
 export default function AqDashboard() {
   const [tab, setTab] = useState<TabKey>('planitizacao')
   const theme = useTheme()
@@ -116,6 +143,45 @@ export default function AqDashboard() {
                       <span>{r}</span>
                     </span>
                   )}
+                  renderCellTooltip={(bandeira, modalidade, itc) => {
+                    if (itc === 0) {
+                      return (
+                        <>
+                          <div style={{ fontWeight: 600, marginBottom: 4 }}>
+                            {bandeira} · {modalidade}
+                          </div>
+                          <div style={{ color: 'rgba(0,0,0,0.45)' }}>
+                            {bandeira} não opera {modalidade.toLowerCase()}.
+                          </div>
+                        </>
+                      )
+                    }
+                    const sugestao = itc + MARGEM_PADRAO_PP
+                    const debito = itcPorBandeiraModalidade.find(
+                      (c) => c.bandeira === bandeira && c.modalidade === 'Débito',
+                    )?.pct
+                    const delta = debito && debito > 0 ? itc - debito : null
+                    return (
+                      <>
+                        <div style={{ fontWeight: 600, marginBottom: 4 }}>
+                          {bandeira} · {modalidade}
+                        </div>
+                        <div style={{ marginBottom: 2 }}>
+                          ITC <strong>{fmtPct(itc)}</strong>
+                        </div>
+                        <div style={{ marginBottom: 6 }}>
+                          Sugestão de preço:{' '}
+                          <strong style={{ color: '#1A1F71' }}>~{fmtPct(sugestao)}</strong>{' '}
+                          <span style={{ color: 'rgba(0,0,0,0.45)' }}>(+0,20 p.p.)</span>
+                        </div>
+                        {delta !== null && (
+                          <div style={{ paddingTop: 6, borderTop: '1px solid #f0f0f0', color: 'rgba(0,0,0,0.55)' }}>
+                            Δ vs débito {bandeira}: +{delta.toFixed(2).replace('.', ',')} p.p.
+                          </div>
+                        )}
+                      </>
+                    )
+                  }}
                 />
               </CardSection>
 
@@ -140,6 +206,33 @@ export default function AqDashboard() {
                       <span>{r}</span>
                     </span>
                   )}
+                  renderCellTooltip={(bandeira, categoria, pctNaBandeira) => {
+                    const shareBandeira = BANDEIRA_SHARE_TOTAL[bandeira] ?? 0
+                    const pesoNoMixTotal = (pctNaBandeira * shareBandeira) / 100
+                    const itcMedioCategoria = ITC_MEDIO_POR_CATEGORIA[categoria]
+                    return (
+                      <>
+                        <div style={{ fontWeight: 600, marginBottom: 4 }}>
+                          {bandeira} · {categoria}
+                        </div>
+                        <div style={{ marginBottom: 2 }}>
+                          <strong>{pctNaBandeira}%</strong> do mix {bandeira}
+                        </div>
+                        <div style={{ paddingTop: 6, marginTop: 4, borderTop: '1px solid #f0f0f0', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                          <span style={{ color: 'rgba(0,0,0,0.55)' }}>
+                            Peso no mix total:{' '}
+                            <strong style={{ color: 'rgba(0,0,0,0.85)' }}>{fmtPct(pesoNoMixTotal, 1)}</strong>
+                          </span>
+                          {itcMedioCategoria !== undefined && (
+                            <span style={{ color: 'rgba(0,0,0,0.55)' }}>
+                              ITC médio {categoria}:{' '}
+                              <strong style={{ color: 'rgba(0,0,0,0.85)' }}>{fmtPct(itcMedioCategoria)}</strong>
+                            </span>
+                          )}
+                        </div>
+                      </>
+                    )
+                  }}
                 />
               </CardSection>
             </div>

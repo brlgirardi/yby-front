@@ -15,6 +15,7 @@
 //   <WaterfallChart />— variação ↑/↓ com barras lado a lado
 //   <HeatmapGrid />   — matriz X×Y com intensidade por cor
 
+import type { ReactNode } from 'react'
 import {
   LineChart, Line,
   AreaChart, Area,
@@ -117,8 +118,12 @@ interface MultiLineKPIProps {
   series: MultiLineSerie[]
   height?: number
   formatValue?: (v: number) => string
+  /** Quando true, eixo Y faz auto-zoom no range dos dados em vez de começar em 0. */
+  zoomY?: boolean
+  /** Formatter do tick do eixo Y (default: formatNumberShort). */
+  formatYTick?: (v: number) => string
 }
-export function MultiLineKPI({ data, xKey, series, height = 240, formatValue = formatNumberShort }: MultiLineKPIProps) {
+export function MultiLineKPI({ data, xKey, series, height = 240, formatValue = formatNumberShort, zoomY = false, formatYTick }: MultiLineKPIProps) {
   const theme = useTheme()
   const colorOf = (s: MultiLineSerie, i: number) => s.color ?? (i === 0 ? theme.primary : CATEGORICAL[i % CATEGORICAL.length])
 
@@ -128,7 +133,14 @@ export function MultiLineKPI({ data, xKey, series, height = 240, formatValue = f
         <LineChart data={data} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
           <CartesianGrid stroke={GRID_STROKE} vertical={false} />
           <XAxis dataKey={xKey} tick={AXIS_STYLE} tickLine={false} axisLine={{ stroke: GRID_STROKE }} />
-          <YAxis tick={AXIS_STYLE} tickLine={false} axisLine={false} tickFormatter={formatNumberShort} />
+          <YAxis
+            tick={AXIS_STYLE}
+            tickLine={false}
+            axisLine={false}
+            tickFormatter={formatYTick ?? formatNumberShort}
+            domain={zoomY ? ['auto', 'auto'] : undefined}
+            padding={zoomY ? { top: 8, bottom: 8 } : undefined}
+          />
           <Tooltip
             contentStyle={TOOLTIP_STYLE}
             labelStyle={LABEL_STYLE}
@@ -326,8 +338,10 @@ interface HeatmapProps {
   color?: string
   /** Formatador da célula. */
   formatValue?: (v: number) => string
+  /** Render customizado do label da linha (ex: logo de bandeira). */
+  renderRow?: (row: string) => ReactNode
 }
-export function HeatmapGrid({ data, columns, rows, color, formatValue = (v) => `${v}%` }: HeatmapProps) {
+export function HeatmapGrid({ data, columns, rows, color, formatValue = (v) => `${v}%`, renderRow }: HeatmapProps) {
   const theme = useTheme()
   const baseColor = color ?? theme.primary
   const cols = columns ?? Array.from(new Set(data.map((d) => d.col)))
@@ -349,7 +363,9 @@ export function HeatmapGrid({ data, columns, rows, color, formatValue = (v) => `
       <tbody>
         {rws.map((r) => (
           <tr key={r}>
-            <td style={{ padding: '8px 12px', color: 'rgba(0,0,0,0.85)', fontWeight: 500, borderTop: '1px solid #f5f5f5' }}>{r}</td>
+            <td style={{ padding: '8px 12px', color: 'rgba(0,0,0,0.85)', fontWeight: 500, borderTop: '1px solid #f5f5f5' }}>
+              {renderRow ? renderRow(r) : r}
+            </td>
             {cols.map((c) => {
               const cell = data.find((d) => d.row === r && d.col === c)
               const v = cell?.value ?? 0

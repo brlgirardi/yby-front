@@ -110,6 +110,12 @@ export default function AqDashboard() {
                   }))}
                   columns={['Débito', 'Crédito à vista', 'Crédito 2-6x', 'Crédito 6-12x']}
                   formatValue={(v) => (v === 0 ? '—' : `${v.toFixed(2).replace('.', ',')}%`)}
+                  renderRow={(r) => (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                      <BrandLogo brand={r} size={24} />
+                      <span>{r}</span>
+                    </span>
+                  )}
                 />
               </CardSection>
 
@@ -128,6 +134,12 @@ export default function AqDashboard() {
                   columns={['Entry Level', 'Mid-Tier', 'Premium Core', 'Ultra Premium', 'Corporate']}
                   rows={['Visa', 'Mastercard', 'Elo', 'Amex', 'Hipercard']}
                   formatValue={(v) => (v === 0 ? '—' : `${v}%`)}
+                  renderRow={(r) => (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                      <BrandLogo brand={r} size={24} />
+                      <span>{r}</span>
+                    </span>
+                  )}
                 />
               </CardSection>
             </div>
@@ -322,57 +334,71 @@ export default function AqDashboard() {
   )
 }
 
-// ── Card: Timeline ITC mensal com seletores bandeira × modalidade ────
+// ── Card: Timeline ITC mensal — todas as bandeiras, seletor de modalidade ──
 const BANDEIRAS_ITC = ['Visa', 'Mastercard', 'Elo', 'Amex', 'Hipercard'] as const
 const MODALIDADES_ITC = ['Débito', 'Crédito à vista', 'Crédito 2-6x', 'Crédito 6-12x'] as const
 
+// Cores aproximadas das bandeiras (paleta oficial, ajustadas para legibilidade em linha).
+const BANDEIRA_COLORS: Record<string, string> = {
+  Visa:       '#1A1F71', // azul Visa
+  Mastercard: '#EB001B', // vermelho Mastercard
+  Elo:        '#00A4E0', // azul Elo (mais legível que o amarelo oficial)
+  Amex:       '#2E77BB', // azul Amex
+  Hipercard:  '#B3131B', // vinho Hipercard
+}
+
 function ItcTimelineCard() {
-  const [bandeira, setBandeira] = useState<string>('Visa')
   const [modalidade, setModalidade] = useState<string>('Crédito à vista')
 
-  const serie = useMemo(
-    () =>
-      itcTimeline
-        .filter((p) => p.bandeira === bandeira && p.modalidade === modalidade)
-        .map((p) => ({ label: p.mes, value: p.pct })),
-    [bandeira, modalidade],
-  )
+  // Pivota itcTimeline: cada mês vira uma row com 1 coluna por bandeira.
+  const data = useMemo(() => {
+    const meses = Array.from(new Set(itcTimeline.map((p) => p.mes)))
+    return meses.map((mes) => {
+      const row: Record<string, string | number> = { mes }
+      for (const b of BANDEIRAS_ITC) {
+        const point = itcTimeline.find(
+          (p) => p.mes === mes && p.bandeira === b && p.modalidade === modalidade,
+        )
+        if (point && point.pct > 0) row[b] = point.pct
+      }
+      return row
+    })
+  }, [modalidade])
 
-  const hasData = serie.some((s) => s.value > 0)
+  // Filtra bandeiras que têm pelo menos um valor > 0 (ex: Amex não opera débito).
+  const seriesAtivas = useMemo(
+    () =>
+      BANDEIRAS_ITC.filter((b) =>
+        itcTimeline.some(
+          (p) => p.bandeira === b && p.modalidade === modalidade && p.pct > 0,
+        ),
+      ).map((b) => ({ key: b, label: b, color: BANDEIRA_COLORS[b] })),
+    [modalidade],
+  )
 
   return (
     <CardSection
       title="Evolução do ITC ao longo do tempo"
-      subtitle="Use para precificar — selecione bandeira e prazo para ver a oscilação"
+      subtitle="Use para precificar — oscilação por bandeira no prazo selecionado"
       icon="trendingUp"
       extra={
-        <div style={{ display: 'flex', gap: 8 }}>
-          <AppSelect
-            value={bandeira}
-            onChange={(v) => setBandeira(v as string)}
-            style={{ width: 140 }}
-            options={BANDEIRAS_ITC.map((b) => ({ value: b, label: b }))}
-          />
-          <AppSelect
-            value={modalidade}
-            onChange={(v) => setModalidade(v as string)}
-            style={{ width: 170 }}
-            options={MODALIDADES_ITC.map((m) => ({ value: m, label: m }))}
-          />
-        </div>
+        <AppSelect
+          value={modalidade}
+          onChange={(v) => setModalidade(v as string)}
+          style={{ width: 180 }}
+          options={MODALIDADES_ITC.map((m) => ({ value: m, label: m }))}
+        />
       }
     >
-      {hasData ? (
-        <LineKPI
-          data={serie}
-          area={false}
-          formatValue={(v) => `${v.toFixed(2).replace('.', ',')}%`}
-        />
-      ) : (
-        <div style={{ padding: '40px 0', textAlign: 'center', color: 'rgba(0,0,0,0.45)', fontSize: 13 }}>
-          {bandeira} não opera {modalidade.toLowerCase()}.
-        </div>
-      )}
+      <MultiLineKPI
+        data={data}
+        xKey="mes"
+        series={seriesAtivas}
+        height={300}
+        zoomY
+        formatValue={(v) => `${v.toFixed(2).replace('.', ',')}%`}
+        formatYTick={(v) => `${v.toFixed(2).replace('.', ',')}%`}
+      />
     </CardSection>
   )
 }

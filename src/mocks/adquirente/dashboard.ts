@@ -66,6 +66,46 @@ export const parcelasCredito: ParcelaBucket[] = [
 ]
 
 // ── Aba Planitização ─────────────────────────────────────────
+
+// % de ITC por bandeira × modalidade — base para precificação comercial.
+// TODO(backend): substituir mock por endpoint /adquirente/itc-por-bandeira-modalidade.
+export type ModalidadeITC = 'Débito' | 'Crédito à vista' | 'Crédito 2-6x' | 'Crédito 6-12x'
+export interface ItcBandeiraModalidadeCell { bandeira: string; modalidade: ModalidadeITC; pct: number }
+export const itcPorBandeiraModalidade: ItcBandeiraModalidadeCell[] = [
+  { bandeira: 'Visa',       modalidade: 'Débito',          pct: 0.49 },
+  { bandeira: 'Visa',       modalidade: 'Crédito à vista', pct: 1.32 },
+  { bandeira: 'Visa',       modalidade: 'Crédito 2-6x',    pct: 1.98 },
+  { bandeira: 'Visa',       modalidade: 'Crédito 6-12x',   pct: 2.45 },
+  { bandeira: 'Mastercard', modalidade: 'Débito',          pct: 0.52 },
+  { bandeira: 'Mastercard', modalidade: 'Crédito à vista', pct: 1.38 },
+  { bandeira: 'Mastercard', modalidade: 'Crédito 2-6x',    pct: 2.05 },
+  { bandeira: 'Mastercard', modalidade: 'Crédito 6-12x',   pct: 2.52 },
+  { bandeira: 'Elo',        modalidade: 'Débito',          pct: 0.58 },
+  { bandeira: 'Elo',        modalidade: 'Crédito à vista', pct: 1.45 },
+  { bandeira: 'Elo',        modalidade: 'Crédito 2-6x',    pct: 2.18 },
+  { bandeira: 'Elo',        modalidade: 'Crédito 6-12x',   pct: 2.68 },
+  { bandeira: 'Amex',       modalidade: 'Débito',          pct: 0.00 },
+  { bandeira: 'Amex',       modalidade: 'Crédito à vista', pct: 1.65 },
+  { bandeira: 'Amex',       modalidade: 'Crédito 2-6x',    pct: 2.40 },
+  { bandeira: 'Amex',       modalidade: 'Crédito 6-12x',   pct: 2.95 },
+  { bandeira: 'Hipercard',  modalidade: 'Débito',          pct: 0.55 },
+  { bandeira: 'Hipercard',  modalidade: 'Crédito à vista', pct: 1.42 },
+  { bandeira: 'Hipercard',  modalidade: 'Crédito 2-6x',    pct: 2.10 },
+  { bandeira: 'Hipercard',  modalidade: 'Crédito 6-12x',   pct: 2.60 },
+]
+
+// % de cartões por categoria — apoio à precificação por mix de portfólio.
+// TODO(backend): substituir mock por endpoint /adquirente/mix-cartoes-categoria.
+export type CategoriaTier = 'Entry Level' | 'Mid-Tier' | 'Premium Core' | 'Ultra Premium' | 'Corporate'
+export interface MixCategoriaItem { categoria: CategoriaTier; pct: number }
+export const mixCartoesPorCategoria: MixCategoriaItem[] = [
+  { categoria: 'Entry Level',   pct: 42 },
+  { categoria: 'Mid-Tier',      pct: 28 },
+  { categoria: 'Premium Core',  pct: 18 },
+  { categoria: 'Ultra Premium', pct:  7 },
+  { categoria: 'Corporate',     pct:  5 },
+]
+
 export interface BandeiraDist { bandeira: string; pct: number; color: string }
 export const bandeiraDistribuicao: BandeiraDist[] = [
   { bandeira: 'Mastercard', pct: 54.8, color: '#1890FF' },

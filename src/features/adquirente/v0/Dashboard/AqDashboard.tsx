@@ -23,6 +23,8 @@ import {
   bandeiraDistribuicao,
   bandeiraTimeline,
   platinizacaoTop15,
+  itcPorBandeiraModalidade,
+  mixCartoesPorCategoria,
   itcKpis,
   coberturaWaterfall,
   conciliacaoVsDivergencia,
@@ -91,7 +93,100 @@ export default function AqDashboard() {
               <AppSelect placeholder="Todos os MCCs"             style={{ width: 220 }} options={[{ value: 'all', label: 'Todos os MCCs' }]} defaultValue="all" />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            {/* Decisão de precificação — destaque no topo da aba */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, alignItems: 'stretch' }}>
+              <CardSection
+                title="Custo (ITC) por bandeira e modalidade"
+                subtitle="Use para precificar — leia o ITC do produto e some sua margem"
+                icon="grid"
+                noBodyPadding
+              >
+                <HeatmapGrid
+                  data={itcPorBandeiraModalidade.map((c) => ({
+                    row: c.bandeira,
+                    col: c.modalidade,
+                    value: c.pct,
+                  }))}
+                  columns={['Débito', 'Crédito à vista', 'Crédito 2-6x', 'Crédito 6-12x']}
+                  formatValue={(v) => (v === 0 ? '—' : `${v.toFixed(2).replace('.', ',')}%`)}
+                />
+              </CardSection>
+
+              <CardSection
+                title="Mix de cartões por categoria"
+                subtitle="Use para precificar — quanto mais premium, maior o ITC"
+                icon="creditCard"
+              >
+                {(() => {
+                  const tierColors: Record<string, string> = {
+                    'Entry Level':   '#E6E6E6',
+                    'Mid-Tier':      '#BFBFBF',
+                    'Premium Core':  '#8C8C8C',
+                    'Ultra Premium': '#595959',
+                    'Corporate':     '#262626',
+                  }
+                  return (
+                    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'space-between', gap: 16 }}>
+                      <div style={{ display: 'flex', height: 32, borderRadius: 2, overflow: 'hidden' }}>
+                        {mixCartoesPorCategoria.map((m) => {
+                          const bg = tierColors[m.categoria]
+                          const dark = ['Ultra Premium', 'Corporate'].includes(m.categoria)
+                          return (
+                            <div
+                              key={m.categoria}
+                              title={`${m.categoria}: ${m.pct}%`}
+                              style={{
+                                flexBasis: `${m.pct}%`,
+                                background: bg,
+                                color: dark ? '#fff' : 'rgba(0,0,0,0.85)',
+                                fontSize: 11,
+                                fontWeight: 600,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontVariantNumeric: 'tabular-nums',
+                              }}
+                            >
+                              {m.pct >= 8 ? `${m.pct}%` : ''}
+                            </div>
+                          )
+                        })}
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        {mixCartoesPorCategoria.map((m) => (
+                          <div
+                            key={m.categoria}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              fontSize: 12,
+                              color: 'rgba(0,0,0,0.85)',
+                            }}
+                          >
+                            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <span
+                                style={{
+                                  width: 10,
+                                  height: 10,
+                                  background: tierColors[m.categoria],
+                                  borderRadius: 2,
+                                  display: 'inline-block',
+                                }}
+                              />
+                              {m.categoria}
+                            </span>
+                            <span style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{m.pct}%</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })()}
+              </CardSection>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, alignItems: 'stretch' }}>
               <CardSection title="Distribuição de contagem por bandeira" icon="filter">
                 <DonutBreakdown
                   data={bandeiraDistribuicao.map((b) => ({ label: b.bandeira, value: b.pct, color: b.color }))}

@@ -8,6 +8,7 @@ import {
   getPriceBlueprintTables,
   getPriceItems,
 } from '@/services/pricingService'
+import { useCurrentMerchantId } from '@/hooks/useCurrentMerchant'
 import type {
   CostBlueprintTable, CostItem, Installment, PriceBlueprintTable, PriceItem,
 } from '@/services/types/pricing.types'
@@ -26,6 +27,7 @@ export interface UsePricingResult {
  * Carrega tudo do módulo Pricing em paralelo. Read-only.
  */
 export function usePricingData(): UsePricingResult {
+  const merchantId = useCurrentMerchantId()
   const [installments, setInstallments] = useState<Installment[]>([])
   const [costTables, setCostTables] = useState<CostBlueprintTable[]>([])
   const [costItems, setCostItems] = useState<CostItem[]>([])
@@ -39,9 +41,9 @@ export function usePricingData(): UsePricingResult {
     setLoading(true)
     Promise.all([
       getInstallments(),
-      getCostBlueprintTables(),
-      getCostItems(),
-      getPriceBlueprintTables(),
+      getCostBlueprintTables({ merchant_id: merchantId }),
+      getCostItems({ merchant_id: merchantId }),
+      getPriceBlueprintTables({ merchant_id: merchantId }),
       getPriceItems(),
     ])
       .then(([insts, ctabs, citems, ptabs, pitems]) => {
@@ -58,7 +60,7 @@ export function usePricingData(): UsePricingResult {
       })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
-  }, [])
+  }, [merchantId])
 
   return { installments, costTables, costItems, priceTables, priceItems, loading, error }
 }

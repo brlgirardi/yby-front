@@ -1,10 +1,77 @@
 # Auditoria Tupi-Fintech DEV — Sincronização com Yby Front
 
-> **Data:** 2026-05-14 (rev 2 — aprofundada)
+> **Data:** 2026-05-14 (rev 3 — com API pública DEV oficial)
 > **Escopo:** Repositórios `github.com/tupi-fintech/*` (branch `develop`), exceto chargeback*, archived, infra, labs, SDKs mobile, ds-* (data science).
 > **Objetivo:** Mapear APIs, modelos de domínio e gaps pra alinhar o Yby Front com o ambiente DEV dos backends Go.
-> **Status:** Rev 2 — 7 repos centrais + 17 secundários + `yby-go-pkg` + `yby-ui` (frontend produção) auditados.
-> **Auth nota:** Keycloak fica fora dessa rodada — vamos manter mock até time backend abrir acesso.
+> **Status:** Rev 3 — descoberta da **API pública oficial DEV**: `https://yby-dev.positivolabs.com.br/v1`
+> **Auth nota:** API pública usa JWT direto via `POST /v1/auth` com `username + password` (sem Keycloak no front).
+
+---
+
+## 0. ⭐ API Pública DEV (descoberta rev 3)
+
+**URL Base:** `https://yby-dev.positivolabs.com.br/v1`
+**Docs:** `github.com/tupi-fintech/yby-docs` (Docusaurus interno) — `/docs/apis/*`
+**Auth:** JWT via `POST /v1/auth` com `{username, password}` (sem Keycloak no front, direto JWT).
+**Token:** `access_token` (5 min) + `refresh_token` (30 min).
+
+### Endpoints documentados
+
+| Método | Path | Função |
+|--------|------|--------|
+| `POST` | `/v1/auth` | Obtém access/refresh token |
+| `POST` | `/v1/merchants` | Criar merchant (com address + bankAccounts + contactPerson + contact) |
+| `GET` | `/v1/merchants` | Listar merchants (offset/limit/order_by/order) |
+| `GET` | `/v1/merchants/{id}` | Detalhe |
+| `PUT` | `/v1/merchants/{id}` | Update |
+| `POST` | `/v1/merchants/{id}/verification-codes` | Geração de código de verificação |
+| `GET` | `/v1/providers` | Lista adquirentes disponíveis (`pagseguro`, `cielo`, `rede`, `stone`, `getnet`, `adiq`) |
+| `POST` | `/v1/credentials` | Cria credential (vincula merchant a provider com MID + authData) |
+| `GET` | `/v1/credentials` | Lista credentials |
+| `POST` | `/v1/terminals` | Criar terminal (com `merchantId` + `serialNumber`) — devolve verificationCode 6 dígitos |
+| `GET` | `/v1/terminals` | Listar terminais |
+| `GET` | `/v1/terminals/{id}` | Detalhe |
+| `PUT` | `/v1/terminals/{id}` | Update |
+| `GET` | `/v1/transactions/summaries` | Lista summaries |
+| `GET` | `/v1/transactions/summaries/{id}` | Detalhe summary |
+| `GET` | `/v1/webhooks/events` | Lista eventos webhook |
+
+### Convenções
+- **Naming:** todos os campos em **camelCase** (`dbaName`, `postalCode`, `accountType`, `createdAt`)
+- **Paginação:** `offset` (default 0), `limit` (default 20), `order_by` (default `created_at`), `order` (default `DESC`)
+- **Erros:** ver `yby-docs/docs/apis/errors.md`
+
+### Payload POST /v1/merchants — **espelho EXATO do nosso MerchantFormData**
+
+```json
+{
+  "dbaName": "Coffee Shop LTDA",
+  "corporateName": "Coffee Shop Comércio LTDA",
+  "taxId": "12345678000190",
+  "merchantCategoryCode": "5347",
+  "economicActivityCode": "4712100",
+  "contact": { "site": "...", "email": "...", "phone": "+5511..." },
+  "address": {
+    "postalCode": "01234567", "state": "SP", "city": "São Paulo",
+    "neighborhood": "Centro", "street": "Rua das Flores", "number": "123",
+    "complement": "Sala 1", "country": "BR"
+  },
+  "bankAccounts": [{
+    "bankId": "...", "accountType": "checking",
+    "routingNumber": "0001", "accountNumber": "12345678-9"
+  }],
+  "contactPerson": [{
+    "name": "...", "taxId": "...", "email": "...",
+    "phone": "...", "position": "Gerente"
+  }]
+}
+```
+
+> **Atenção:** o contrato real do `/v1/merchants` é **MUITO MAIS RICO** do que o `POST /api/onboarding` do organization-api que mapeamos antes. A API pública é a fonte da verdade — o `/api/onboarding` parece ser endpoint interno legacy.
+
+### Próxima ação imediata
+
+Refazer o `organizationService.ts` apontando pra `/v1/merchants` (API pública) em vez de `/api/onboarding` (organization-api interno).
 
 ---
 

@@ -1,4 +1,6 @@
 /**
+ * ⚠️ MOCK-ONLY até a API pública Tupi expor endpoints de conciliação por adquirente.
+ *
  * Service de conciliação por adquirente — espelhado do yby-ui Tupi.
  *
  * Endpoints reais (yby-ui usa BASE_API_URL/yby-reconciliation):

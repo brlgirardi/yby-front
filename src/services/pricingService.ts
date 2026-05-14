@@ -1,4 +1,6 @@
 /**
+ * ⚠️ MOCK-ONLY até a API pública Tupi expor endpoints de pricing/custos.
+ *
  * Service de Pricing (Custos + Preços) — espelhado do branch feat/pricing do yby-ui Tupi.
  *
  * Endpoints reais (yby-bff → yby-pricing-economics-api):

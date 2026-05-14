@@ -1,4 +1,6 @@
 /**
+ * ⚠️ MOCK-ONLY até a API pública Tupi expor endpoints de recebíveis/agenda.
+ *
  * Receivables Service — integração com yby-bff /public/receivables-calendar/*.
  *
  * Fonte real (BFF que proxia o yby-ledger receivables-calendar):

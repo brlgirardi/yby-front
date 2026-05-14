@@ -1,5 +1,6 @@
 import { apiMode, mockDelay, request, ApiError } from './apiClient'
 import type { LoginRequest, LoginResponse, User } from './types/auth.types'
+import type { TupiAuthResponse } from './types/tupi.types'
 
 const MOCK_USER: User = {
   name: 'Bruno Girardi',
@@ -34,11 +35,21 @@ export async function login(data: LoginRequest): Promise<LoginResponse> {
       isFirstAccess: false,
     }
   }
-  return request<LoginResponse>('/auth/login', {
+  // API pública Tupi: POST /v1/auth com { username, password } → JWT (5min) + refresh (30min)
+  const res = await request<TupiAuthResponse>('/v1/auth', {
     method: 'POST',
-    data,
+    data: { username: data.email, password: data.password },
     allowWriteInReadOnly: true,
   })
+  // Backend público hoje não devolve user no /v1/auth — preencher mínimo até
+  // GET /v1/me (ou equivalente) estar disponível.
+  const user: User = {
+    name: data.email,
+    email: data.email,
+    organization: { id: '', taxId: '', name: '', type: 'subacquirer' },
+    roles: [],
+  }
+  return { accessToken: res.access_token, user, isFirstAccess: false }
 }
 
 export async function logout(): Promise<void> {

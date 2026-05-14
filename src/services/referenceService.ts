@@ -1,4 +1,7 @@
 /**
+ * ⚠️ MOCK-ONLY até a API pública Tupi expor endpoints de reference data.
+ * (Backend interno organization-api tem; API pública /v1 ainda não documentou.)
+ *
  * Reference Service — dados de referência (bancos, MCCs, faixas de faturamento, CNAEs).
  *
  * Fonte real: yby-organization-api

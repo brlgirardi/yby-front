@@ -2,7 +2,7 @@
 // Dashboard Sub-adquirente — refatorado para usar CardSection + wrappers Recharts.
 // 3 abas: Geral / Planificação / Antecipação. Theme-aware (Tupi/Vero).
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import PageHeader from '@/components/shared/PageHeader'
 import CardSection from '@/components/shared/CardSection'
 import KpiCard from '@/components/ui/KpiCard'
@@ -70,6 +70,17 @@ export default function DashboardPage() {
 
   const ranked = [...MERCHANTS].sort((a, b) => b.txns - a.txns).slice(0, 6)
 
+  /**
+   * Loading state — refletindo fetch real assim que o backend de transações
+   * estiver no /v1/transactions/summaries. Resetar a cada mudança de filtro.
+   */
+  const [loading, setLoading] = useState(true)
+  useEffect(() => {
+    setLoading(true)
+    const id = setTimeout(() => setLoading(false), 350)
+    return () => clearTimeout(id)
+  }, [tab, mcc, periodo])
+
   return (
     <div style={{ flex:1, overflow:'auto', display:'flex', flexDirection:'column' }}>
       <PageHeader title="Dashboard" breadcrumb="Sub-adquirente / Dashboard" extra={
@@ -136,6 +147,7 @@ export default function DashboardPage() {
               subLabel="Total do período"
               trend="+14% vs. mês anterior"
               trendUp
+              loading={loading}
               tooltip="Soma de todas as cobranças criadas pelos merchants no período."
             />
             <KpiCard
@@ -144,6 +156,7 @@ export default function DashboardPage() {
               subLabel="Taxa de aprovação 95,2%"
               trend="+9% vs. mês anterior"
               trendUp
+              loading={loading}
               tooltip="Cobranças que foram efetivamente autorizadas pelo emissor."
             />
             <KpiCard
@@ -152,18 +165,21 @@ export default function DashboardPage() {
               subLabel="Transações"
               trend="+7% vs. mês anterior"
               trendUp
+              loading={loading}
               tooltip="Número total de transações processadas."
             />
             <KpiCard
               label="Merchants ativos"
               value="7"
               subLabel="de 8 cadastrados"
+              loading={loading}
               tooltip="Merchants com pelo menos uma transação no período."
             />
             <KpiCard
               label="MDR médio"
               value="2,34%"
               subLabel="Blended rate"
+              loading={loading}
               tooltip="Taxa média ponderada (MDR) cobrada dos merchants no período."
             />
           </div>

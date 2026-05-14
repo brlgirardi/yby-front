@@ -1,14 +1,18 @@
 /**
  * Service de Pricing (Custos + Preços) — espelhado do branch feat/pricing do yby-ui Tupi.
  *
- * Endpoints reais (BFF /bff-pricing-economics → /pricing/...):
- *   GET /pricing/installments
- *   GET /pricing/cost-items?acquirer_id=...
- *   GET /pricing/cost-blueprint-tables?merchant_id=...
- *   GET /pricing/cost-blueprint-items?cost_blueprint_table_id=...
- *   GET /pricing/price-items?cost_items_id=...
- *   GET /pricing/price-blueprint-tables?merchant_id=...
- *   POST /pricing/price-preview { cost_item_id, margin }
+ * Endpoints reais (yby-bff → yby-pricing-economics-api):
+ *   GET  /public/pricing/installments
+ *   GET  /public/pricing/cost-blueprints          (lista CostBlueprint)
+ *   GET  /public/pricing/cost-blueprints/{id}     (detalhe + items)
+ *   GET  /public/pricing/price-blueprints         (lista PriceBlueprint)
+ *   GET  /public/pricing/price-blueprints/{id}    (detalhe + items)
+ *
+ * O nosso service expõe CRUD mais granular (CostItem, CostBlueprintTable,
+ * CostBlueprintItem, PriceItem, PriceBlueprintTable, PriceBlueprintItem)
+ * porque a UI navega por tabela → bandeira → método. O mapeamento entre
+ * essa API granular e os endpoints aglomerados do BFF acontece quando
+ * `apiMode='real'` for ativado — hoje só roda mock.
  */
 
 import { apiMode, mockDelay, request } from './apiClient'
@@ -24,7 +28,7 @@ import type {
   PricePreviewResponse,
 } from './types/pricing.types'
 
-const BASE = '/pricing'
+const BASE = '/public/pricing'
 
 /* ────────────────────────────────────────────────────────────────────── *
  * MOCK DATA — refletindo um sub-adquirente Tupi com 2 adquirentes (Adiq, GetNet)

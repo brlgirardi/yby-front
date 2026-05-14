@@ -13,7 +13,7 @@ import { useRouter } from 'next/navigation'
 import PageHeader from '@/components/shared/PageHeader'
 import Button from '@/components/atoms/Button'
 import DetalhesEC from './tabs/DetalhesEC'
-import CanaisPlaceholder from './tabs/CanaisPlaceholder'
+import CanaisTab from './tabs/CanaisTab'
 import TerminaisPlaceholder from './tabs/TerminaisPlaceholder'
 import { emptyForm, type MerchantFormData, type OnboardingTab } from './types'
 
@@ -79,7 +79,7 @@ export default function MerchantOnboarding() {
         {activeTab === 'detalhes' && (
           <DetalhesEC form={form} onChange={setForm} footerActions={actions} />
         )}
-        {activeTab === 'canais' && <CanaisPlaceholder />}
+        {activeTab === 'canais' && <CanaisTab form={form} onChange={setForm} readonly={false} />}
         {activeTab === 'terminais' && <TerminaisPlaceholder />}
       </div>
     </div>

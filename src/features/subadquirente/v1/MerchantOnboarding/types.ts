@@ -5,6 +5,17 @@
 
 export type OnboardingTab = 'detalhes' | 'canais' | 'terminais'
 
+export interface AdquirenteCanal {
+  id: string
+  adquirenteId: string
+  mid: string
+}
+
+export interface CanalConfig {
+  enabled: boolean
+  adquirentes: AdquirenteCanal[]
+}
+
 export interface MerchantFormData {
   // --- Card A: Dados do estabelecimento ---
   semCnpj: boolean
@@ -19,6 +30,12 @@ export interface MerchantFormData {
   endereco: string
   numero: string
   complemento: string
+
+  // --- Tab Canais ---
+  canais: {
+    cp: CanalConfig
+    cnp: CanalConfig
+  }
 }
 
 export const emptyForm: MerchantFormData = {
@@ -32,6 +49,10 @@ export const emptyForm: MerchantFormData = {
   endereco: '',
   numero: '',
   complemento: '',
+  canais: {
+    cp: { enabled: true, adquirentes: [] },
+    cnp: { enabled: true, adquirentes: [] },
+  },
 }
 
 /** Card "Dados do estabelecimento" — válido quando documento + razão social + MCC ok. */

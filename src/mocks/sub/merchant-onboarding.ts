@@ -58,6 +58,15 @@ export const FATURAMENTOS: Option[] = [
   { value: 'acima-5m',    label: 'Acima de R$ 5.000.000' },
 ]
 
+/** Adquirentes credenciados disponíveis para vincular nos canais (CP/CNP). */
+export const ADQUIRENTES: Option[] = [
+  { value: 'cielo',     label: 'Cielo' },
+  { value: 'rede',      label: 'Rede' },
+  { value: 'stone',     label: 'Stone' },
+  { value: 'getnet',    label: 'Getnet' },
+  { value: 'pagseguro', label: 'PagSeguro' },
+]
+
 /** Bancos atendidos pelo recebimento. Códigos COMPE para referência. */
 export const BANCOS: Banco[] = [
   { value: 'itau',      label: 'Itaú Unibanco',     codigo: '341' },

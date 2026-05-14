@@ -14,7 +14,7 @@ import Button from '@/components/atoms/Button'
 import DetalhesEC from './tabs/DetalhesEC'
 import CanaisTab from './tabs/CanaisTab'
 import TerminaisTab from './tabs/TerminaisTab'
-import { emptyForm, type MerchantFormData, type OnboardingTab } from './types'
+import { emptyForm, validateMerchantForm, type MerchantFormData, type OnboardingTab } from './types'
 import { createMerchant, updateMerchant } from '@/services/organizationService'
 
 export type OnboardingMode = 'create' | 'view' | 'edit'
@@ -69,6 +69,18 @@ export default function MerchantOnboarding({
 
   async function handleSaveCreate() {
     if (saving) return
+    const errors = validateMerchantForm(form)
+    if (errors.length > 0) {
+      // Pula pra primeira tab que tem erro pra usuário enxergar o campo.
+      const hasDadosError = errors.some((e) =>
+        ['cnpj', 'razaoSocial', 'mcc', 'cep', 'estado', 'cidade', 'endereco', 'numero'].includes(e.field),
+      )
+      const hasCanaisError = errors.some((e) => e.field.startsWith('canais.'))
+      if (hasDadosError) setActiveTab('detalhes')
+      else if (hasCanaisError) setActiveTab('canais')
+      message.error(errors[0].message)
+      return
+    }
     setSaving(true)
     try {
       const created = await createMerchant(form)

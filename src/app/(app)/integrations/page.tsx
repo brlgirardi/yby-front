@@ -15,6 +15,7 @@ import {
   listCredentials,
 } from '@/services/credentialsService'
 import type { TupiCredential, TupiProviderName } from '@/services/types/tupi.types'
+import { useCurrentMerchantId } from '@/hooks/useCurrentMerchant'
 
 const CARD: React.CSSProperties = {
   background: '#fff',
@@ -51,6 +52,7 @@ const BADGE_AVAILABLE: React.CSSProperties = {
 }
 
 export default function IntegrationsPage() {
+  const merchantId = useCurrentMerchantId()
   const [providers, setProviders] = useState<ProviderOption[]>([])
   const [credentials, setCredentials] = useState<TupiCredential[]>([])
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -98,7 +100,7 @@ export default function IntegrationsPage() {
     setSaving(true)
     try {
       const created = await createCredential({
-        merchantId: 'merchant_yby_demo', // TODO: vir do contexto do usuário
+        merchantId,
         providerId: selected.value,
         providerName: (selected.name as TupiProviderName) ?? 'cielo',
         mid: mid.trim(),

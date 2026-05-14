@@ -49,16 +49,34 @@ type RequestOptions = {
 
 const TOKEN_STORAGE_KEY = 'auth-storage'
 
-function getToken(): string | null {
+interface PersistedAuth {
+  state?: {
+    accessToken?: string | null
+    user?: { organization?: { id?: string | null } | null } | null
+  }
+}
+
+function readPersistedAuth(): PersistedAuth | null {
   if (typeof window === 'undefined') return null
   try {
     const raw = window.localStorage.getItem(TOKEN_STORAGE_KEY)
-    if (!raw) return null
-    const parsed = JSON.parse(raw) as { state?: { accessToken?: string | null } }
-    return parsed.state?.accessToken ?? null
+    return raw ? (JSON.parse(raw) as PersistedAuth) : null
   } catch {
     return null
   }
+}
+
+function getToken(): string | null {
+  return readPersistedAuth()?.state?.accessToken ?? null
+}
+
+/**
+ * Backend Tupi usa middleware `OrganizationID` que lê o header X-Organization-ID
+ * em todas as requisições autenticadas. Retorna o id da organization do user
+ * logado (persistido pelo zustand auth-storage).
+ */
+function getOrganizationId(): string | null {
+  return readPersistedAuth()?.state?.user?.organization?.id ?? null
 }
 
 function buildUrl(path: string, params?: RequestOptions['params']): string {
@@ -89,6 +107,8 @@ export async function request<T = unknown>(path: string, opts: RequestOptions = 
   if (!isFormData) headers['Content-Type'] = 'application/json'
   const token = getToken()
   if (token) headers['Authorization'] = `Bearer ${token}`
+  const orgId = getOrganizationId()
+  if (orgId) headers['X-Organization-ID'] = orgId
 
   const res = await fetch(buildUrl(path, params), {
     method,

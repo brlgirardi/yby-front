@@ -9,9 +9,10 @@ import AppSelect from '@/components/ui/AppSelect'
 import {
   CIDADES_POR_UF,
   ESTADOS,
-  MCCS,
   lookupCep,
+  type Option,
 } from '@/mocks/sub/merchant-onboarding'
+import { getMerchantCategories } from '@/services/referenceService'
 import { type MerchantFormData } from '../types'
 
 interface DetalhesECProps {
@@ -79,6 +80,17 @@ const FOOTER: React.CSSProperties = {
 export default function DetalhesEC({ form, onChange, footerActions, readonly = false }: DetalhesECProps) {
   const [cepLoading, setCepLoading] = useState(false)
   const [cepNotFound, setCepNotFound] = useState(false)
+  const [mccs, setMccs] = useState<Option[]>([])
+
+  useEffect(() => {
+    let cancelled = false
+    getMerchantCategories().then((options) => {
+      if (!cancelled) setMccs(options)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   function set<K extends keyof MerchantFormData>(field: K, value: MerchantFormData[K]) {
     onChange({ ...form, [field]: value })
@@ -173,7 +185,7 @@ export default function DetalhesEC({ form, onChange, footerActions, readonly = f
           label="Código da Atividade Econômica (MCC)*"
           placeholder="Selecione o MCC"
           value={form.mcc || undefined}
-          options={MCCS}
+          options={mccs}
           onChange={(v) => set('mcc', String(v ?? ''))}
           showSearch
           optionFilterProp="label"

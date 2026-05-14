@@ -18,6 +18,10 @@ interface KpiCardProps {
   label: string
   value: string
   subLabel?: string
+  /** Texto de tendência (ex: "+14% vs. mês anterior"). Cor segue trendUp. */
+  trend?: string
+  /** Cor verde (true) ou vermelha (false). Default true. */
+  trendUp?: boolean
   variant?: KpiVariant
   tooltip?: string
   loading?: boolean
@@ -28,12 +32,15 @@ export default function KpiCard({
   label,
   value,
   subLabel,
+  trend,
+  trendUp = true,
   variant = 'neutral',
   tooltip,
   loading = false,
   style,
 }: KpiCardProps) {
   const s = variantStyles[variant]
+  const trendColor = trendUp ? '#52c41a' : '#ff4d4f'
 
   return (
     <>
@@ -90,6 +97,9 @@ export default function KpiCard({
             lineHeight: '32px',
             color: s.valueColor,
             fontFamily: 'Roboto, sans-serif',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
           }}
         >
           {value}
@@ -108,6 +118,14 @@ export default function KpiCard({
           }}
         >
           {subLabel}
+        </div>
+      )}
+
+      {/* Trend */}
+      {trend && !loading && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 6 }}>
+          <Icon name="trendingUp" size={12} color={trendColor} />
+          <span style={{ fontSize: 12, fontWeight: 500, color: trendColor }}>{trend}</span>
         </div>
       )}
     </div>

@@ -5,8 +5,8 @@
 import { useState } from 'react'
 import PageHeader from '@/components/shared/PageHeader'
 import CardSection from '@/components/shared/CardSection'
-import Icon from '@/components/atoms/Icon'
-import BrandLogo from '@/components/atoms/BrandLogo'
+import KpiCard from '@/components/ui/KpiCard'
+import AppSelect from '@/components/ui/AppSelect'
 import { useTheme } from '@/stores/themeStore'
 import { DonutBreakdown, MultiLineKPI, BarList } from '@/components/charts'
 import SubMonitorAvancado from '@/features/subadquirente/v1/MonitorAvancado/SubMonitorAvancado'
@@ -22,27 +22,6 @@ const MERCHANTS = [
   { id:'MCH-008', name:'Netshoes',          cnpj:'07.526.557/0001-00', mcc:'5661', status:'Inativo',  volume:'R$ 89.400,00',    txns:  740 },
 ]
 
-interface KpiCardProps { label: string; value: string; prefix?: string; sub?: string; trend?: string; trendUp?: boolean }
-const KpiCard = ({ label, value, prefix = 'R$', sub, trend, trendUp }: KpiCardProps) => (
-  <div style={{ background:'#fff', borderRadius:2, border:'1px solid rgba(0,0,0,0.06)', padding:'20px 24px 16px', flex:1, minWidth:0 }}>
-    <div style={{ display:'flex', justifyContent:'space-between', marginBottom:8 }}>
-      <span style={{ fontSize:13, color:'rgba(0,0,0,0.45)' }}>{label}</span>
-      <Icon name="info" size={14} color="rgba(0,0,0,0.2)" />
-    </div>
-    <div style={{ display:'flex', alignItems:'baseline', gap:4, marginBottom:4 }}>
-      {prefix && <span style={{ fontSize:16, color:'rgba(0,0,0,0.85)' }}>{prefix}</span>}
-      <span style={{ fontSize:30, fontWeight:500, color:'rgba(0,0,0,0.85)', lineHeight:1 }}>{value}</span>
-    </div>
-    {sub && <div style={{ fontSize:12, color:'rgba(0,0,0,0.45)' }}>{sub}</div>}
-    {trend && (
-      <div style={{ display:'flex', alignItems:'center', gap:4, marginTop:4 }}>
-        <Icon name="trendingUp" size={12} color={trendUp ? '#52c41a' : '#ff4d4f'} />
-        <span style={{ fontSize:12, color: trendUp ? '#52c41a' : '#ff4d4f' }}>{trend}</span>
-      </div>
-    )}
-  </div>
-)
-
 const BRAND_COLORS: Record<string, string> = {
   Visa:       '#1A1F71',
   Mastercard: '#EB001B',
@@ -51,9 +30,29 @@ const BRAND_COLORS: Record<string, string> = {
 }
 
 export default function DashboardPage() {
-  const [tab, setTab] = useState<'geral' | 'planificação' | 'antecipação'>('geral')
+  const [tab, setTab] = useState<'geral' | 'planificacao' | 'antecipacao'>('geral')
+  const [mcc, setMcc] = useState<string>('all')
+  const [periodo, setPeriodo] = useState<string>('2026-04')
   const theme = useTheme()
-  const TABS: Array<typeof tab> = ['geral', 'planificação', 'antecipação']
+  const TABS: Array<{ key: 'geral' | 'planificacao' | 'antecipacao'; label: string }> = [
+    { key: 'geral',         label: 'Geral' },
+    { key: 'planificacao',  label: 'Planificação' },
+    { key: 'antecipacao',   label: 'Antecipação' },
+  ]
+  const MCC_OPTIONS = [
+    { value: 'all',  label: 'Todos os MCCs' },
+    { value: '5912', label: '5912 — Farmácias' },
+    { value: '5731', label: '5731 — Eletrônicos' },
+    { value: '5812', label: '5812 — Restaurantes' },
+    { value: '5999', label: '5999 — Varejo diversificado' },
+    { value: '5661', label: '5661 — Calçados' },
+  ]
+  const PERIODO_OPTIONS = [
+    { value: '2026-04', label: 'Abril 2026' },
+    { value: '2026-03', label: 'Março 2026' },
+    { value: '2026-02', label: 'Fevereiro 2026' },
+    { value: '2026-01', label: 'Janeiro 2026' },
+  ]
 
   const donutData = [
     { label: 'Visa',       value: 4823 },
@@ -74,45 +73,99 @@ export default function DashboardPage() {
   return (
     <div style={{ flex:1, overflow:'auto', display:'flex', flexDirection:'column' }}>
       <PageHeader title="Dashboard" breadcrumb="Sub-adquirente / Dashboard" extra={
-        <div style={{ display:'flex', gap:8 }}>
-          {TABS.map((t) => {
-            const active = tab === t
-            return (
-              <button
-                key={t}
-                onClick={() => setTab(t)}
-                style={{
-                  border: active ? `1px solid ${theme.primary}` : '1px solid #d9d9d9',
-                  background: active ? theme.primaryBg : '#fff',
-                  color: active ? theme.primary : 'rgba(0,0,0,0.65)',
-                  borderRadius: 2, padding: '6px 16px', fontSize: 14, cursor: 'pointer',
-                  textTransform: 'capitalize',
-                }}
-              >
-                {t}
-              </button>
-            )
-          })}
-          <button style={{ border:'1px solid #d9d9d9', background:'#fff', borderRadius:2, padding:'6px 14px', fontSize:14, cursor:'pointer', display:'flex', alignItems:'center', gap:6, color:'rgba(0,0,0,0.65)' }}>Todos os MCCs <Icon name="chevronDown" size={12} color="rgba(0,0,0,0.45)" /></button>
-          <button style={{ border:'1px solid #d9d9d9', background:'#fff', borderRadius:2, padding:'6px 14px', fontSize:14, cursor:'pointer', display:'flex', alignItems:'center', gap:6, color:'rgba(0,0,0,0.65)' }}><Icon name="calendar" size={14} color="rgba(0,0,0,0.45)" /> Abril 2026 <Icon name="chevronDown" size={12} color="rgba(0,0,0,0.45)" /></button>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          {/* Tabs primary (Geral/Planificação/Antecipação) */}
+          <div style={{ display: 'flex', gap: 4 }}>
+            {TABS.map((t) => {
+              const active = tab === t.key
+              return (
+                <button
+                  key={t.key}
+                  onClick={() => setTab(t.key)}
+                  style={{
+                    border: active ? `1px solid ${theme.primary}` : '1px solid #d9d9d9',
+                    background: active ? theme.primaryBg : '#fff',
+                    color: active ? theme.primary : 'rgba(0,0,0,0.65)',
+                    borderRadius: 2,
+                    padding: '6px 16px',
+                    fontSize: 14,
+                    cursor: 'pointer',
+                    fontWeight: active ? 500 : 400,
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  {t.label}
+                </button>
+              )
+            })}
+          </div>
+
+          {/* Filtros */}
+          <div style={{ width: 200 }}>
+            <AppSelect
+              placeholder="Todos os MCCs"
+              value={mcc}
+              options={MCC_OPTIONS}
+              onChange={(v) => setMcc(String(v ?? 'all'))}
+            />
+          </div>
+          <div style={{ width: 160 }}>
+            <AppSelect
+              placeholder="Período"
+              value={periodo}
+              options={PERIODO_OPTIONS}
+              onChange={(v) => setPeriodo(String(v ?? '2026-04'))}
+            />
+          </div>
         </div>
       } onBack={null} />
 
-      {tab === 'antecipação' && (
+      {tab === 'antecipacao' && (
         <div style={{ padding: 24 }}>
           <SubMonitorAvancado embedded />
         </div>
       )}
 
-      {tab !== 'antecipação' && (
-        <div style={{ padding:24, display:'flex', flexDirection:'column', gap:24 }}>
-          {/* KPIs */}
-          <div style={{ display:'flex', gap:24 }}>
-            <KpiCard label="Cobranças criadas"      value="1.240.500,00" sub="Total do período"     trend="+14% vs. mês anterior" trendUp />
-            <KpiCard label="Cobranças autorizadas"  value="1.180.200,00" sub="Taxa de aprovação 95,2%" trend="+9%"  trendUp />
-            <KpiCard label="Quantidade"             prefix="" value="38.140" sub="Transações"          trend="+7%"  trendUp />
-            <KpiCard label="Merchants ativos"       prefix="" value="7"      sub="de 8 cadastrados" />
-            <KpiCard label="MDR médio"              prefix="" value="2,34%"  sub="Blended rate" />
+      {tab !== 'antecipacao' && (
+        <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 24 }}>
+          {/* KPIs — usa KpiCard do DS (whiteSpace nowrap evita truncamento) */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
+            <KpiCard
+              label="Cobranças criadas"
+              value="R$ 1.240.500,00"
+              subLabel="Total do período"
+              trend="+14% vs. mês anterior"
+              trendUp
+              tooltip="Soma de todas as cobranças criadas pelos merchants no período."
+            />
+            <KpiCard
+              label="Cobranças autorizadas"
+              value="R$ 1.180.200,00"
+              subLabel="Taxa de aprovação 95,2%"
+              trend="+9% vs. mês anterior"
+              trendUp
+              tooltip="Cobranças que foram efetivamente autorizadas pelo emissor."
+            />
+            <KpiCard
+              label="Quantidade"
+              value="38.140"
+              subLabel="Transações"
+              trend="+7% vs. mês anterior"
+              trendUp
+              tooltip="Número total de transações processadas."
+            />
+            <KpiCard
+              label="Merchants ativos"
+              value="7"
+              subLabel="de 8 cadastrados"
+              tooltip="Merchants com pelo menos uma transação no período."
+            />
+            <KpiCard
+              label="MDR médio"
+              value="2,34%"
+              subLabel="Blended rate"
+              tooltip="Taxa média ponderada (MDR) cobrada dos merchants no período."
+            />
           </div>
 
           {/* Donut + Linhas */}

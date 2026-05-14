@@ -19,6 +19,8 @@ interface DetalhesECProps {
   onChange: (next: MerchantFormData) => void
   /** Mesmo grupo de botões do header (sincronizado) — repetido aqui pra evitar scroll. */
   footerActions: React.ReactNode
+  /** Quando true, todos os campos ficam disabled (modo view). Default false. */
+  readonly?: boolean
 }
 
 function maskCnpj(v: string): string {
@@ -74,7 +76,7 @@ const FOOTER: React.CSSProperties = {
   paddingTop: 8,
 }
 
-export default function DetalhesEC({ form, onChange, footerActions }: DetalhesECProps) {
+export default function DetalhesEC({ form, onChange, footerActions, readonly = false }: DetalhesECProps) {
   const [cepLoading, setCepLoading] = useState(false)
   const [cepNotFound, setCepNotFound] = useState(false)
 
@@ -83,6 +85,7 @@ export default function DetalhesEC({ form, onChange, footerActions }: DetalhesEC
   }
 
   useEffect(() => {
+    if (readonly) return
     const digits = form.cep.replace(/\D/g, '')
     if (digits.length !== 8) {
       setCepNotFound(false)
@@ -125,7 +128,7 @@ export default function DetalhesEC({ form, onChange, footerActions }: DetalhesEC
             placeholder="00.000.000/0000-00"
             value={form.cnpj}
             onChange={(e) => set('cnpj', maskCnpj(e.target.value))}
-            disabled={form.semCnpj}
+            disabled={readonly || form.semCnpj}
             aria-required={!form.semCnpj}
           />
           <Input
@@ -134,6 +137,7 @@ export default function DetalhesEC({ form, onChange, footerActions }: DetalhesEC
             value={form.razaoSocial}
             onChange={(e) => set('razaoSocial', e.target.value.slice(0, 100))}
             maxLength={100}
+            disabled={readonly}
             aria-required
           />
         </div>
@@ -155,11 +159,12 @@ export default function DetalhesEC({ form, onChange, footerActions }: DetalhesEC
           <input
             type="checkbox"
             checked={form.semCnpj}
+            disabled={readonly}
             onChange={(e) => {
               const semCnpj = e.target.checked
               onChange({ ...form, semCnpj, cnpj: semCnpj ? '' : form.cnpj })
             }}
-            style={{ width: 16, height: 16, cursor: 'pointer' }}
+            style={{ width: 16, height: 16, cursor: readonly ? 'not-allowed' : 'pointer' }}
           />
           Não possuo CNPJ
         </label>
@@ -172,6 +177,7 @@ export default function DetalhesEC({ form, onChange, footerActions }: DetalhesEC
           onChange={(v) => set('mcc', String(v ?? ''))}
           showSearch
           optionFilterProp="label"
+          disabled={readonly}
         />
       </section>
 
@@ -188,6 +194,7 @@ export default function DetalhesEC({ form, onChange, footerActions }: DetalhesEC
             error={cepNotFound ? 'CEP não encontrado — preencha manualmente' : undefined}
             hint={cepLoading ? 'Buscando endereço…' : undefined}
             suffix={cepLoading ? 'search' : undefined}
+            disabled={readonly}
             aria-required
           />
           <AppSelect
@@ -198,6 +205,7 @@ export default function DetalhesEC({ form, onChange, footerActions }: DetalhesEC
             onChange={(v) => onChange({ ...form, estado: String(v ?? ''), cidade: '' })}
             showSearch
             optionFilterProp="label"
+            disabled={readonly}
           />
           <AppSelect
             label="Cidade*"
@@ -207,7 +215,7 @@ export default function DetalhesEC({ form, onChange, footerActions }: DetalhesEC
             onChange={(v) => set('cidade', String(v ?? ''))}
             showSearch
             optionFilterProp="label"
-            disabled={!form.estado || cidadesUf.length === 0}
+            disabled={readonly || !form.estado || cidadesUf.length === 0}
           />
         </div>
 
@@ -217,6 +225,7 @@ export default function DetalhesEC({ form, onChange, footerActions }: DetalhesEC
             placeholder="Rua, avenida..."
             value={form.endereco}
             onChange={(e) => set('endereco', e.target.value.slice(0, 120))}
+            disabled={readonly}
             aria-required
           />
           <Input
@@ -224,6 +233,7 @@ export default function DetalhesEC({ form, onChange, footerActions }: DetalhesEC
             placeholder="123"
             value={form.numero}
             onChange={(e) => set('numero', e.target.value.slice(0, 10))}
+            disabled={readonly}
             aria-required
           />
           <Input
@@ -231,6 +241,7 @@ export default function DetalhesEC({ form, onChange, footerActions }: DetalhesEC
             placeholder="Ex: Apto 101"
             value={form.complemento}
             onChange={(e) => set('complemento', e.target.value.slice(0, 60))}
+            disabled={readonly}
           />
         </div>
       </section>

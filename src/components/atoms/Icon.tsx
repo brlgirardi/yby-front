@@ -12,6 +12,8 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronUp,
+  CircleHelp,
+  CircleX,
   Copy,
   CreditCard,
   Download,
@@ -100,6 +102,8 @@ const ICON_MAP: Record<string, React.ComponentType<{ size?: number; color?: stri
   copy:           Copy,
   alertTriangle:  AlertTriangle,
   checkCircle:    CheckCircle,
+  circleX:        CircleX,
+  circleHelp:     CircleHelp,
   upload:         Upload,
   sparkles:       Sparkles,
   // "pos" — usamos Smartphone (mais próximo conceitualmente)

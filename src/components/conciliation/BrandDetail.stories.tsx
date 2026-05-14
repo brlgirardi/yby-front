@@ -33,23 +33,23 @@ const brands: Record<string, BrandData> = {
   visaReconciled: {
     id: 'cons_001_visa', useConfigId: 'cfg_visa_credit', consolidationId: 'cons_001',
     name: 'visa', conciliationRate: 100, status: 'reconciled',
-    transactions: { sourceA: 1240, sourceB: 1240 },
-    tpv: { sourceA: 285430.50, sourceB: 285430.50 },
-    itc: { sourceA: 5708.61, sourceB: 5708.61 },
+    transactions: { total: 1240, reconciled: 1240, divergent: 0, pending: 0 },
+    tpv: { total: 285430.50, reconciled: 285430.50, divergent: 0, pending: 0 },
+    itc: { total: 5708.61, reconciled: 5708.61, divergent: 0, pending: 0 },
   },
   mcMismatch: {
     id: 'cons_002_mc', useConfigId: 'cfg_mastercard_credit', consolidationId: 'cons_002',
-    name: 'mastercard', conciliationRate: 99.16, status: 'mismatch',
-    transactions: { sourceA: 892, sourceB: 884 },
-    tpv: { sourceA: 198320.00, sourceB: 197850.00 },
-    itc: { sourceA: 4561.36, sourceB: 4549.55 },
+    name: 'mastercard', conciliationRate: 89.69, status: 'mismatch',
+    transactions: { total: 892, reconciled: 800, divergent: 50, pending: 42 },
+    tpv: { total: 198320.00, reconciled: 178650.00, divergent: 11420.00, pending: 8250.00 },
+    itc: { total: 4561.36, reconciled: 4108.95, divergent: 262.66, pending: 189.75 },
   },
   amexEmpty: {
     id: 'cons_999_amex', useConfigId: 'cfg_amex_unknown', consolidationId: 'cons_999',
     name: 'amex', conciliationRate: 100, status: 'reconciled',
-    transactions: { sourceA: 0, sourceB: 0 },
-    tpv: { sourceA: 0, sourceB: 0 },
-    itc: { sourceA: 0, sourceB: 0 },
+    transactions: { total: 0, reconciled: 0, divergent: 0, pending: 0 },
+    tpv: { total: 0, reconciled: 0, divergent: 0, pending: 0 },
+    itc: { total: 0, reconciled: 0, divergent: 0, pending: 0 },
   },
 }
 

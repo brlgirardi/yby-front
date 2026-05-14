@@ -39,13 +39,14 @@ export default function ConciliationOverview({ date, onDateChange, onBrandClick 
   const filtered = useMemo(() => applyConciliationFilters(brands, filters), [brands, filters])
 
   const totals = useMemo(() => {
-    const totalTransactions = brands.reduce((acc, b) => acc + (b.transactions.sourceA + b.transactions.sourceB) / 2, 0)
-    const totalTpv = brands.reduce((acc, b) => acc + (b.tpv.sourceA + b.tpv.sourceB) / 2, 0)
-    const reconciled = brands.filter(b => b.status === 'reconciled').length
-    const mismatch = brands.filter(b => b.status === 'mismatch' || b.status === 'not_reconciled').length
-    const partialPlus = brands.filter(b => b.status === 'partially_reconciled').length
-    const avgRate = brands.length ? brands.reduce((a, b) => a + b.conciliationRate, 0) / brands.length : 0
-    return { totalTransactions, totalTpv, reconciled, mismatch, partialPlus, avgRate, total: brands.length }
+    // Quantas bandeiras estão em cada estado (para os KPIs do topo)
+    const totalReconciledTpv = brands.reduce((acc, b) => acc + b.tpv.reconciled, 0)
+    const totalTpv = brands.reduce((acc, b) => acc + b.tpv.total, 0)
+    const fullyReconciled = brands.filter(b => b.transactions.divergent === 0 && b.transactions.pending === 0).length
+    const hasDivergent = brands.filter(b => b.transactions.divergent > 0).length
+    const hasPending = brands.filter(b => b.transactions.pending > 0).length
+    const avgRate = totalTpv > 0 ? (totalReconciledTpv / totalTpv) * 100 : 0
+    return { totalReconciledTpv, totalTpv, fullyReconciled, hasDivergent, hasPending, avgRate, total: brands.length }
   }, [brands])
 
   // dayStatus: alimenta a barra de progresso do DateScroller para o dia selecionado.
@@ -85,38 +86,47 @@ export default function ConciliationOverview({ date, onDateChange, onBrandClick 
         <KpiCard
           label="Bandeiras consolidadas"
           value={String(totals.total)}
-          subLabel={`${totals.reconciled} reconciliadas`}
+          subLabel={`${totals.fullyReconciled} 100% conciliadas`}
           variant="info"
-          tooltip="Quantidade de pares (bandeira × tipo) com consolidação para a data."
+          tooltip="Pares (bandeira × tipo) com consolidação para a data."
           loading={loading}
-          style={{ flex: 1, minWidth: 180 }}
+          style={{ flex: 1, minWidth: 160 }}
         />
         <KpiCard
           label="Volume conciliado"
-          value={formatCurrencyShort(totals.totalTpv)}
-          subLabel="média capture/outgoing"
+          value={formatCurrencyShort(totals.totalReconciledTpv)}
+          subLabel={`de ${formatCurrencyShort(totals.totalTpv)} total`}
           variant="success"
-          tooltip="TPV médio entre as duas origens (capture e outgoing) das bandeiras do dia."
+          tooltip="TPV que bateu exato entre capture (A) e outgoing (B) — soma da linha ✓ de todas as bandeiras."
           loading={loading}
-          style={{ flex: 1, minWidth: 180 }}
+          style={{ flex: 1, minWidth: 160 }}
         />
         <KpiCard
-          label="Divergências abertas"
-          value={String(totals.mismatch)}
-          subLabel={totals.partialPlus ? `+ ${totals.partialPlus} parciais` : 'todas conciliadas'}
-          variant={totals.mismatch > 0 ? 'error' : 'success'}
-          tooltip="Pares com divergência total entre capture e outgoing — exigem investigação no detalhe."
+          label="Com divergência"
+          value={String(totals.hasDivergent)}
+          subLabel={totals.hasDivergent === 0 ? 'nenhuma' : 'valores diferentes'}
+          variant={totals.hasDivergent > 0 ? 'error' : 'success'}
+          tooltip="Bandeiras com pelo menos 1 transação onde achou par em B mas com valor diferente de A — exigem investigação no detalhe."
           loading={loading}
-          style={{ flex: 1, minWidth: 180 }}
+          style={{ flex: 1, minWidth: 160 }}
+        />
+        <KpiCard
+          label="Com pendência"
+          value={String(totals.hasPending)}
+          subLabel={totals.hasPending === 0 ? 'sem pendência' : 'arquivo ausente'}
+          variant={totals.hasPending > 0 ? 'warning' : 'success'}
+          tooltip="Bandeiras com pelo menos 1 transação em A sem par em B — provavelmente arquivo (EDI) ausente ou ilegível. Verifique a integração."
+          loading={loading}
+          style={{ flex: 1, minWidth: 160 }}
         />
         <KpiCard
           label="Taxa média"
           value={`${totals.avgRate.toFixed(1)}%`}
-          subLabel="conciliação"
+          subLabel="TPV conciliado ÷ total"
           variant={totals.avgRate >= 99 ? 'success' : totals.avgRate >= 95 ? 'warning' : 'error'}
-          tooltip="Média da taxa de conciliação (capture × outgoing) entre todas as bandeiras."
+          tooltip="(TPV reconciliado de todas as bandeiras) ÷ (TPV total). Peso por volume, não por contagem."
           loading={loading}
-          style={{ flex: 1, minWidth: 180 }}
+          style={{ flex: 1, minWidth: 160 }}
         />
       </div>
 

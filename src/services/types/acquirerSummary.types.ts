@@ -12,6 +12,20 @@ export interface AcquirerStatsByEntryFile {
   transaction_count: number
   tpv: number
   itc: number
+  /**
+   * Decomposição opcional do total. Quando presente:
+   *   transaction_count = reconciled + divergent + pending
+   * Se ausente, a UI infere a partir da comparação entre source_a e source_b.
+   */
+  reconciled_count?: number
+  divergent_count?: number
+  pending_count?: number
+  reconciled_tpv?: number
+  divergent_tpv?: number
+  pending_tpv?: number
+  reconciled_itc?: number
+  divergent_itc?: number
+  pending_itc?: number
 }
 
 export interface AcquirerSummary {
@@ -28,24 +42,31 @@ export interface AcquirerSummary {
 
 export type AcquirerSummaryResponse = AcquirerSummary | AcquirerSummary[]
 
-/** View model normalizado para a UI (camelCase + dados derivados). */
+/**
+ * Decomposição de uma métrica (transações / TPV / ITC) em 3 buckets:
+ *   total = reconciled + divergent + pending
+ *
+ * - reconciled: bateu A com B exato
+ * - divergent:  achou par em B mas valor diferente
+ * - pending:    está em A mas não tem par em B (arquivo ausente / dado faltando)
+ */
+export interface MetricBreakdown {
+  total: number
+  reconciled: number
+  divergent: number
+  pending: number
+}
+
+/** View model normalizado para a UI. */
 export interface BrandData {
   id: string
   useConfigId: string
   consolidationId: string
   name: string
+  /** % de A que bateu exato com B = reconciled / total. */
   conciliationRate: number
   status?: string
-  transactions: {
-    sourceA: number
-    sourceB: number
-  }
-  tpv: {
-    sourceA: number
-    sourceB: number
-  }
-  itc: {
-    sourceA: number
-    sourceB: number
-  }
+  transactions: MetricBreakdown
+  tpv: MetricBreakdown
+  itc: MetricBreakdown
 }

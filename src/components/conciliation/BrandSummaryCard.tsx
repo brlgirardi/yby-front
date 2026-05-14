@@ -3,20 +3,23 @@
 import { Card, Col, Row } from 'antd'
 import BrandLogo from '@/components/atoms/BrandLogo'
 import { formatCurrency } from '@/lib/conciliation/formatters'
-import type { BrandData } from '@/services/types/acquirerSummary.types'
+import type { BrandData, MetricBreakdown } from '@/services/types/acquirerSummary.types'
 import ConciliationBadge from '@/components/atoms/ConciliationBadge'
-import Metric from './Metric'
+import Metric, { type MetricRow } from './Metric'
 
 export interface BrandSummaryCardProps {
   brand: BrandData
 }
 
-/**
- * Card de sumário no topo do BrandDetail. Mesma estrutura visual do
- * AcquirerSummaryCard, mas sem onClick (já estamos no detalhe).
- *
- * Espelha `BrandSummaryCard` do branch LGR-264-recon-acquirer.
- */
+function buildRows(b: MetricBreakdown, fmt: (n: number) => string): MetricRow[] {
+  const rows: MetricRow[] = [{ kind: 'reconciled', value: fmt(b.reconciled) }]
+  if (b.divergent > 0) rows.push({ kind: 'mismatch', value: fmt(b.divergent) })
+  if (b.pending > 0) rows.push({ kind: 'notReconciled', value: fmt(b.pending) })
+  return rows
+}
+
+const intFmt = (n: number) => Math.round(n).toLocaleString('pt-BR')
+
 export default function BrandSummaryCard({ brand }: BrandSummaryCardProps) {
   return (
     <Card style={{ marginBottom: 12 }} styles={{ body: { padding: '20px 24px' } }}>
@@ -30,33 +33,15 @@ export default function BrandSummaryCard({ brand }: BrandSummaryCardProps) {
         </Col>
 
         <Col flex="1 1 0">
-          <Metric
-            label="Transações"
-            valuePrimary={brand.transactions.sourceA.toLocaleString('pt-BR')}
-            valueSecondary={brand.transactions.sourceB.toLocaleString('pt-BR')}
-            firstValue={brand.transactions.sourceA}
-            secondValue={brand.transactions.sourceB}
-          />
+          <Metric label="Transações" rows={buildRows(brand.transactions, intFmt)} />
         </Col>
 
         <Col flex="1 1 0">
-          <Metric
-            label="TPV"
-            valuePrimary={formatCurrency(brand.tpv.sourceA)}
-            valueSecondary={formatCurrency(brand.tpv.sourceB)}
-            firstValue={brand.tpv.sourceA}
-            secondValue={brand.tpv.sourceB}
-          />
+          <Metric label="TPV" rows={buildRows(brand.tpv, formatCurrency)} />
         </Col>
 
         <Col flex="1 1 0">
-          <Metric
-            label="ITC"
-            valuePrimary={formatCurrency(brand.itc.sourceA)}
-            valueSecondary={formatCurrency(brand.itc.sourceB)}
-            firstValue={brand.itc.sourceA}
-            secondValue={brand.itc.sourceB}
-          />
+          <Metric label="ITC" rows={buildRows(brand.itc, formatCurrency)} />
         </Col>
       </Row>
     </Card>

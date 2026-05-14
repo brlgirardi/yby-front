@@ -10,9 +10,11 @@
 
 import { apiMode, mockDelay, request } from './apiClient'
 import type {
+  AcquirerStatsByEntryFile,
   AcquirerSummary,
   AcquirerSummaryResponse,
   BrandData,
+  MetricBreakdown,
 } from './types/acquirerSummary.types'
 import type {
   AcquirerIncomingOutgoingByGroupCodeResponse,
@@ -23,6 +25,20 @@ import type {
 
 const MOCK_DATE = '2026-04-24'
 
+/**
+ * MOCK realista — 6 cenários cobrindo todos os estados visuais.
+ *
+ * Cada source_a traz a decomposição explícita (reconciled_count, divergent_count, pending_count)
+ * pra UI mostrar até 3 linhas por métrica:
+ *   ✓ reconciled (verde/neutro) · ✗ divergent (vermelho) · ? pending (cinza)
+ *
+ *   1. Visa       → 100% reconciled                       (verde, 1 linha)
+ *   2. Mastercard → MISTO: conciliado + divergente + pendente (amarelo, 3 linhas)
+ *   3. Elo        → conciliado + pequena divergência       (amarelo, 2 linhas ✓✗)
+ *   4. Amex       → 100% reconciled                       (verde, 1 linha)
+ *   5. Hipercard  → tudo pendente (arquivo ausente)        (amarelo, 2 linhas ✓? — ✓ é zero)
+ *   6. Cabal      → MISTO grave: pouco bateu, muito divergiu e muito faltou (amarelo, 3 linhas)
+ */
 const MOCK_SUMMARY: AcquirerSummary[] = [
   {
     use_config_id: 'cfg_visa_credit',
@@ -30,7 +46,12 @@ const MOCK_SUMMARY: AcquirerSummary[] = [
     date: MOCK_DATE,
     metadata: {
       brand: 'visa',
-      source_a: { transaction_count: 1240, tpv: 285430.50, itc: 5708.61 },
+      source_a: {
+        transaction_count: 1240, tpv: 285430.50, itc: 5708.61,
+        reconciled_count: 1240, divergent_count: 0,  pending_count: 0,
+        reconciled_tpv: 285430.50, divergent_tpv: 0, pending_tpv: 0,
+        reconciled_itc: 5708.61,   divergent_itc: 0, pending_itc: 0,
+      },
       source_b: { transaction_count: 1240, tpv: 285430.50, itc: 5708.61 },
     },
     status: 'reconciled',
@@ -41,8 +62,14 @@ const MOCK_SUMMARY: AcquirerSummary[] = [
     date: MOCK_DATE,
     metadata: {
       brand: 'mastercard',
-      source_a: { transaction_count: 892, tpv: 198320.00, itc: 4561.36 },
-      source_b: { transaction_count: 884, tpv: 197850.00, itc: 4549.55 },
+      // Total A = 892 / R$ 198.320 — quebra em 800 bateram, 50 divergiram, 42 faltaram.
+      source_a: {
+        transaction_count: 892, tpv: 198320.00, itc: 4561.36,
+        reconciled_count: 800, divergent_count: 50, pending_count: 42,
+        reconciled_tpv: 178650.00, divergent_tpv: 11420.00, pending_tpv: 8250.00,
+        reconciled_itc: 4108.95,   divergent_itc: 262.66,   pending_itc: 189.75,
+      },
+      source_b: { transaction_count: 850, tpv: 190070.00, itc: 4371.61 },
     },
     status: 'mismatch',
   },
@@ -52,8 +79,14 @@ const MOCK_SUMMARY: AcquirerSummary[] = [
     date: MOCK_DATE,
     metadata: {
       brand: 'elo',
-      source_a: { transaction_count: 412, tpv: 76420.00, itc: 916.72 },
-      source_b: { transaction_count: 410, tpv: 76200.00, itc: 914.40 },
+      // 412 total, 410 bateram, 2 divergiram (arredondamento), 0 pendente.
+      source_a: {
+        transaction_count: 412, tpv: 76420.00, itc: 916.72,
+        reconciled_count: 410, divergent_count: 2, pending_count: 0,
+        reconciled_tpv: 76200.00, divergent_tpv: 220.00, pending_tpv: 0,
+        reconciled_itc: 914.40,   divergent_itc: 2.32,   pending_itc: 0,
+      },
+      source_b: { transaction_count: 412, tpv: 76420.00, itc: 916.72 },
     },
     status: 'partially_reconciled',
   },
@@ -63,10 +96,49 @@ const MOCK_SUMMARY: AcquirerSummary[] = [
     date: MOCK_DATE,
     metadata: {
       brand: 'amex',
-      source_a: { transaction_count: 124, tpv: 42180.00, itc: 1265.40 },
+      source_a: {
+        transaction_count: 124, tpv: 42180.00, itc: 1265.40,
+        reconciled_count: 124, divergent_count: 0, pending_count: 0,
+        reconciled_tpv: 42180.00, divergent_tpv: 0, pending_tpv: 0,
+        reconciled_itc: 1265.40,  divergent_itc: 0, pending_itc: 0,
+      },
       source_b: { transaction_count: 124, tpv: 42180.00, itc: 1265.40 },
     },
     status: 'reconciled',
+  },
+  {
+    use_config_id: 'cfg_hipercard_credit',
+    consolidation_id: 'cons_005',
+    date: MOCK_DATE,
+    metadata: {
+      brand: 'hipercard',
+      // 58 transações em A, arquivo B não chegou → tudo pendente.
+      source_a: {
+        transaction_count: 58, tpv: 9420.00, itc: 188.40,
+        reconciled_count: 0, divergent_count: 0, pending_count: 58,
+        reconciled_tpv: 0, divergent_tpv: 0, pending_tpv: 9420.00,
+        reconciled_itc: 0, divergent_itc: 0, pending_itc: 188.40,
+      },
+      source_b: { transaction_count: 0, tpv: 0, itc: 0 },
+    },
+    status: 'not_reconciled',
+  },
+  {
+    use_config_id: 'cfg_cabal_credit',
+    consolidation_id: 'cons_006',
+    date: MOCK_DATE,
+    metadata: {
+      brand: 'cabal',
+      // 320 total: 150 bateram, 90 divergiram, 80 faltaram. Cenário pior caso.
+      source_a: {
+        transaction_count: 320, tpv: 58200.00, itc: 1280.40,
+        reconciled_count: 150, divergent_count: 90, pending_count: 80,
+        reconciled_tpv: 27840.00, divergent_tpv: 15850.00, pending_tpv: 14510.00,
+        reconciled_itc: 612.48,   divergent_itc: 348.70,   pending_itc: 319.22,
+      },
+      source_b: { transaction_count: 240, tpv: 43690.00, itc: 961.18 },
+    },
+    status: 'mismatch',
   },
 ]
 
@@ -94,16 +166,70 @@ const MOCK_MISMATCH: AcquirerMismatchCaptureOutgoingResponse = {
 }
 
 /**
+ * Decompõe uma métrica em 3 buckets a partir do par (source_a, source_b).
+ *
+ * Quando o backend retorna explicitamente `reconciled_*`/`divergent_*`/`pending_*`,
+ * usa esses valores. Caso contrário, infere:
+ *   - se A === B  → tudo reconciled
+ *   - se B === 0  → tudo pending (arquivo ausente)
+ *   - se A === 0  → tudo pending (mesmo cenário, espelhado)
+ *   - se A > B    → reconciled = B, pending = A - B
+ *   - se A < B    → reconciled = A, divergent = B - A (over-billing do outgoing)
+ *
+ * É inferência grosseira pra UI funcionar enquanto o backend não decompõe.
+ * Quando o backend devolver, basta passar os campos opcionais que esta função
+ * passa a preferi-los.
+ */
+function decomposeMetric(
+  aTotal: number,
+  bTotal: number,
+  reconciled?: number,
+  divergent?: number,
+  pending?: number,
+): MetricBreakdown {
+  if (reconciled !== undefined || divergent !== undefined || pending !== undefined) {
+    const r = reconciled ?? 0
+    const d = divergent ?? 0
+    const p = pending ?? 0
+    return { total: r + d + p, reconciled: r, divergent: d, pending: p }
+  }
+  // Inferência: A é a fonte da verdade. Compara com B.
+  if (aTotal === bTotal) return { total: aTotal, reconciled: aTotal, divergent: 0, pending: 0 }
+  if (bTotal === 0) return { total: aTotal, reconciled: 0, divergent: 0, pending: aTotal }
+  if (aTotal === 0) return { total: bTotal, reconciled: 0, divergent: 0, pending: bTotal }
+  if (aTotal > bTotal) {
+    return { total: aTotal, reconciled: bTotal, divergent: 0, pending: aTotal - bTotal }
+  }
+  // aTotal < bTotal
+  return { total: aTotal, reconciled: aTotal, divergent: bTotal - aTotal, pending: 0 }
+}
+
+/**
  * Normaliza AcquirerSummary (snake_case Tupi) → BrandData (camelCase para UI).
+ *
+ * O modelo da UI decompõe cada métrica (transações, TPV, ITC) em 3 buckets:
+ *   total = reconciled + divergent + pending
+ *
+ * conciliationRate = reconciled / total (em %)
  */
 export function summaryToBrandData(s: AcquirerSummary): BrandData {
   const a = s.metadata.source_a
   const b = s.metadata.source_b
-  const totalA = a.tpv || 0
-  const totalB = b.tpv || 0
-  const denom = Math.max(totalA, totalB) || 1
-  const matched = Math.min(totalA, totalB)
-  const rate = (matched / denom) * 100
+
+  const transactions = decomposeMetric(
+    a.transaction_count, b.transaction_count,
+    a.reconciled_count, a.divergent_count, a.pending_count,
+  )
+  const tpv = decomposeMetric(
+    a.tpv, b.tpv,
+    a.reconciled_tpv, a.divergent_tpv, a.pending_tpv,
+  )
+  const itc = decomposeMetric(
+    a.itc, b.itc,
+    a.reconciled_itc, a.divergent_itc, a.pending_itc,
+  )
+
+  const rate = tpv.total > 0 ? (tpv.reconciled / tpv.total) * 100 : 0
 
   return {
     id: `${s.consolidation_id}_${s.use_config_id}`,
@@ -112,9 +238,9 @@ export function summaryToBrandData(s: AcquirerSummary): BrandData {
     name: s.metadata.brand,
     conciliationRate: Number.isFinite(rate) ? rate : 0,
     status: s.status,
-    transactions: { sourceA: a.transaction_count, sourceB: b.transaction_count },
-    tpv: { sourceA: a.tpv, sourceB: b.tpv },
-    itc: { sourceA: a.itc, sourceB: b.itc },
+    transactions,
+    tpv,
+    itc,
   }
 }
 

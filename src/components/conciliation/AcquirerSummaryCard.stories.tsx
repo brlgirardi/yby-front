@@ -36,9 +36,9 @@ const reconciledBrand: BrandData = {
   name: 'visa',
   conciliationRate: 100,
   status: 'reconciled',
-  transactions: { sourceA: 1240, sourceB: 1240 },
-  tpv: { sourceA: 285430.50, sourceB: 285430.50 },
-  itc: { sourceA: 5708.61, sourceB: 5708.61 },
+  transactions: { total: 1240, reconciled: 1240, divergent: 0, pending: 0 },
+  tpv: { total: 285430.50, reconciled: 285430.50, divergent: 0, pending: 0 },
+  itc: { total: 5708.61, reconciled: 5708.61, divergent: 0, pending: 0 },
 }
 
 const mismatchBrand: BrandData = {
@@ -46,11 +46,11 @@ const mismatchBrand: BrandData = {
   useConfigId: 'cfg_mastercard_credit',
   consolidationId: 'cons_002',
   name: 'mastercard',
-  conciliationRate: 99.16,
+  conciliationRate: 89.69,
   status: 'mismatch',
-  transactions: { sourceA: 892, sourceB: 884 },
-  tpv: { sourceA: 198320.00, sourceB: 197850.00 },
-  itc: { sourceA: 4561.36, sourceB: 4549.55 },
+  transactions: { total: 892, reconciled: 800, divergent: 50, pending: 42 },
+  tpv: { total: 198320.00, reconciled: 178650.00, divergent: 11420.00, pending: 8250.00 },
+  itc: { total: 4561.36, reconciled: 4108.95, divergent: 262.66, pending: 189.75 },
 }
 
 const partialBrand: BrandData = {
@@ -58,11 +58,11 @@ const partialBrand: BrandData = {
   useConfigId: 'cfg_elo_debit',
   consolidationId: 'cons_003',
   name: 'elo',
-  conciliationRate: 97.13,
+  conciliationRate: 99.71,
   status: 'partially_reconciled',
-  transactions: { sourceA: 412, sourceB: 410 },
-  tpv: { sourceA: 76420, sourceB: 76200 },
-  itc: { sourceA: 916.72, sourceB: 914.40 },
+  transactions: { total: 412, reconciled: 410, divergent: 2, pending: 0 },
+  tpv: { total: 76420, reconciled: 76200, divergent: 220, pending: 0 },
+  itc: { total: 916.72, reconciled: 914.40, divergent: 2.32, pending: 0 },
 }
 
 export const Reconciliado: Story = {

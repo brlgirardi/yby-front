@@ -67,6 +67,61 @@ export const ADQUIRENTES: Option[] = [
   { value: 'pagseguro', label: 'PagSeguro' },
 ]
 
+/**
+ * Mock de cadastros completos por id de EC — usado pelas rotas view/edit.
+ * Mantém apenas campos do Onboarding (Detalhes + Canais). Listagem real (volume,
+ * txns, status) fica em MERCHANTS de /merchants/page.tsx.
+ */
+export interface MerchantOnboardingRecord {
+  id: string
+  semCnpj: boolean
+  cnpj: string
+  razaoSocial: string
+  mcc: string
+  cep: string
+  estado: string
+  cidade: string
+  endereco: string
+  numero: string
+  complemento: string
+  canais: {
+    cp: { enabled: boolean; adquirentes: Array<{ id: string; adquirenteId: string; mid: string }> }
+    cnp: { enabled: boolean; adquirentes: Array<{ id: string; adquirenteId: string; mid: string }> }
+  }
+}
+
+export const MERCHANT_ONBOARDING_RECORDS: Record<string, MerchantOnboardingRecord> = {
+  'MCH-001': {
+    id: 'MCH-001', semCnpj: false, cnpj: '00.776.574/0001-56', razaoSocial: 'Americanas S.A.', mcc: '5912',
+    cep: '01310-100', estado: 'SP', cidade: 'sao-paulo', endereco: 'Av. Paulista', numero: '1106', complemento: 'Sala 1',
+    canais: {
+      cp:  { enabled: true,  adquirentes: [{ id: 'a1', adquirenteId: 'cielo', mid: '012345001' }, { id: 'a2', adquirenteId: 'rede', mid: '012345002' }] },
+      cnp: { enabled: true,  adquirentes: [{ id: 'a3', adquirenteId: 'getnet', mid: '987001' }] },
+    },
+  },
+  'MCH-002': {
+    id: 'MCH-002', semCnpj: false, cnpj: '47.960.950/0001-21', razaoSocial: 'Magazine Luiza', mcc: '5732',
+    cep: '14401-130', estado: 'SP', cidade: 'sao-paulo', endereco: 'Rua Voluntários da Pátria', numero: '1130', complemento: '',
+    canais: {
+      cp:  { enabled: true,  adquirentes: [{ id: 'a1', adquirenteId: 'cielo', mid: '022001100' }, { id: 'a2', adquirenteId: 'stone', mid: '022001200' }] },
+      cnp: { enabled: true,  adquirentes: [{ id: 'a3', adquirenteId: 'pagseguro', mid: '999001' }] },
+    },
+  },
+  'MCH-003': {
+    id: 'MCH-003', semCnpj: false, cnpj: '28.665.021/0001-89', razaoSocial: 'Rappi Brasil', mcc: '5812',
+    cep: '04543-000', estado: 'SP', cidade: 'sao-paulo', endereco: 'Av. Brigadeiro Faria Lima', numero: '3477', complemento: '14º andar',
+    canais: {
+      cp:  { enabled: false, adquirentes: [] },
+      cnp: { enabled: true,  adquirentes: [{ id: 'a1', adquirenteId: 'getnet', mid: '333010' }, { id: 'a2', adquirenteId: 'pagseguro', mid: '333011' }] },
+    },
+  },
+}
+
+/** Lookup de cadastro por id de EC. Retorna null se não existir. */
+export function getMerchantRecord(id: string): MerchantOnboardingRecord | null {
+  return MERCHANT_ONBOARDING_RECORDS[id] ?? null
+}
+
 /** Bancos atendidos pelo recebimento. Códigos COMPE para referência. */
 export const BANCOS: Banco[] = [
   { value: 'itau',      label: 'Itaú Unibanco',     codigo: '341' },

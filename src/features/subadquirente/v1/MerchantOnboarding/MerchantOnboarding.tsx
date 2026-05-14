@@ -1,21 +1,30 @@
 'use client'
 // src/features/subadquirente/v1/MerchantOnboarding/MerchantOnboarding.tsx
-// Página dedicada de Onboarding de EC.
-// Estado CRIAÇÃO: ações Cancelar / Avançar / Salvar duplicadas no header E no footer
-// (sincronizadas — facilita uso quando o form é longo).
-//
-// Avançar = persiste tab atual + muda pra próxima (Canais).
-// Salvar = persiste e mantém na tab atual.
-// Cancelar = volta pra /merchants.
+// Página dedicada de Onboarding de EC — 3 modos:
+//   - create: /merchants/novo                          → Cancelar / Salvar / Avançar
+//   - view:   /merchants/[id]                          → Sair / Editar (primary)
+//   - edit:   /merchants/[id]?edit=1                   → Cancelar / Salvar (primary)
+// Botões duplicados header + footer (sincronizados).
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Modal } from 'antd'
 import PageHeader from '@/components/shared/PageHeader'
 import Button from '@/components/atoms/Button'
 import DetalhesEC from './tabs/DetalhesEC'
 import CanaisTab from './tabs/CanaisTab'
 import TerminaisPlaceholder from './tabs/TerminaisPlaceholder'
 import { emptyForm, type MerchantFormData, type OnboardingTab } from './types'
+
+export type OnboardingMode = 'create' | 'view' | 'edit'
+
+interface MerchantOnboardingProps {
+  mode?: OnboardingMode
+  /** Dados iniciais (para view/edit). Quando omitido, usa emptyForm. */
+  initialForm?: MerchantFormData
+  /** ID do EC carregado — exibido no título quando em view/edit. */
+  merchantId?: string
+}
 
 const TABS: { key: OnboardingTab; label: string }[] = [
   { key: 'detalhes', label: 'Detalhes do EC' },
@@ -29,57 +38,162 @@ const NEXT_TAB: Record<OnboardingTab, OnboardingTab | null> = {
   terminais: null,
 }
 
-export default function MerchantOnboarding() {
+export default function MerchantOnboarding({
+  mode = 'create',
+  initialForm,
+  merchantId,
+}: MerchantOnboardingProps) {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<OnboardingTab>('detalhes')
-  const [form, setForm] = useState<MerchantFormData>(emptyForm)
+  const [form, setForm] = useState<MerchantFormData>(initialForm ?? emptyForm)
+  const isView = mode === 'view'
+  const isEdit = mode === 'edit'
+  const isCreate = mode === 'create'
 
-  function handleCancel() {
+  // Em edit, detecta dirty (formulário diferente do snapshot inicial).
+  const dirty = useMemo(() => {
+    if (!isEdit || !initialForm) return false
+    return JSON.stringify(form) !== JSON.stringify(initialForm)
+  }, [form, initialForm, isEdit])
+
+  function goToList() {
     router.push('/merchants')
   }
 
-  function handleSave() {
-    // Persistência real virá nas próximas fases.
-    router.push('/merchants')
+  function handleCancelCreate() {
+    goToList()
+  }
+
+  function handleSaveCreate() {
+    // Persistência real virá nas próximas fases — apenas volta pra listagem.
+    goToList()
   }
 
   function handleAdvance() {
     const next = NEXT_TAB[activeTab]
-    if (next) {
-      setActiveTab(next)
-    } else {
-      handleSave()
-    }
+    if (next) setActiveTab(next)
+    else handleSaveCreate()
   }
 
-  const isLast = NEXT_TAB[activeTab] === null
-  const advanceLabel = isLast ? 'Concluir' : 'Avançar'
+  function handleEditClick() {
+    if (merchantId) router.push(`/merchants/${merchantId}?edit=1`)
+  }
 
-  const actions = (
-    <>
-      <Button variant="secondary" onClick={handleCancel}>Cancelar</Button>
-      <Button variant="secondary" onClick={handleSave}>Salvar</Button>
-      <Button variant="primary" onClick={handleAdvance}>{advanceLabel}</Button>
-    </>
-  )
+  function handleSaveEdit() {
+    if (!merchantId) {
+      goToList()
+      return
+    }
+    // Persistência real virá nas próximas fases — volta pra view.
+    router.push(`/merchants/${merchantId}`)
+  }
+
+  function handleCancelEdit() {
+    if (!dirty) {
+      if (merchantId) router.push(`/merchants/${merchantId}`)
+      else goToList()
+      return
+    }
+    Modal.confirm({
+      title: 'Descartar alterações?',
+      content: 'Os dados editados não serão salvos.',
+      okText: 'Descartar alterações',
+      okButtonProps: { danger: true },
+      cancelText: 'Continuar editando',
+      onOk: () => {
+        setForm(initialForm ?? emptyForm)
+        if (merchantId) router.push(`/merchants/${merchantId}`)
+        else goToList()
+      },
+    })
+  }
+
+  function handleExitView() {
+    goToList()
+  }
+
+  const isLastTab = NEXT_TAB[activeTab] === null
+  const advanceLabel = isLastTab ? 'Concluir' : 'Avançar'
+
+  const actions = (() => {
+    if (isCreate) {
+      return (
+        <>
+          <Button variant="secondary" onClick={handleCancelCreate}>Cancelar</Button>
+          <Button variant="secondary" onClick={handleSaveCreate}>Salvar</Button>
+          <Button variant="primary" onClick={handleAdvance}>{advanceLabel}</Button>
+        </>
+      )
+    }
+    if (isEdit) {
+      return (
+        <>
+          <Button variant="secondary" onClick={handleCancelEdit}>Cancelar</Button>
+          <Button variant="primary" onClick={handleSaveEdit}>Salvar</Button>
+        </>
+      )
+    }
+    // view
+    return (
+      <>
+        <Button variant="secondary" onClick={handleExitView}>Sair</Button>
+        <Button variant="primary" onClick={handleEditClick}>Editar</Button>
+      </>
+    )
+  })()
+
+  const title = (() => {
+    if (isCreate) return 'Novo estabelecimento'
+    return form.razaoSocial || merchantId || 'Estabelecimento'
+  })()
+
+  const modeTag = isView ? 'Visualizando' : isEdit ? 'Editando' : null
+
+  const breadcrumb = isCreate
+    ? 'Sub-adquirente / Estabelecimentos / Novo'
+    : `Sub-adquirente / Estabelecimentos / ${isEdit ? 'Editar' : 'Visualizar'}`
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, background: '#fafafa' }}>
       <PageHeader
-        title="Novo estabelecimento"
-        breadcrumb="Sub-adquirente / Estabelecimentos / Novo"
-        onBack={() => router.push('/merchants')}
+        title={title}
+        breadcrumb={breadcrumb}
+        onBack={() => goToList()}
         tabs={TABS}
         activeTab={activeTab}
         onTabChange={(k) => setActiveTab(k as OnboardingTab)}
-        extra={actions}
+        extra={
+          <>
+            {modeTag && (
+              <span style={{
+                fontSize: 12,
+                color: isEdit ? '#1890ff' : 'rgba(0,0,0,0.45)',
+                background: isEdit ? '#e6f4ff' : '#f5f5f5',
+                border: `1px solid ${isEdit ? '#91d5ff' : '#d9d9d9'}`,
+                borderRadius: 2,
+                padding: '2px 8px',
+                marginRight: 8,
+              }}>
+                {modeTag}
+              </span>
+            )}
+            {actions}
+          </>
+        }
       />
 
       <div style={{ flex: 1, overflow: 'auto', padding: 24 }}>
         {activeTab === 'detalhes' && (
-          <DetalhesEC form={form} onChange={setForm} footerActions={actions} />
+          <DetalhesEC
+            form={form}
+            onChange={setForm}
+            footerActions={actions}
+            readonly={isView}
+          />
         )}
-        {activeTab === 'canais' && <CanaisTab form={form} onChange={setForm} />}
+        {activeTab === 'canais' && (
+          <CanaisTab form={form} onChange={setForm} readonly={isView} />
+        )}
         {activeTab === 'terminais' && <TerminaisPlaceholder />}
       </div>
     </div>

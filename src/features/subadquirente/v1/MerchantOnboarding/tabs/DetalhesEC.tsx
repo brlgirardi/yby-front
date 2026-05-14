@@ -1,16 +1,14 @@
 'use client'
 // src/features/subadquirente/v1/MerchantOnboarding/tabs/DetalhesEC.tsx
-// Tab "Detalhes do EC" — 2 AccordionCards conforme Figma V0:
+// Tab "Detalhes do EC" — 2 cards brancos no padrão DS Yby:
 //  1. Dados do estabelecimento (CNPJ + Razão Social + MCC)
 //  2. Endereço do estabelecimento (CEP + Estado + Cidade + Endereço + Número + Complemento)
 //
-// Cada card tem seu próprio footer com 3 botões (Sair / Excluir / Salvar).
-// Validação é por card — não há "Próximo" linear nesta versão.
+// Ações (Cancelar/Salvar) ficam no header global — não há footer por card.
 
 import { useEffect, useState } from 'react'
 import AccordionCard from '@/components/shared/AccordionCard'
 import Input from '@/components/atoms/Input'
-import Button from '@/components/atoms/Button'
 import AppSelect from '@/components/ui/AppSelect'
 import {
   CIDADES_POR_UF,
@@ -18,19 +16,11 @@ import {
   MCCS,
   lookupCep,
 } from '@/mocks/sub/merchant-onboarding'
-import {
-  dadosCardIsValid,
-  enderecoCardIsValid,
-  type MerchantFormData,
-} from '../types'
+import { type MerchantFormData } from '../types'
 
 interface DetalhesECProps {
   form: MerchantFormData
   onChange: (next: MerchantFormData) => void
-  onExit: () => void
-  onDelete: () => void
-  onSaveDados: () => void
-  onSaveEndereco: () => void
 }
 
 function maskCnpj(v: string): string {
@@ -47,16 +37,6 @@ function maskCep(v: string): string {
   return d.replace(/^(\d{5})(\d)/, '$1-$2')
 }
 
-const CARD_FOOTER: React.CSSProperties = {
-  display: 'flex',
-  justifyContent: 'flex-end',
-  alignItems: 'center',
-  gap: 8,
-  paddingTop: 20,
-  marginTop: 20,
-  borderTop: '1px solid #f0f0f0',
-}
-
 const FIELD_GRID: React.CSSProperties = {
   display: 'grid',
   gap: 16,
@@ -70,16 +50,7 @@ const CARD_TITLE: React.CSSProperties = {
   lineHeight: '24px',
 }
 
-export default function DetalhesEC({
-  form,
-  onChange,
-  onExit,
-  onDelete,
-  onSaveDados,
-  onSaveEndereco,
-}: DetalhesECProps) {
-  const [showDadosErrors, setShowDadosErrors] = useState(false)
-  const [showEnderecoErrors, setShowEnderecoErrors] = useState(false)
+export default function DetalhesEC({ form, onChange }: DetalhesECProps) {
   const [cepLoading, setCepLoading] = useState(false)
   const [cepNotFound, setCepNotFound] = useState(false)
 
@@ -117,26 +88,7 @@ export default function DetalhesEC({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.cep])
 
-  const dadosReq = (val: string, show: boolean) =>
-    show && val.trim().length === 0 ? 'Campo obrigatório' : undefined
-
   const cidadesUf = form.estado ? CIDADES_POR_UF[form.estado] ?? [] : []
-
-  function handleSaveDados() {
-    if (!dadosCardIsValid(form)) {
-      setShowDadosErrors(true)
-      return
-    }
-    onSaveDados()
-  }
-
-  function handleSaveEndereco() {
-    if (!enderecoCardIsValid(form)) {
-      setShowEnderecoErrors(true)
-      return
-    }
-    onSaveEndereco()
-  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -152,7 +104,6 @@ export default function DetalhesEC({
               value={form.cnpj}
               onChange={(e) => set('cnpj', maskCnpj(e.target.value))}
               disabled={form.semCnpj}
-              error={!form.semCnpj ? dadosReq(form.cnpj, showDadosErrors) : undefined}
               aria-required={!form.semCnpj}
             />
             <Input
@@ -160,7 +111,6 @@ export default function DetalhesEC({
               placeholder="Ex: Padaria do João LTDA"
               value={form.razaoSocial}
               onChange={(e) => set('razaoSocial', e.target.value.slice(0, 100))}
-              error={dadosReq(form.razaoSocial, showDadosErrors)}
               maxLength={100}
               aria-required
             />
@@ -200,14 +150,7 @@ export default function DetalhesEC({
             onChange={(v) => set('mcc', String(v ?? ''))}
             showSearch
             optionFilterProp="label"
-            error={dadosReq(form.mcc, showDadosErrors)}
           />
-        </div>
-
-        <div style={CARD_FOOTER}>
-          <Button variant="secondary" onClick={onExit}>Sair</Button>
-          <Button variant="danger" onClick={onDelete}>Excluir</Button>
-          <Button variant="primary" onClick={handleSaveDados}>Salvar</Button>
         </div>
       </AccordionCard>
 
@@ -222,10 +165,7 @@ export default function DetalhesEC({
               placeholder="00000-000"
               value={form.cep}
               onChange={(e) => set('cep', maskCep(e.target.value))}
-              error={
-                dadosReq(form.cep, showEnderecoErrors) ||
-                (cepNotFound ? 'CEP não encontrado — preencha manualmente' : undefined)
-              }
+              error={cepNotFound ? 'CEP não encontrado — preencha manualmente' : undefined}
               hint={cepLoading ? 'Buscando endereço…' : undefined}
               suffix={cepLoading ? 'search' : undefined}
               aria-required
@@ -238,7 +178,6 @@ export default function DetalhesEC({
               onChange={(v) => onChange({ ...form, estado: String(v ?? ''), cidade: '' })}
               showSearch
               optionFilterProp="label"
-              error={dadosReq(form.estado, showEnderecoErrors)}
             />
             <AppSelect
               label="Cidade*"
@@ -249,7 +188,6 @@ export default function DetalhesEC({
               showSearch
               optionFilterProp="label"
               disabled={!form.estado || cidadesUf.length === 0}
-              error={dadosReq(form.cidade, showEnderecoErrors)}
             />
           </div>
 
@@ -259,7 +197,6 @@ export default function DetalhesEC({
               placeholder="Rua, avenida..."
               value={form.endereco}
               onChange={(e) => set('endereco', e.target.value.slice(0, 120))}
-              error={dadosReq(form.endereco, showEnderecoErrors)}
               aria-required
             />
             <Input
@@ -267,7 +204,6 @@ export default function DetalhesEC({
               placeholder="123"
               value={form.numero}
               onChange={(e) => set('numero', e.target.value.slice(0, 10))}
-              error={dadosReq(form.numero, showEnderecoErrors)}
               aria-required
             />
             <Input
@@ -277,12 +213,6 @@ export default function DetalhesEC({
               onChange={(e) => set('complemento', e.target.value.slice(0, 60))}
             />
           </div>
-        </div>
-
-        <div style={CARD_FOOTER}>
-          <Button variant="secondary" onClick={onExit}>Sair</Button>
-          <Button variant="danger" onClick={onDelete}>Excluir</Button>
-          <Button variant="primary" onClick={handleSaveEndereco}>Salvar</Button>
         </div>
       </AccordionCard>
     </div>

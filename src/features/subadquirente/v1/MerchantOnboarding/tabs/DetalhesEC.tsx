@@ -5,7 +5,6 @@
 
 import { useEffect, useState } from 'react'
 import Input from '@/components/atoms/Input'
-import Button from '@/components/atoms/Button'
 import AppSelect from '@/components/ui/AppSelect'
 import {
   CIDADES_POR_UF,
@@ -18,9 +17,8 @@ import { type MerchantFormData } from '../types'
 interface DetalhesECProps {
   form: MerchantFormData
   onChange: (next: MerchantFormData) => void
-  onExit: () => void
-  onDelete: () => void
-  onEdit: () => void
+  /** Mesmo grupo de botões do header (sincronizado) — repetido aqui pra evitar scroll. */
+  footerActions: React.ReactNode
 }
 
 function maskCnpj(v: string): string {
@@ -76,7 +74,7 @@ const FOOTER: React.CSSProperties = {
   paddingTop: 8,
 }
 
-export default function DetalhesEC({ form, onChange, onExit, onDelete, onEdit }: DetalhesECProps) {
+export default function DetalhesEC({ form, onChange, footerActions }: DetalhesECProps) {
   const [cepLoading, setCepLoading] = useState(false)
   const [cepNotFound, setCepNotFound] = useState(false)
 
@@ -237,11 +235,7 @@ export default function DetalhesEC({ form, onChange, onExit, onDelete, onEdit }:
         </div>
       </section>
 
-      <div style={FOOTER}>
-        <Button variant="secondary" onClick={onExit}>Sair</Button>
-        <Button variant="danger" onClick={onDelete}>Excluir</Button>
-        <Button variant="primary" onClick={onEdit}>Editar</Button>
-      </div>
+      <div style={FOOTER}>{footerActions}</div>
     </div>
   )
 }

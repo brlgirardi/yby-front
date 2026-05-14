@@ -43,6 +43,7 @@ const v1 = {
     'financeiro',
     'reconciliation',
     'pricing',
+    'integrations',
     'usuarios',
   ],
   submenus: {

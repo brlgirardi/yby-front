@@ -26,6 +26,7 @@ const moduleIconMap: Partial<Record<ModuleKey, string>> = {
   financeiro:     'landmark',
   reconciliation: 'reconcile',
   pricing:        'landmark',
+  integrations:   'link2',
   usuarios:       'users',
   settings:       'settings',
 }
@@ -38,6 +39,7 @@ const moduleLabel: Partial<Record<ModuleKey, string>> = {
   financeiro:     'Financeiro',
   reconciliation: 'Conciliação',
   pricing:        'Custos & Precificação',
+  integrations:   'Integrações',
   usuarios:       'Usuários',
   settings:       'Configurações',
 }

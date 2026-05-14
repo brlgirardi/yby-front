@@ -58,12 +58,16 @@ export const FATURAMENTOS: Option[] = [
   { value: 'acima-5m',    label: 'Acima de R$ 5.000.000' },
 ]
 
-/** Adquirentes credenciadores disponíveis para vínculo no Onboarding EC. */
+/**
+ * Adquirentes credenciadores disponíveis para vínculo no Onboarding EC.
+ * Lista alinhada com a API pública /v1/providers (6 adquirentes oficiais).
+ */
 export const ADQUIRENTES: Option[] = [
   { value: 'cielo',     label: 'Cielo'     },
   { value: 'rede',      label: 'Rede'      },
   { value: 'stone',     label: 'Stone'     },
   { value: 'getnet',    label: 'Getnet'    },
+  { value: 'adiq',      label: 'Adiq'      },
   { value: 'pagseguro', label: 'PagSeguro' },
 ]
 

@@ -62,6 +62,7 @@ const sub: RouteMap = {
       antecipacao:  '/pricing/antecipacao',
     },
   },
+  integrations: '/integrations',
   usuarios: '/users',
   settings: '/settings',
 }

@@ -20,6 +20,22 @@ export interface CanalConfig {
   adquirentes: AdquirenteCanal[]
 }
 
+/** Vínculo de um terminal a um adquirente já credenciado no canal (1 TID por adquirente). */
+export interface TerminalAdquirente {
+  id: string
+  /** Referencia AdquirenteCanal.adquirenteId dentro do mesmo canal (ex: 'cielo'). */
+  adquirenteId: string
+  /** Terminal ID atribuído pelo adquirente. */
+  tid: string
+}
+
+export interface Terminal {
+  id: string
+  /** Identificação humana do terminal (ex: "928132 - Loja"). */
+  identificacao: string
+  vinculos: TerminalAdquirente[]
+}
+
 export interface MerchantFormData {
   // --- Card A: Dados do estabelecimento ---
   semCnpj: boolean
@@ -37,6 +53,9 @@ export interface MerchantFormData {
 
   // --- Tab Canais ---
   canais: Record<ChannelKey, CanalConfig>
+
+  // --- Tab Terminais ---
+  terminais: Record<ChannelKey, Terminal[]>
 }
 
 export const emptyForm: MerchantFormData = {
@@ -53,6 +72,10 @@ export const emptyForm: MerchantFormData = {
   canais: {
     cp: { enabled: true, adquirentes: [] },
     cnp: { enabled: true, adquirentes: [] },
+  },
+  terminais: {
+    cp: [],
+    cnp: [],
   },
 }
 

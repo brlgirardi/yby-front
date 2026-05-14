@@ -88,6 +88,10 @@ export interface MerchantOnboardingRecord {
     cp: { enabled: boolean; adquirentes: Array<{ id: string; adquirenteId: string; mid: string }> }
     cnp: { enabled: boolean; adquirentes: Array<{ id: string; adquirenteId: string; mid: string }> }
   }
+  terminais: {
+    cp: Array<{ id: string; identificacao: string; vinculos: Array<{ id: string; adquirenteId: string; tid: string }> }>
+    cnp: Array<{ id: string; identificacao: string; vinculos: Array<{ id: string; adquirenteId: string; tid: string }> }>
+  }
 }
 
 export const MERCHANT_ONBOARDING_RECORDS: Record<string, MerchantOnboardingRecord> = {
@@ -98,6 +102,7 @@ export const MERCHANT_ONBOARDING_RECORDS: Record<string, MerchantOnboardingRecor
       cp:  { enabled: true,  adquirentes: [{ id: 'a1', adquirenteId: 'cielo', mid: '012345001' }, { id: 'a2', adquirenteId: 'rede', mid: '012345002' }] },
       cnp: { enabled: true,  adquirentes: [{ id: 'a3', adquirenteId: 'getnet', mid: '987001' }] },
     },
+    terminais: { cp: [], cnp: [] },
   },
   'MCH-002': {
     id: 'MCH-002', semCnpj: false, cnpj: '47.960.950/0001-21', razaoSocial: 'Magazine Luiza', mcc: '5732',
@@ -106,6 +111,7 @@ export const MERCHANT_ONBOARDING_RECORDS: Record<string, MerchantOnboardingRecor
       cp:  { enabled: true,  adquirentes: [{ id: 'a1', adquirenteId: 'cielo', mid: '022001100' }, { id: 'a2', adquirenteId: 'stone', mid: '022001200' }] },
       cnp: { enabled: true,  adquirentes: [{ id: 'a3', adquirenteId: 'pagseguro', mid: '999001' }] },
     },
+    terminais: { cp: [], cnp: [] },
   },
   'MCH-003': {
     id: 'MCH-003', semCnpj: false, cnpj: '28.665.021/0001-89', razaoSocial: 'Rappi Brasil', mcc: '5812',
@@ -114,6 +120,7 @@ export const MERCHANT_ONBOARDING_RECORDS: Record<string, MerchantOnboardingRecor
       cp:  { enabled: false, adquirentes: [] },
       cnp: { enabled: true,  adquirentes: [{ id: 'a1', adquirenteId: 'getnet', mid: '333010' }, { id: 'a2', adquirenteId: 'pagseguro', mid: '333011' }] },
     },
+    terminais: { cp: [], cnp: [] },
   },
 }
 

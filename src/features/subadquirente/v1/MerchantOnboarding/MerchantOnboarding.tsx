@@ -13,7 +13,7 @@ import PageHeader from '@/components/shared/PageHeader'
 import Button from '@/components/atoms/Button'
 import DetalhesEC from './tabs/DetalhesEC'
 import CanaisTab from './tabs/CanaisTab'
-import TerminaisPlaceholder from './tabs/TerminaisPlaceholder'
+import TerminaisTab from './tabs/TerminaisTab'
 import { emptyForm, type MerchantFormData, type OnboardingTab } from './types'
 
 export type OnboardingMode = 'create' | 'view' | 'edit'
@@ -66,6 +66,7 @@ export default function MerchantOnboarding({
 
   function handleSaveCreate() {
     // Persistência real virá nas próximas fases — apenas volta pra listagem.
+    // No futuro, ao concluir o último tab, redirecionar para /merchants/[novo-id].
     goToList()
   }
 
@@ -194,7 +195,9 @@ export default function MerchantOnboarding({
         {activeTab === 'canais' && (
           <CanaisTab form={form} onChange={setForm} readonly={isView} />
         )}
-        {activeTab === 'terminais' && <TerminaisPlaceholder />}
+        {activeTab === 'terminais' && (
+          <TerminaisTab form={form} onChange={setForm} readonly={isView} />
+        )}
       </div>
     </div>
   )

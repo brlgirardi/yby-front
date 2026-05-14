@@ -83,6 +83,29 @@ export default function DashboardPage() {
 
   return (
     <div style={{ flex:1, overflow:'auto', display:'flex', flexDirection:'column' }}>
+      {/* Grid responsivo dos KPIs:
+          - Mobile (<768px):  1 coluna empilhada
+          - Pequena (<1024px): 2 colunas
+          - Média (1024-1680px): 3 colunas — 3 cards na linha 1, 2 cards na linha 2
+            (Merchants ativos e MDR ficam alinhados à esquerda; última coluna fica vazia
+            por design — melhor que "4+1 solitário")
+          - Grande (>=1680px): 5 colunas em linha única */}
+      <style>{`
+        .dashboard-kpi-grid {
+          display: grid;
+          gap: 16px;
+          grid-template-columns: 1fr;
+        }
+        @media (min-width: 600px) {
+          .dashboard-kpi-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (min-width: 1024px) {
+          .dashboard-kpi-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+        @media (min-width: 1680px) {
+          .dashboard-kpi-grid { grid-template-columns: repeat(5, 1fr); }
+        }
+      `}</style>
       <PageHeader title="Dashboard" breadcrumb="Sub-adquirente / Dashboard" extra={
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           {/* Tabs primary (Geral/Planificação/Antecipação) */}
@@ -139,8 +162,9 @@ export default function DashboardPage() {
 
       {tab !== 'antecipacao' && (
         <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 24 }}>
-          {/* KPIs — usa KpiCard do DS (whiteSpace nowrap evita truncamento) */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
+          {/* KPIs — grid explícito por breakpoint via className.
+              Evita o "4+1 feio" forçando 3+2 em telas médias. */}
+          <div className="dashboard-kpi-grid">
             <KpiCard
               label="Cobranças criadas"
               value="R$ 1.240.500,00"

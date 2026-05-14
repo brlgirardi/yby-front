@@ -18,8 +18,6 @@ import { type MerchantFormData } from '../types'
 interface DetalhesECProps {
   form: MerchantFormData
   onChange: (next: MerchantFormData) => void
-  /** Mesmo grupo de botões do header (sincronizado) — repetido aqui pra evitar scroll. */
-  footerActions: React.ReactNode
   /** Quando true, todos os campos ficam disabled (modo view). Default false. */
   readonly?: boolean
 }
@@ -69,15 +67,7 @@ const SECTION: React.CSSProperties = {
   gap: 16,
 }
 
-const FOOTER: React.CSSProperties = {
-  display: 'flex',
-  justifyContent: 'flex-end',
-  alignItems: 'center',
-  gap: 16,
-  paddingTop: 8,
-}
-
-export default function DetalhesEC({ form, onChange, footerActions, readonly = false }: DetalhesECProps) {
+export default function DetalhesEC({ form, onChange, readonly = false }: DetalhesECProps) {
   const [cepLoading, setCepLoading] = useState(false)
   const [cepNotFound, setCepNotFound] = useState(false)
   const [mccs, setMccs] = useState<Option[]>([])
@@ -257,8 +247,6 @@ export default function DetalhesEC({ form, onChange, footerActions, readonly = f
           />
         </div>
       </section>
-
-      <div style={FOOTER}>{footerActions}</div>
     </div>
   )
 }

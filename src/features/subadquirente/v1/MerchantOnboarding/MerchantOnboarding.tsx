@@ -225,7 +225,6 @@ export default function MerchantOnboarding({
           <DetalhesEC
             form={form}
             onChange={setForm}
-            footerActions={actions}
             readonly={isView}
           />
         )}

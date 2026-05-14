@@ -1,9 +1,24 @@
 // src/features/subadquirente/v1/MerchantOnboarding/types.ts
 // Tipos do Onboarding de Estabelecimento Comercial (EC) — Sub-adquirente.
 // Estrutura: página dedicada com tabs (Detalhes do EC | Canais | Terminais).
-// Validação acontece por card/section — não há mais wizard linear.
 
 export type OnboardingTab = 'detalhes' | 'canais' | 'terminais'
+
+export type ChannelKey = 'cp' | 'cnp'
+
+export interface AdquirenteCanal {
+  /** ID local pra reconciliar adquirentes adicionados na UI (random id ou index). */
+  id: string
+  /** Valor selecionado no AppSelect — referencia ADQUIRENTES do mock. */
+  adquirenteId: string
+  /** MID atribuído pelo adquirente ao EC nesse canal. */
+  mid: string
+}
+
+export interface CanalConfig {
+  enabled: boolean
+  adquirentes: AdquirenteCanal[]
+}
 
 export interface MerchantFormData {
   // --- Card A: Dados do estabelecimento ---
@@ -19,6 +34,9 @@ export interface MerchantFormData {
   endereco: string
   numero: string
   complemento: string
+
+  // --- Tab Canais ---
+  canais: Record<ChannelKey, CanalConfig>
 }
 
 export const emptyForm: MerchantFormData = {
@@ -32,6 +50,10 @@ export const emptyForm: MerchantFormData = {
   endereco: '',
   numero: '',
   complemento: '',
+  canais: {
+    cp: { enabled: true, adquirentes: [] },
+    cnp: { enabled: true, adquirentes: [] },
+  },
 }
 
 /** Card "Dados do estabelecimento" — válido quando documento + razão social + MCC ok. */

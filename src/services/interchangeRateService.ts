@@ -1,3 +1,6 @@
+/**
+ * ⚠️ MOCK-ONLY até a API pública Tupi expor endpoints de interchange rate.
+ */
 import { apiMode, mockDelay, request } from './apiClient'
 import type {
   InterchangeRateBrandSummary,

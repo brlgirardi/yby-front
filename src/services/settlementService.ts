@@ -1,7 +1,13 @@
 /**
  * Service de Settlement — integração com yby-bff /public/settlement/*.
  *
- * Endpoints reais (BFF):
+ * ⚠️ MOCK-ONLY até a API pública Tupi (https://yby-dev.positivolabs.com.br/v1)
+ * expor endpoints de settlement. Os paths abaixo correspondem ao BFF interno
+ * mapeado durante a auditoria (rev 1-2), mas a API pública DEV documentada
+ * em yby-docs ainda não cobre essa área. Quando backend expuser, ajustar
+ * BASE e remover esta nota.
+ *
+ * Endpoints BFF interno (referência):
  *   GET  /public/settlement?page=&limit=&status=&date=
  *   GET  /public/settlement/{id}
  *   GET  /public/settlement/files?page=&limit=

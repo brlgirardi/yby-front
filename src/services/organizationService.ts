@@ -1,24 +1,16 @@
 /**
- * Organization Service — integração com yby-organization-api.
+ * Organization Service — integração com API pública Tupi.
+ * URL Base: https://yby-dev.positivolabs.com.br/v1
  *
- * Endpoints reais:
- *   POST /api/onboarding              cria Organization{Type:merchant} + admin user
- *   GET  /api/organizations?type=...  lista (a confirmar)
- *   GET  /api/organizations/{id}      detalhe (a confirmar)
- *   PUT  /api/organizations/{id}      update (a confirmar)
- *   DELETE /api/organizations/{id}    soft-delete (a confirmar)
+ * Endpoints:
+ *   POST   /v1/merchants                                cria EC com address + bankAccounts + contact + contactPerson
+ *   GET    /v1/merchants                                lista (cursor/limit/order_by/order)
+ *   GET    /v1/merchants/{id}                           detalhe
+ *   PUT    /v1/merchants/{id}                           update parcial (dbaName/corporateName/taxId/address/contact)
+ *   POST   /v1/merchants/{id}/verification-codes        gera códigos pra ativação de equipamentos
  *
- * Modelagem backend (referência):
- *   OrganizationData {
- *     Type: 'acquirer'|'subacquirer'|'independent_sales_organization'|'merchant'
- *     TaxID, DBAName, CorporateName, Slug, Enabled,
- *     MerchantCategoryCode, EconomicActivityCode,
- *     IDPOrganizationID, IDPDomain
- *   }
- *   OnboardingRequest { Admin, Company }
- *
- * Em modo mock, persiste em MERCHANT_ONBOARDING_RECORDS (memória) para
- * fluxo create+view+edit funcionar sem backend.
+ * Em mock, persiste em MERCHANT_ONBOARDING_RECORDS (memória).
+ * Em real, faz fetch + mapeia DTO Tupi (camelCase) → MerchantOnboardingRecord do front.
  */
 
 import { apiMode, mockDelay, request } from './apiClient'
@@ -27,131 +19,160 @@ import {
   type MerchantOnboardingRecord,
 } from '@/mocks/sub/merchant-onboarding'
 import type { MerchantFormData } from '@/features/subadquirente/v1/MerchantOnboarding/types'
+import type {
+  TupiCreateMerchantRequest,
+  TupiMerchant,
+  TupiPaginatedResponse,
+  TupiListParams,
+  TupiUpdateMerchantRequest,
+  TupiVerificationCodeRequest,
+  TupiVerificationCodesResponse,
+} from './types/tupi.types'
 
-/* ─── Tipos do contrato backend (espelho de yby-organization-api) ───── */
+const BASE = '/v1/merchants'
 
-export type OrganizationType =
-  | 'acquirer'
-  | 'subacquirer'
-  | 'independent_sales_organization'
-  | 'merchant'
+/* ─── Mappers MerchantFormData ↔ Tupi DTO ─────────────────────────────── */
 
-export interface OnboardingAdminData {
-  name: string
-  email: string
-  phone: string
-  password: string
-  taxId: string
-}
-
-export interface OnboardingCompanyData {
-  name: string
-  taxId: string
-  domain?: string
-  economicActivityId?: string
-  /** Sub-adquirente pai (para criação de merchant). */
-  parentId?: string
-  type: OrganizationType
-}
-
-export interface OnboardingRequest {
-  admin: OnboardingAdminData
-  company: OnboardingCompanyData
-}
-
-export interface OnboardingResponse {
-  userId?: string
-  organizationId?: string
-  idpUserId?: string
-  idpOrganizationId?: string
-}
-
-/* ─── Mapper: MerchantFormData (Yby Front) → OnboardingRequest (backend) ─ */
-
-function mapMerchantFormToOnboarding(
-  form: MerchantFormData,
-  ctx: { parentSubacquirerId?: string; admin: OnboardingAdminData },
-): OnboardingRequest {
+function toCreateRequest(form: MerchantFormData): TupiCreateMerchantRequest {
   return {
-    admin: ctx.admin,
-    company: {
-      name: form.razaoSocial,
-      taxId: form.cnpj.replace(/\D/g, ''),
-      // MCC vai como economicActivityId? Não — economicActivityId é o ID do CNAE
-      // separado. Backend tem ambos (MerchantCategoryCode + EconomicActivityCode)
-      // mas o OnboardingRequest atual só aceita economicActivityId.
-      // → quando virar real, alinhar com backend se MCC entra em update separado.
-      type: 'merchant',
-      parentId: ctx.parentSubacquirerId,
+    dbaName: form.razaoSocial,
+    corporateName: form.razaoSocial,
+    taxId: form.cnpj.replace(/\D/g, ''),
+    merchantCategoryCode: form.mcc,
+    address: {
+      postalCode: form.cep.replace(/\D/g, ''),
+      state: form.estado,
+      city: form.cidade,
+      neighborhood: '',
+      street: form.endereco,
+      number: form.numero,
+      complement: form.complemento || undefined,
+      country: 'BR',
     },
+  }
+}
+
+function toUpdateRequest(form: Partial<MerchantFormData>): TupiUpdateMerchantRequest {
+  const out: TupiUpdateMerchantRequest = {}
+  if (form.razaoSocial !== undefined) {
+    out.dbaName = form.razaoSocial
+    out.corporateName = form.razaoSocial
+  }
+  if (form.cnpj !== undefined) out.taxId = form.cnpj.replace(/\D/g, '')
+  if (
+    form.cep !== undefined ||
+    form.estado !== undefined ||
+    form.cidade !== undefined ||
+    form.endereco !== undefined ||
+    form.numero !== undefined ||
+    form.complemento !== undefined
+  ) {
+    out.address = {
+      postalCode: (form.cep ?? '').replace(/\D/g, ''),
+      state: form.estado ?? '',
+      city: form.cidade ?? '',
+      neighborhood: '',
+      street: form.endereco ?? '',
+      number: form.numero ?? '',
+      complement: form.complemento || undefined,
+      country: 'BR',
+    }
+  }
+  return out
+}
+
+function fromTupiMerchant(m: TupiMerchant): MerchantOnboardingRecord {
+  return {
+    id: m.id,
+    semCnpj: false,
+    cnpj: m.taxId ?? '',
+    razaoSocial: m.corporateName ?? m.dbaName ?? '',
+    mcc: m.merchantCategoryCode ?? '',
+    cep: m.address?.postalCode ?? '',
+    estado: m.address?.state ?? '',
+    cidade: m.address?.city ?? '',
+    endereco: m.address?.street ?? '',
+    numero: m.address?.number ?? '',
+    complemento: m.address?.complement ?? '',
+    // canais e terminais não vêm no /v1/merchants — preenchidos via providers/credentials e /v1/terminals.
+    canais: { cp: { enabled: true, adquirentes: [] }, cnp: { enabled: true, adquirentes: [] } },
+    terminais: { cp: [], cnp: [] },
   }
 }
 
 /* ─── API ──────────────────────────────────────────────────────────────── */
 
-/**
- * Cria novo EC (merchant). Em modo mock só simula; em modo real envia
- * POST /api/onboarding para o organization-api.
- *
- * Importante: o payload de criação NÃO cobre todos os campos do
- * MerchantFormData (address, contact, MCC). Esses provavelmente são
- * preenchidos via PUT /api/organizations/{id} pós-onboard ou em endpoints
- * separados. Confirmar com backend antes de plugar em produção.
- */
-export async function createMerchant(
-  form: MerchantFormData,
-  ctx: { parentSubacquirerId?: string; admin: OnboardingAdminData },
-): Promise<OnboardingResponse> {
+export async function createMerchant(form: MerchantFormData): Promise<MerchantOnboardingRecord> {
   if (apiMode === 'mock') {
     await mockDelay(600)
     const id = `MCH-${String(Object.keys(MERCHANT_ONBOARDING_RECORDS).length + 1).padStart(3, '0')}`
-    return { organizationId: id }
+    const record = { ...fromTupiMerchant({ id } as TupiMerchant), ...form, id } as MerchantOnboardingRecord
+    MERCHANT_ONBOARDING_RECORDS[id] = record
+    return record
   }
-  const payload = mapMerchantFormToOnboarding(form, ctx)
-  return request<OnboardingResponse>('/api/onboarding', {
+  const m = await request<TupiMerchant>(BASE, {
     method: 'POST',
-    data: payload,
+    data: toCreateRequest(form),
     allowWriteInReadOnly: true,
   })
+  return fromTupiMerchant(m)
 }
 
-/**
- * Lista merchants do sub-adquirente logado. Endpoint a confirmar com backend.
- */
-export async function listMerchants(params?: { parentId?: string }): Promise<MerchantOnboardingRecord[]> {
+export async function listMerchants(params?: TupiListParams): Promise<MerchantOnboardingRecord[]> {
   if (apiMode === 'mock') {
     await mockDelay()
     return Object.values(MERCHANT_ONBOARDING_RECORDS)
   }
-  return request<MerchantOnboardingRecord[]>('/api/organizations', {
-    params: { type: 'merchant', ...params },
+  const res = await request<TupiPaginatedResponse<TupiMerchant>>(BASE, {
+    params: params as Record<string, string | number | boolean | undefined>,
   })
+  return res.data.map(fromTupiMerchant)
 }
 
-/** Detalhe de merchant por id. */
 export async function getMerchant(id: string): Promise<MerchantOnboardingRecord | null> {
   if (apiMode === 'mock') {
     await mockDelay()
     return MERCHANT_ONBOARDING_RECORDS[id] ?? null
   }
-  return request<MerchantOnboardingRecord>(`/api/organizations/${id}`)
+  const m = await request<TupiMerchant>(`${BASE}/${id}`)
+  return fromTupiMerchant(m)
 }
 
-/** Update de merchant (campos editáveis pós-criação). */
 export async function updateMerchant(
   id: string,
   patch: Partial<MerchantFormData>,
-): Promise<void> {
+): Promise<MerchantOnboardingRecord> {
   if (apiMode === 'mock') {
     await mockDelay(400)
     const existing = MERCHANT_ONBOARDING_RECORDS[id]
     if (!existing) throw new Error(`Merchant ${id} não encontrado`)
-    MERCHANT_ONBOARDING_RECORDS[id] = { ...existing, ...patch } as MerchantOnboardingRecord
-    return
+    const updated = { ...existing, ...patch } as MerchantOnboardingRecord
+    MERCHANT_ONBOARDING_RECORDS[id] = updated
+    return updated
   }
-  await request<void>(`/api/organizations/${id}`, {
+  const m = await request<TupiMerchant>(`${BASE}/${id}`, {
     method: 'PUT',
-    data: patch,
+    data: toUpdateRequest(patch),
     allowWriteInReadOnly: true,
   })
+  return fromTupiMerchant(m)
+}
+
+export async function generateVerificationCodes(
+  merchantId: string,
+  body: TupiVerificationCodeRequest,
+): Promise<TupiVerificationCodesResponse> {
+  if (apiMode === 'mock') {
+    await mockDelay(300)
+    return {
+      data: Array.from({ length: body.numberOfCodes }, (_, i) => ({
+        code: `MOCK${(100000 + i).toString()}`,
+        expiresAt: body.expiresAt ?? new Date(Date.now() + 24 * 3600_000).toISOString(),
+      })),
+    }
+  }
+  return request<TupiVerificationCodesResponse>(
+    `${BASE}/${merchantId}/verification-codes`,
+    { method: 'POST', data: body, allowWriteInReadOnly: true },
+  )
 }

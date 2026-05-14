@@ -1,3 +1,8 @@
+/**
+ * ⚠️ MOCK-ONLY até a API pública Tupi expor endpoints de reconciliação.
+ * Paths abaixo (/report/recon-*) correspondem ao yby-reconciliation-api
+ * interno, não à API pública documentada em yby-docs.
+ */
 import { apiMode, mockDelay, request } from './apiClient'
 import type {
   ReconciliationByGroupCodeResponse,

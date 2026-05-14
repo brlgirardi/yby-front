@@ -32,6 +32,7 @@ function MerchantPageContent({ id }: { id: string }) {
     numero: record.numero,
     complemento: record.complemento,
     canais: record.canais,
+    terminais: record.terminais,
   }
 
   return (

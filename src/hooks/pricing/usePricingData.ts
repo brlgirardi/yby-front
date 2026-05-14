@@ -63,13 +63,17 @@ export function usePricingData(): UsePricingResult {
   return { installments, costTables, costItems, priceTables, priceItems, loading, error }
 }
 
-/** Mapa de display name dos adquirentes (Tupi suporta múltiplos). */
+/**
+ * Mapa de display name dos adquirentes (6 reais da API pública /v1/providers).
+ * Mantém em sync com ADQUIRENTES de @/mocks/sub/merchant-onboarding e providersService.
+ */
 export const ACQUIRER_NAMES: Record<string, string> = {
-  adiq: 'Adiq',
-  getnet: 'GetNet',
   cielo: 'Cielo',
   rede: 'Rede',
   stone: 'Stone',
+  getnet: 'GetNet',
+  adiq: 'Adiq',
+  pagseguro: 'PagSeguro',
 }
 
 export function getAcquirerDisplayName(id: string): string {

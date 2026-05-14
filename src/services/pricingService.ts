@@ -40,15 +40,26 @@ const BASE = '/public/pricing'
 const NOW = '2026-04-24T12:00:00Z'
 const MERCHANT_ID = 'merchant_yby_demo'
 
-const MOCK_INSTALLMENTS: Installment[] = [
-  { id: 'inst_1',     from: 1,  to: 1,  acquirer_id: 'adiq',   created_at: NOW, updated_at: NOW },
-  { id: 'inst_2_6',   from: 2,  to: 6,  acquirer_id: 'adiq',   created_at: NOW, updated_at: NOW },
-  { id: 'inst_7_12',  from: 7,  to: 12, acquirer_id: 'adiq',   created_at: NOW, updated_at: NOW },
-  { id: 'inst_13',    from: 13, to: 24, acquirer_id: 'adiq',   created_at: NOW, updated_at: NOW },
-  { id: 'inst_g_1',   from: 1,  to: 1,  acquirer_id: 'getnet', created_at: NOW, updated_at: NOW },
-  { id: 'inst_g_2_6', from: 2,  to: 6,  acquirer_id: 'getnet', created_at: NOW, updated_at: NOW },
-  { id: 'inst_g_7_12',from: 7,  to: 12, acquirer_id: 'getnet', created_at: NOW, updated_at: NOW },
+// Parcelas (faixas) replicadas para todos os 6 adquirentes reais da API pública /v1.
+const INSTALLMENT_RANGES: { suffix: string; from: number; to: number }[] = [
+  { suffix: '1',    from: 1,  to: 1  },
+  { suffix: '2_6',  from: 2,  to: 6  },
+  { suffix: '7_12', from: 7,  to: 12 },
+  { suffix: '13',   from: 13, to: 24 },
 ]
+const ACQUIRERS = ['cielo', 'rede', 'stone', 'getnet', 'adiq', 'pagseguro'] as const
+type AcquirerId = (typeof ACQUIRERS)[number]
+
+const MOCK_INSTALLMENTS: Installment[] = ACQUIRERS.flatMap((acq) =>
+  INSTALLMENT_RANGES.map((r) => ({
+    id: `inst_${acq}_${r.suffix}`,
+    from: r.from,
+    to: r.to,
+    acquirer_id: acq,
+    created_at: NOW,
+    updated_at: NOW,
+  })),
+)
 
 // Helper para gerar cost items
 const ci = (
@@ -65,47 +76,105 @@ const ci = (
   merchant_id: MERCHANT_ID, created_at: NOW, updated_at: NOW,
 })
 
-const MOCK_COST_ITEMS: CostItem[] = [
-  // Adiq — Mastercard
-  ci('cost_001', 'adiq', 'MASTERCARD', 'debit',   'inst_1',     0.85),
-  ci('cost_002', 'adiq', 'MASTERCARD', 'credit',  'inst_1',     1.45),
-  ci('cost_003', 'adiq', 'MASTERCARD', 'credit',  'inst_2_6',   2.10),
-  ci('cost_004', 'adiq', 'MASTERCARD', 'credit',  'inst_7_12',  2.85),
-  ci('cost_005', 'adiq', 'MASTERCARD', 'credit',  'inst_13',    3.40),
-  // Adiq — Visa
-  ci('cost_006', 'adiq', 'VISA',       'debit',   'inst_1',     0.85),
-  ci('cost_007', 'adiq', 'VISA',       'credit',  'inst_1',     1.40),
-  ci('cost_008', 'adiq', 'VISA',       'credit',  'inst_2_6',   2.05),
-  ci('cost_009', 'adiq', 'VISA',       'credit',  'inst_7_12',  2.80),
-  // Adiq — Elo
-  ci('cost_010', 'adiq', 'ELO',        'debit',   'inst_1',     0.80),
-  ci('cost_011', 'adiq', 'ELO',        'credit',  'inst_1',     1.55),
-  ci('cost_012', 'adiq', 'ELO',        'credit',  'inst_2_6',   2.20),
-  // Adiq — Amex
-  ci('cost_013', 'adiq', 'AMEX',       'credit',  'inst_1',     2.95),
-  ci('cost_014', 'adiq', 'AMEX',       'credit',  'inst_2_6',   3.50),
-  // Adiq — PIX
-  ci('cost_015', 'adiq', 'PIX',        'debit',   'inst_1',     0.40, 0),
-  // GetNet — Mastercard
-  ci('cost_101', 'getnet', 'MASTERCARD', 'debit',  'inst_g_1',    0.92),
-  ci('cost_102', 'getnet', 'MASTERCARD', 'credit', 'inst_g_1',    1.55),
-  ci('cost_103', 'getnet', 'MASTERCARD', 'credit', 'inst_g_2_6',  2.25),
-  ci('cost_104', 'getnet', 'MASTERCARD', 'credit', 'inst_g_7_12', 2.95),
-  // GetNet — Visa
-  ci('cost_105', 'getnet', 'VISA',       'debit',  'inst_g_1',    0.92),
-  ci('cost_106', 'getnet', 'VISA',       'credit', 'inst_g_1',    1.50),
-  ci('cost_107', 'getnet', 'VISA',       'credit', 'inst_g_2_6',  2.20),
+/**
+ * Tabela base de taxas por bandeira/produto/faixa de parcela.
+ * Aplicamos um "fator competitivo" por adquirente em cima dessa base,
+ * gerando dados realistas pra todos os 6 adquirentes da API pública /v1.
+ */
+const COST_BASE: Array<{
+  brand: CostItem['card_brand']
+  product: CostItem['product_type']
+  ranges: Record<string, number>
+  fee?: number
+}> = [
+  { brand: 'MASTERCARD', product: 'debit',  ranges: { '1': 0.85 } },
+  { brand: 'MASTERCARD', product: 'credit', ranges: { '1': 1.45, '2_6': 2.10, '7_12': 2.85, '13': 3.40 } },
+  { brand: 'VISA',       product: 'debit',  ranges: { '1': 0.85 } },
+  { brand: 'VISA',       product: 'credit', ranges: { '1': 1.40, '2_6': 2.05, '7_12': 2.80, '13': 3.35 } },
+  { brand: 'ELO',        product: 'debit',  ranges: { '1': 0.80 } },
+  { brand: 'ELO',        product: 'credit', ranges: { '1': 1.55, '2_6': 2.20 } },
+  { brand: 'AMEX',       product: 'credit', ranges: { '1': 2.95, '2_6': 3.50 } },
+  { brand: 'PIX',        product: 'debit',  ranges: { '1': 0.40 }, fee: 0 },
 ]
 
-const MOCK_COST_TABLES: CostBlueprintTable[] = [
-  { id: 'tbl_cost_adiq_cp',    merchant_id: MERCHANT_ID, acquirer_id: 'adiq',   is_active: true, channel: 'cp',  created_at: NOW, updated_at: NOW },
-  { id: 'tbl_cost_adiq_cnp',   merchant_id: MERCHANT_ID, acquirer_id: 'adiq',   is_active: true, channel: 'cnp', created_at: NOW, updated_at: NOW },
-  { id: 'tbl_cost_getnet_cp',  merchant_id: MERCHANT_ID, acquirer_id: 'getnet', is_active: true, channel: 'cp',  created_at: NOW, updated_at: NOW },
-]
+/**
+ * Multiplicadores por adquirente — refletem competitividade no mercado real.
+ * Cielo + Rede operam volumes altos (margens mais apertadas).
+ * Stone + GetNet são medianas. Adiq é mais agressiva (sub-acquirer Itaú).
+ * PagSeguro tende a ter taxas maiores pra ECs pequenos.
+ */
+const ACQUIRER_FACTOR: Record<AcquirerId, number> = {
+  cielo: 1.0,
+  rede: 1.02,
+  stone: 1.05,
+  getnet: 1.08,
+  adiq: 0.95,
+  pagseguro: 1.15,
+}
 
-const MOCK_COST_BLUEPRINT_ITEMS: CostBlueprintItem[] = MOCK_COST_ITEMS
-  .filter(c => c.acquirer_id === 'adiq')
-  .map((c, i) => ({ id: `cbi_${i}`, cost_blueprint_table_id: 'tbl_cost_adiq_cp', cost_item_id: c.id, created_at: NOW, updated_at: NOW }))
+const MOCK_COST_ITEMS: CostItem[] = ACQUIRERS.flatMap((acq) =>
+  COST_BASE.flatMap((base) =>
+    Object.entries(base.ranges).map(([range, rate]) =>
+      ci(
+        `cost_${acq}_${base.brand.toLowerCase()}_${base.product}_${range}`,
+        acq,
+        base.brand,
+        base.product,
+        `inst_${acq}_${range}`,
+        +(rate * ACQUIRER_FACTOR[acq]).toFixed(2),
+        base.fee ?? 0.10,
+      ),
+    ),
+  ),
+)
+
+// Cada adquirente real tem uma tabela CP. Apenas alguns operam CNP (gateways de e-commerce).
+const ACQUIRER_HAS_CNP: Record<AcquirerId, boolean> = {
+  cielo: true,
+  rede: true,
+  stone: false,
+  getnet: true,
+  adiq: true,
+  pagseguro: true,
+}
+
+const MOCK_COST_TABLES: CostBlueprintTable[] = ACQUIRERS.flatMap((acq) => {
+  const tables: CostBlueprintTable[] = [
+    {
+      id: `tbl_cost_${acq}_cp`,
+      merchant_id: MERCHANT_ID,
+      acquirer_id: acq,
+      is_active: true,
+      channel: 'cp',
+      created_at: NOW,
+      updated_at: NOW,
+    },
+  ]
+  if (ACQUIRER_HAS_CNP[acq]) {
+    tables.push({
+      id: `tbl_cost_${acq}_cnp`,
+      merchant_id: MERCHANT_ID,
+      acquirer_id: acq,
+      is_active: true,
+      channel: 'cnp',
+      created_at: NOW,
+      updated_at: NOW,
+    })
+  }
+  return tables
+})
+
+const MOCK_COST_BLUEPRINT_ITEMS: CostBlueprintItem[] = MOCK_COST_TABLES.flatMap((table) =>
+  MOCK_COST_ITEMS
+    .filter((c) => c.acquirer_id === table.acquirer_id)
+    .map((c, i) => ({
+      id: `cbi_${table.id}_${i}`,
+      cost_blueprint_table_id: table.id,
+      cost_item_id: c.id,
+      created_at: NOW,
+      updated_at: NOW,
+    })),
+)
 
 /* ─── Múltiplas tabelas de preço (Tupi feat/pricing) ─────────────────────── *
  * Cada PriceBlueprintTable representa uma "tabela de preços" nomeada

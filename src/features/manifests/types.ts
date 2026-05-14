@@ -17,6 +17,7 @@ export type ModuleKey =
   | 'pricing'
   | 'usuarios'
   | 'reconciliation'
+  | 'integrations'
   | 'settings'
   // V1++ EC
   | 'preferencias'

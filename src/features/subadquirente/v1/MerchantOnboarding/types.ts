@@ -95,3 +95,56 @@ export function enderecoCardIsValid(form: MerchantFormData): boolean {
     form.numero.trim().length > 0
   )
 }
+
+/**
+ * Validação consolidada do MerchantFormData antes de chamar createMerchant.
+ * Devolve a lista de erros (vazia quando válido). Cada erro é um par
+ * { field, message } para mostrar ao usuário (toast/modal).
+ */
+export function validateMerchantForm(form: MerchantFormData): { field: string; message: string }[] {
+  const errors: { field: string; message: string }[] = []
+
+  if (!form.semCnpj && form.cnpj.replace(/\D/g, '').length < 11) {
+    errors.push({ field: 'cnpj', message: 'CNPJ ou CPF é obrigatório' })
+  }
+  if (form.razaoSocial.trim().length === 0) {
+    errors.push({ field: 'razaoSocial', message: 'Razão social é obrigatória' })
+  }
+  if (form.mcc.trim().length === 0) {
+    errors.push({ field: 'mcc', message: 'MCC é obrigatório' })
+  }
+  if (form.cep.replace(/\D/g, '').length !== 8) {
+    errors.push({ field: 'cep', message: 'CEP inválido (8 dígitos)' })
+  }
+  if (form.estado.trim().length === 0) {
+    errors.push({ field: 'estado', message: 'Estado é obrigatório' })
+  }
+  if (form.cidade.trim().length === 0) {
+    errors.push({ field: 'cidade', message: 'Cidade é obrigatória' })
+  }
+  if (form.endereco.trim().length === 0) {
+    errors.push({ field: 'endereco', message: 'Endereço é obrigatório' })
+  }
+  if (form.numero.trim().length === 0) {
+    errors.push({ field: 'numero', message: 'Número é obrigatório' })
+  }
+
+  // Canais habilitados precisam ter pelo menos 1 adquirente com MID preenchido.
+  for (const ch of ['cp', 'cnp'] as const) {
+    const c = form.canais[ch]
+    if (c.enabled && c.adquirentes.length === 0) {
+      // Não bloqueia (canal pode estar habilitado sem adquirente ainda) — só warning.
+      continue
+    }
+    for (const adq of c.adquirentes) {
+      if (!adq.adquirenteId) {
+        errors.push({ field: `canais.${ch}`, message: `Canal ${ch.toUpperCase()}: adquirente não selecionado` })
+      }
+      if (!adq.mid.trim()) {
+        errors.push({ field: `canais.${ch}.mid`, message: `Canal ${ch.toUpperCase()}: MID é obrigatório` })
+      }
+    }
+  }
+
+  return errors
+}

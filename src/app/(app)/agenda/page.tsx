@@ -101,7 +101,8 @@ export default function AgendaPage() {
   // Banners/legendas dispensáveis (session-only)
   const [dismissed, setDismissed] = useState<Set<string>>(new Set())
   const dismiss = (id: string) => setDismissed(p => { const s = new Set(p); s.add(id); return s })
-  const ALL_ADQS = ['Adiq','Rede','Cielo','Getnet']
+  // Alinhado com a API pública /v1/providers (6 adquirentes oficiais).
+  const ALL_ADQS = ['Cielo','Rede','Stone','Getnet','Adiq','PagSeguro']
   const toggleAdq = (a: string) => setSelectedAdqs(prev => prev.includes(a) ? prev.filter(x=>x!==a) : [...prev, a])
   const bandeiras = ['Visa','Master','Elo']
 

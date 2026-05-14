@@ -6,11 +6,11 @@
 // Adquirente do vínculo limita-se aos vinculados em Canais do mesmo produto.
 // Spec UX: Pixel (2026-05-14).
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ChevronDown, ChevronUp, CreditCard, ShoppingCart, Trash2 } from 'lucide-react'
 import Input from '@/components/atoms/Input'
 import AppSelect from '@/components/ui/AppSelect'
-import { ADQUIRENTES } from '@/mocks/sub/merchant-onboarding'
+import { getProviders, type ProviderOption } from '@/services/providersService'
 import {
   type CanalConfig,
   type ChannelKey,
@@ -51,8 +51,8 @@ function newId(prefix: string): string {
   return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
 }
 
-function adquirenteLabel(adquirenteId: string): string {
-  return ADQUIRENTES.find((a) => a.value === adquirenteId)?.label ?? adquirenteId
+function adquirenteLabel(adquirenteId: string, providers: ProviderOption[]): string {
+  return providers.find((a) => a.value === adquirenteId)?.label ?? adquirenteId
 }
 
 const CARD: React.CSSProperties = {
@@ -81,6 +81,18 @@ const DIVIDER: React.CSSProperties = {
 }
 
 export default function TerminaisTab({ form, onChange, readonly = false }: TerminaisTabProps) {
+  const [providers, setProviders] = useState<ProviderOption[]>([])
+
+  useEffect(() => {
+    let cancelled = false
+    getProviders().then((list) => {
+      if (!cancelled) setProviders(list)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   function setTerminais(channel: ChannelKey, next: Terminal[]) {
     onChange({ ...form, terminais: { ...form.terminais, [channel]: next } })
   }
@@ -97,6 +109,7 @@ export default function TerminaisTab({ form, onChange, readonly = false }: Termi
             def={ch}
             canal={form.canais[ch.id]}
             terminais={form.terminais[ch.id]}
+            providers={providers}
             readonly={readonly}
             onChange={(next) => setTerminais(ch.id, next)}
           />
@@ -110,11 +123,12 @@ interface ChannelTerminalsCardProps {
   def: ChannelDef
   canal: CanalConfig
   terminais: Terminal[]
+  providers: ProviderOption[]
   readonly: boolean
   onChange: (next: Terminal[]) => void
 }
 
-function ChannelTerminalsCard({ def, canal, terminais, readonly, onChange }: ChannelTerminalsCardProps) {
+function ChannelTerminalsCard({ def, canal, terminais, providers, readonly, onChange }: ChannelTerminalsCardProps) {
   const [open, setOpen] = useState(true)
   const disabledChannel = !canal.enabled
   const noAdquirentes = canal.enabled && canal.adquirentes.length === 0
@@ -201,6 +215,7 @@ function ChannelTerminalsCard({ def, canal, terminais, readonly, onChange }: Cha
                   key={terminal.id}
                   terminal={terminal}
                   canalAdquirentes={canal.adquirentes}
+                  providers={providers}
                   readonly={readonly}
                   onChange={(patch) => updateTerminal(terminal.id, patch)}
                   onRemove={() => removeTerminal(terminal.id)}
@@ -247,16 +262,17 @@ function ChannelTerminalsCard({ def, canal, terminais, readonly, onChange }: Cha
 interface TerminalBlockProps {
   terminal: Terminal
   canalAdquirentes: CanalConfig['adquirentes']
+  providers: ProviderOption[]
   readonly: boolean
   onChange: (patch: Partial<Terminal>) => void
   onRemove: () => void
 }
 
-function TerminalBlock({ terminal, canalAdquirentes, readonly, onChange, onRemove }: TerminalBlockProps) {
+function TerminalBlock({ terminal, canalAdquirentes, providers, readonly, onChange, onRemove }: TerminalBlockProps) {
   // Opções base: somente adquirentes vinculados em Canais deste produto.
   const baseOptions = canalAdquirentes
     .filter((a) => a.adquirenteId)
-    .map((a) => ({ value: a.adquirenteId, label: `${adquirenteLabel(a.adquirenteId)} — MID: ${a.mid || '—'}` }))
+    .map((a) => ({ value: a.adquirenteId, label: `${adquirenteLabel(a.adquirenteId, providers)} — MID: ${a.mid || '—'}` }))
 
   /**
    * Pra cada AppSelect, escondemos adquirentes já escolhidos em OUTROS vínculos

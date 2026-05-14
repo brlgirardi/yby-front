@@ -4,12 +4,12 @@
 // Padrão visual reutiliza ChannelSection de /pricing/costs (simplificado).
 // Spec UX: Pixel (2026-05-14).
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Switch } from 'antd'
 import { ChevronDown, ChevronUp, CreditCard, ShoppingCart, Trash2 } from 'lucide-react'
 import Input from '@/components/atoms/Input'
 import AppSelect from '@/components/ui/AppSelect'
-import { ADQUIRENTES } from '@/mocks/sub/merchant-onboarding'
+import { getProviders, type ProviderOption } from '@/services/providersService'
 import {
   type AdquirenteCanal,
   type CanalConfig,
@@ -50,11 +50,24 @@ function newAdqId(): string {
 }
 
 export default function CanaisTab({ form, onChange, readonly = false }: CanaisTabProps) {
+  const [providers, setProviders] = useState<ProviderOption[]>([])
+
+  useEffect(() => {
+    let cancelled = false
+    getProviders().then((list) => {
+      if (!cancelled) setProviders(list)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {CHANNELS.map((ch) => (
         <ChannelCard
           key={ch.id}
+          providers={providers}
           def={ch}
           config={form.canais[ch.id]}
           readonly={readonly}
@@ -71,10 +84,11 @@ interface ChannelCardProps {
   def: ChannelDef
   config: CanalConfig
   readonly: boolean
+  providers: ProviderOption[]
   onConfigChange: (next: CanalConfig) => void
 }
 
-function ChannelCard({ def, config, readonly, onConfigChange }: ChannelCardProps) {
+function ChannelCard({ def, config, readonly, providers, onConfigChange }: ChannelCardProps) {
   const [open, setOpen] = useState(true)
 
   function setEnabled(enabled: boolean) {
@@ -183,6 +197,7 @@ function ChannelCard({ def, config, readonly, onConfigChange }: ChannelCardProps
               key={adq.id}
               value={adq}
               readonly={readonly}
+              providers={providers}
               alreadyTaken={config.adquirentes
                 .filter((a) => a.id !== adq.id)
                 .map((a) => a.adquirenteId)
@@ -230,13 +245,14 @@ function ChannelCard({ def, config, readonly, onConfigChange }: ChannelCardProps
 interface AdquirenteBlockProps {
   value: AdquirenteCanal
   readonly: boolean
+  providers: ProviderOption[]
   alreadyTaken: string[]
   onChange: (patch: Partial<AdquirenteCanal>) => void
   onRemove: () => void
 }
 
-function AdquirenteBlock({ value, readonly, alreadyTaken, onChange, onRemove }: AdquirenteBlockProps) {
-  const availableOptions = ADQUIRENTES.filter(
+function AdquirenteBlock({ value, readonly, providers, alreadyTaken, onChange, onRemove }: AdquirenteBlockProps) {
+  const availableOptions = providers.filter(
     (op) => op.value === value.adquirenteId || !alreadyTaken.includes(op.value),
   )
 

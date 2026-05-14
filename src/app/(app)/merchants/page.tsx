@@ -1,11 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import PageHeader from '@/components/shared/PageHeader'
 import Icon from '@/components/atoms/Icon'
 import Tag from '@/components/atoms/Tag'
 import DataTable, { type ColumnType } from '@/components/ui/DataTable'
+import { listMerchants } from '@/services/organizationService'
 
 const MERCHANTS = [
   { id:'MCH-001', name:'Americanas S.A.', cnpj:'00.776.574/0001-56', mcc:'5912', status:'Ativo',    volume:'R$ 1.240.500,00', txns:8420  },
@@ -38,8 +39,40 @@ export default function MerchantsPage() {
   const router = useRouter()
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<string[]>(['Ativo', 'Suspenso', 'Inativo'])
+  const [merchants, setMerchants] = useState<Merchant[]>(MERCHANTS)
 
-  const filtered = MERCHANTS.filter(m =>
+  /**
+   * Carrega lista do backend e mescla por id com a base estática.
+   * Métricas (volume/txns/status) não vêm de /v1/merchants ainda — preservamos
+   * o valor hardcoded; apenas atualizamos os campos cadastrais.
+   */
+  useEffect(() => {
+    let cancelled = false
+    listMerchants({ limit: 100 })
+      .then((records) => {
+        if (cancelled || records.length === 0) return
+        const byId = new Map<string, Merchant>(MERCHANTS.map((m) => [m.id, m]))
+        for (const r of records) {
+          const existing = byId.get(r.id)
+          byId.set(r.id, {
+            ...(existing ?? { id: r.id, status: 'Ativo', volume: '—', txns: 0 }),
+            id: r.id,
+            name: r.razaoSocial || existing?.name || r.id,
+            cnpj: r.cnpj || existing?.cnpj || '',
+            mcc: r.mcc || existing?.mcc || '',
+          } as Merchant)
+        }
+        setMerchants(Array.from(byId.values()))
+      })
+      .catch(() => {
+        // Mantém base estática quando backend falha — não polui UI com toast em listagens.
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const filtered = merchants.filter(m =>
     statusFilter.includes(m.status) &&
     (!search || m.name.toLowerCase().includes(search.toLowerCase()) || m.cnpj.includes(search))
   )

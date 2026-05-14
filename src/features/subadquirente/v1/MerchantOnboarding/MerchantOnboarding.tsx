@@ -8,13 +8,14 @@
 
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Modal } from 'antd'
+import { Modal, message } from 'antd'
 import PageHeader from '@/components/shared/PageHeader'
 import Button from '@/components/atoms/Button'
 import DetalhesEC from './tabs/DetalhesEC'
 import CanaisTab from './tabs/CanaisTab'
 import TerminaisTab from './tabs/TerminaisTab'
 import { emptyForm, type MerchantFormData, type OnboardingTab } from './types'
+import { createMerchant, updateMerchant } from '@/services/organizationService'
 
 export type OnboardingMode = 'create' | 'view' | 'edit'
 
@@ -64,28 +65,53 @@ export default function MerchantOnboarding({
     goToList()
   }
 
-  function handleSaveCreate() {
-    // Persistência real virá nas próximas fases — apenas volta pra listagem.
-    goToList()
+  const [saving, setSaving] = useState(false)
+
+  async function handleSaveCreate() {
+    if (saving) return
+    setSaving(true)
+    try {
+      const created = await createMerchant(form)
+      message.success('Estabelecimento criado')
+      router.push(`/merchants/${created.id}`)
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Falha ao salvar estabelecimento'
+      message.error(msg)
+    } finally {
+      setSaving(false)
+    }
   }
 
-  function handleAdvance() {
+  async function handleAdvance() {
     const next = NEXT_TAB[activeTab]
-    if (next) setActiveTab(next)
-    else handleSaveCreate()
+    if (next) {
+      setActiveTab(next)
+      return
+    }
+    await handleSaveCreate()
   }
 
   function handleEditClick() {
     if (merchantId) router.push(`/merchants/${merchantId}?edit=1`)
   }
 
-  function handleSaveEdit() {
+  async function handleSaveEdit() {
     if (!merchantId) {
       goToList()
       return
     }
-    // Persistência real virá nas próximas fases — volta pra view.
-    router.push(`/merchants/${merchantId}`)
+    if (saving) return
+    setSaving(true)
+    try {
+      await updateMerchant(merchantId, form)
+      message.success('Alterações salvas')
+      router.push(`/merchants/${merchantId}`)
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Falha ao salvar alterações'
+      message.error(msg)
+    } finally {
+      setSaving(false)
+    }
   }
 
   function handleCancelEdit() {

@@ -3,43 +3,64 @@
 // Tela de visualização / edição de um EC já cadastrado.
 // Reusa MerchantOnboarding em modo view (default) ou edit (?edit=1).
 
-import { Suspense, useMemo } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { notFound, useSearchParams } from 'next/navigation'
 import MerchantOnboarding from '@/features/subadquirente/v1/MerchantOnboarding/MerchantOnboarding'
-import { getMerchantRecord } from '@/mocks/sub/merchant-onboarding'
 import { emptyForm, type MerchantFormData } from '@/features/subadquirente/v1/MerchantOnboarding/types'
+import { getMerchant } from '@/services/organizationService'
 
 function MerchantPageContent({ id }: { id: string }) {
   const searchParams = useSearchParams()
   const isEdit = searchParams.get('edit') === '1'
+  const [initialForm, setInitialForm] = useState<MerchantFormData | null>(null)
+  const [notFoundFlag, setNotFoundFlag] = useState(false)
 
-  const record = useMemo(() => getMerchantRecord(id), [id])
+  useEffect(() => {
+    let cancelled = false
+    getMerchant(id)
+      .then((record) => {
+        if (cancelled) return
+        if (!record) {
+          setNotFoundFlag(true)
+          return
+        }
+        setInitialForm({
+          ...emptyForm,
+          semCnpj: record.semCnpj,
+          cnpj: record.cnpj,
+          razaoSocial: record.razaoSocial,
+          mcc: record.mcc,
+          cep: record.cep,
+          estado: record.estado,
+          cidade: record.cidade,
+          endereco: record.endereco,
+          numero: record.numero,
+          complemento: record.complemento,
+          canais: record.canais,
+          terminais: record.terminais,
+        })
+      })
+      .catch(() => {
+        if (!cancelled) setNotFoundFlag(true)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [id])
 
-  if (!record) {
+  if (notFoundFlag) {
     notFound()
   }
 
-  const initialForm: MerchantFormData = {
-    ...emptyForm,
-    semCnpj: record.semCnpj,
-    cnpj: record.cnpj,
-    razaoSocial: record.razaoSocial,
-    mcc: record.mcc,
-    cep: record.cep,
-    estado: record.estado,
-    cidade: record.cidade,
-    endereco: record.endereco,
-    numero: record.numero,
-    complemento: record.complemento,
-    canais: record.canais,
-    terminais: record.terminais,
+  if (!initialForm) {
+    return null
   }
 
   return (
     <MerchantOnboarding
       mode={isEdit ? 'edit' : 'view'}
       initialForm={initialForm}
-      merchantId={record.id}
+      merchantId={id}
     />
   )
 }
